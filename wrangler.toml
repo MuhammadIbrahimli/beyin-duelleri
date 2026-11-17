@@ -1,0 +1,27 @@
+name = "beyin-duelleri"
+main = "worker/index.ts"
+compatibility_date = "2026-01-01"
+
+[assets]
+directory = "dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "beyin"
+database_id = "TODO_RUN_wrangler_d1_create_beyin"
+migrations_dir = "migrations"
+
+[[unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 60, period = 60 }
+
+[triggers]
+crons = ["15 * * * *"]
+
+[vars]
+SITE_ORIGIN = "http://localhost:8787"
