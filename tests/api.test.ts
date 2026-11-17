@@ -199,3 +199,27 @@ describe("aggregate (cron)", () => {
     expect(r.json.cities.map((c: any) => c.city)).toEqual(["baki", "diger"]);
   });
 });
+
+describe("reng-ve-soz over the API", () => {
+  async function playReng(token: string, ms: number, duelCode?: string) {
+    const s = await call("POST", "/api/runs/start", token, { slug: "reng-ve-soz", ...(duelCode ? { duelCode } : {}) });
+    expect(s.status).toBe(201);
+    const trials = s.json.schedule.trials as { ink: number; congruent: boolean }[];
+    vi.setSystemTime(Date.now() + 30000);
+    const f = await call("POST", `/api/runs/${s.json.runId}/finish`, token, {
+      payload: { answers: trials.map((t) => t.ink), times: trials.map((t, i) => (t.congruent ? ms - 100 : ms) + i) },
+    });
+    return { s: s.json, f };
+  }
+  it("duel: lower focus score wins, same trial order for both", async () => {
+    const [a, b] = [await newUser(), await newUser()];
+    const ra = await playReng(a, 600);
+    expect(ra.f.json.valid).toBe(true);
+    const { code } = (await call("POST", "/api/duels", a, { runId: ra.s.runId })).json;
+    const rb = await playReng(b, 900, code);
+    expect(rb.s.schedule).toEqual(ra.s.schedule);
+    const res = await call("GET", `/api/duels/${code}/result`, b);
+    expect(res.json.outcome).toBe("lose");
+    expect(res.json.entries[0].secondary.errors).toBe(0);
+  });
+});

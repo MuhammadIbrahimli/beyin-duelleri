@@ -133,3 +133,46 @@ describe("streak", () => {
     expect(streakOf(["2026-11-18", "2026-11-16"], "2026-11-18")).toBe(1);
   });
 });
+
+import { rengVeSoz } from "../shared/scoring";
+
+describe("reng-ve-soz scoring", () => {
+  const s = rengVeSoz.schedule(5);
+  const perfect = (ms: (i: number) => number) => ({
+    answers: s.trials.map((t) => t.ink),
+    times: s.trials.map((_, i) => ms(i)),
+  });
+  it("schedule: 12 congruent + 12 conflicting, deterministic", () => {
+    expect(s.trials).toHaveLength(24);
+    expect(s.trials.filter((t) => t.congruent)).toHaveLength(12);
+    expect(s.trials.filter((t) => !t.congruent).every((t) => t.word !== t.ink)).toBe(true);
+    expect(rengVeSoz.schedule(5)).toEqual(s);
+    expect(rengVeSoz.schedule(6)).not.toEqual(s);
+  });
+  it("focus score = mean of correct conflicting times; interference = conflicting - congruent", () => {
+    const r = rengVeSoz.score(s, perfect((i) => (s.trials[i].congruent ? 500 : 620 + (i % 2))))!;
+    expect(r.valid).toBe(true);
+    expect(r.secondary.errors).toBe(0);
+    expect(r.primary).toBeGreaterThanOrEqual(620);
+    expect(r.primary).toBeLessThanOrEqual(621);
+    expect(r.secondary.interference).toBeGreaterThanOrEqual(120);
+  });
+  it("each error adds 300 ms", () => {
+    const base = perfect((i) => (s.trials[i].congruent ? 500 : 600 + i));
+    const clean = rengVeSoz.score(s, base)!;
+    const wrongIdx = s.trials.findIndex((t) => t.congruent); // error on a congruent trial leaves the mean intact
+    const answers = base.answers.slice();
+    answers[wrongIdx] = (answers[wrongIdx] + 1) % 4;
+    const r = rengVeSoz.score(s, { ...base, answers })!;
+    expect(r.secondary.errors).toBe(1);
+    expect(r.primary).toBe(clean.primary + 300);
+  });
+  it("invalid: too fast, identical, or guessing; malformed is null", () => {
+    expect(rengVeSoz.score(s, perfect((i) => (i === 3 ? 60 : 500 + i)))!.valid).toBe(false);
+    expect(rengVeSoz.score(s, perfect(() => 400))!.valid).toBe(false);
+    const guess = { answers: s.trials.map((t) => (t.ink + 1) % 4), times: s.trials.map((_, i) => 400 + i) };
+    expect(rengVeSoz.score(s, guess)!.valid).toBe(false);
+    expect(rengVeSoz.score(s, { answers: [0], times: [1] })).toBeNull();
+    expect(rengVeSoz.score(s, { answers: s.trials.map(() => 9), times: s.trials.map(() => 400) })).toBeNull();
+  });
+});

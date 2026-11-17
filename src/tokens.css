@@ -1,0 +1,45 @@
+/* Single file of design tokens: change colours, fonts and spacing here to match the channel's style. */
+@import "@fontsource-variable/manrope/wght.css";
+
+:root {
+  /* colours */
+  --c-bg: #0f1226;
+  --c-surface: #1b1f3b;
+  --c-surface-2: #262b52;
+  --c-text: #f4f5ff;
+  --c-muted: #a3a8d1;
+  --c-primary: #ffd23f;
+  --c-on-primary: #1a1530;
+  --c-good: #3ddc97;
+  --c-bad: #ff6b6b;
+  --c-line: #343a6b;
+  /* experiment accents */
+  --c-exp-refleks: #3ddc97;
+  --c-exp-reng-ve-soz: #ff6b9d;
+  --c-exp-yaddas-zenciri: #6ea8ff;
+  --c-exp-yalanci-yaddas: #b78bff;
+  --c-exp-eyni-rengdir: #ffb347;
+  --c-exp-lovber: #4ee3e3;
+  /* stroop palette: qırmızı, mavi, yaşıl, sarı */
+  --c-stroop-0: #ff4d4d;
+  --c-stroop-1: #3d8bff;
+  --c-stroop-2: #2fd072;
+  --c-stroop-3: #ffd23f;
+  /* type */
+  --font: "Manrope Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-s: 0.875rem;
+  --fs-m: 1rem;
+  --fs-l: 1.25rem;
+  --fs-xl: 1.75rem;
+  --fs-hero: 3.5rem;
+  /* spacing, radius, targets */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --radius: 16px;
+  --tap: 56px; /* minimum touch target height */
+  --maxw: 480px;
+}
