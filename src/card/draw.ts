@@ -11,6 +11,12 @@ async function loadFonts(texts: string[]) {
   await document.fonts.ready;
 }
 
+/** #rrggbb + alpha -> rgba() string (tokens are hex). */
+function rgba(hex: string, a: number) {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -27,9 +33,12 @@ interface Palette { bg: string; surface: string; text: string; muted: string; ac
 function drawItem(ctx: CanvasRenderingContext2D, it: Item, y: number, w: number, p: Palette, dry: boolean): number {
   const inner = w - 2 * PAD;
   if (it.type === "text") {
-    ctx.font = `${it.weight} ${it.size}px ${p.font}`;
+    // big numbers shrink to fit on one line instead of wrapping
+    let size = it.size;
+    ctx.font = `${it.weight} ${size}px ${p.font}`;
+    if (size >= 150) while (size > 120 && ctx.measureText(it.text).width > inner) { size -= 10; ctx.font = `${it.weight} ${size}px ${p.font}`; }
     const lines = wrapLines((s) => ctx.measureText(s).width, it.text, inner);
-    const lh = it.size * 1.15;
+    const lh = size * 1.15;
     if (!dry) {
       ctx.fillStyle = p[it.color];
       ctx.textAlign = "center";
@@ -99,18 +108,31 @@ export async function renderCard(m: CardModel, format: Format): Promise<Blob> {
 
   ctx.fillStyle = p.bg;
   ctx.fillRect(0, 0, w, h);
-  ctx.globalAlpha = 0.14; // flat accent shapes, no photos
-  ctx.fillStyle = p.accent;
-  ctx.beginPath(); ctx.arc(w, 0, 560, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(0, h, 380, 0, Math.PI * 2); ctx.fill();
-  ctx.globalAlpha = 1;
+  // two soft accent glows (radial gradients, no photos)
+  const glow = (cx: number, cy: number, r: number, a: number) => {
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, rgba(p.accent, a));
+    g.addColorStop(1, rgba(p.accent, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+  };
+  glow(w * 0.5, h * 0.04, w * 0.95, 0.32);
+  glow(w * 0.1, h * 0.98, w * 0.7, 0.16);
 
-  // header
+  // header: brand mark (two overlapping discs) + name
+  const mx = w / 2, my = 120, mr = 26;
+  const disc = (cx: number, color: string) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(cx, my, mr, 0, Math.PI * 2); ctx.fill(); };
+  disc(mx - 16, p.primary);
+  disc(mx + 16, p.good);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(mx - 16, my, mr, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = p.bg; ctx.beginPath(); ctx.arc(mx + 16, my, mr, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
   ctx.fillStyle = p.muted;
-  ctx.font = `800 46px ${p.font}`;
+  ctx.font = `800 44px ${p.font}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.fillText(m.brand, w / 2, 110);
+  ctx.fillText(m.brand, w / 2, 168);
 
   // footer, stacked from the bottom
   const fSizes = m.footer.map((_, i) => (i === 0 ? 56 : 36));
@@ -124,7 +146,7 @@ export async function renderCard(m: CardModel, format: Format): Promise<Blob> {
   });
 
   // content: vertically centred between header and footer, scaled down if it does not fit
-  const top = 230, bottom = h - 100 - footerH - 50;
+  const top = 270, bottom = h - 100 - footerH - 50;
   const total = m.items.reduce((a, it) => a + drawItem(ctx, it, 0, w, p, true), 0);
   const scale = Math.min(1, (bottom - top) / total);
   const startY = top + Math.max(0, (bottom - top - total * scale) / 2);

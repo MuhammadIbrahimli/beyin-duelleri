@@ -3,7 +3,7 @@
 import { deflateSync, crc32 } from "node:zlib";
 import { mkdirSync, writeFileSync } from "node:fs";
 
-const BG = [15, 18, 38];       // --c-bg
+const BG = [11, 12, 17];       // --c-bg
 const YELLOW = [255, 210, 63]; // --c-primary
 const GREEN = [61, 220, 151];  // --c-exp-refleks
 

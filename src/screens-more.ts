@@ -3,6 +3,7 @@ import { CITY_CODES } from "../config/cities";
 import { bySlug } from "../shared/experiments";
 import { api, me } from "./api";
 import { h } from "./dom";
+import { icon } from "./icons";
 import { az, t } from "./i18n/az";
 import { accent, cardFooter, formatScore, openCard, screen, showError } from "./screens";
 
@@ -15,11 +16,13 @@ export async function duelsTab() {
   try { data = await api("GET", "/me/duels"); } catch { return showError(); }
   screen("duels",
     h("h1", null, az.duels.title),
-    ...(data.duels.length === 0 ? [h("p", { class: "muted" }, az.duels.empty)] : data.duels.map((d: any) =>
-      h("a", { class: "card", style: accent(d.slug), href: `/duel/${d.code}`, "data-link": "" },
-        h("b", null, expName(d.slug)),
-        h("span", { class: "muted" }, [az.duels[d.status as "open" | "closed" | "expired"], t("duels.players", { n: d.finished }),
-          d.myRank ? t("duels.rank", { n: d.myRank }) : ""].filter(Boolean).join(" · "))))));
+    ...(data.duels.length === 0 ? [h("p", { class: "muted" }, az.duels.empty)] : [h("div", { class: "list" }, ...data.duels.map((d: any) =>
+      h("a", { class: "list-row", style: accent(d.slug), href: `/duel/${d.code}`, "data-link": "" },
+        icon(d.slug, 28),
+        h("div", { class: "txt" }, h("b", null, expName(d.slug)),
+          h("span", null, [az.duels[d.status as "open" | "closed" | "expired"], t("duels.players", { n: d.finished }),
+            d.myRank ? t("duels.rank", { n: d.myRank }) : ""].filter(Boolean).join(" · "))),
+        icon("chevron", 18))))]));
 }
 
 // ---- Şəhər reytinqi ------------------------------------------------------------------
@@ -86,7 +89,7 @@ export async function passport() {
     const a = bestOf(x.slug, lastWeek), b = bestOf(x.slug, thisWeek);
     const level = x.best?.level ? ` · ${az.result.levels[x.slug]?.[x.best.level - 1] ?? ""}` : "";
     return h("div", { class: "card", style: accent(x.slug) },
-      h("b", null, expName(x.slug)),
+      h("div", { style: "display:flex;align-items:center;gap:10px;color:var(--accent)" }, icon(x.slug, 24), h("b", { style: "color:var(--c-text)" }, expName(x.slug))),
       x.best
         ? h("span", null, t("passport.best", { v: fmt(x.slug, x.best.score) }) + level + " · " + t("passport.runs", { n: x.runs }))
         : h("span", { class: "muted" }, az.passport.empty),

@@ -1,25 +1,28 @@
-/* Single file of design tokens: change colours, fonts and spacing here to match the channel's style. */
+/* Single file of design tokens: change colours, fonts, spacing and motion here to match the channel's style. */
 @import "@fontsource-variable/manrope/wght.css";
 
 :root {
-  /* colours */
-  --c-bg: #0f1226;
-  --c-surface: #1b1f3b;
-  --c-surface-2: #262b52;
-  --c-text: #f4f5ff;
-  --c-muted: #a3a8d1;
+  /* surfaces */
+  --c-bg: #0b0c11;
+  --c-surface: #14161e;
+  --c-surface-2: #1c1f2a;
+  --c-surface-3: #262a38;
+  --c-line: #2b3040;
+  /* text (muted is 7:1 on the background) */
+  --c-text: #f4f5f9;
+  --c-muted: #9aa1b5;
+  /* brand + feedback */
   --c-primary: #ffd23f;
-  --c-on-primary: #1a1530;
-  --c-good: #3ddc97;
+  --c-on-primary: #17140a;
+  --c-good: #34d399;
   --c-bad: #ff6b6b;
-  --c-line: #343a6b;
-  /* experiment accents */
-  --c-exp-refleks: #3ddc97;
-  --c-exp-reng-ve-soz: #ff6b9d;
-  --c-exp-yaddas-zenciri: #6ea8ff;
-  --c-exp-yalanci-yaddas: #b78bff;
-  --c-exp-eyni-rengdir: #ffb347;
-  --c-exp-lovber: #4ee3e3;
+  /* one accent per experiment */
+  --c-exp-refleks: #34d399;
+  --c-exp-reng-ve-soz: #ff6b95;
+  --c-exp-yaddas-zenciri: #5ea2ff;
+  --c-exp-yalanci-yaddas: #b394ff;
+  --c-exp-eyni-rengdir: #ffb43b;
+  --c-exp-lovber: #36d6d6;
   /* stroop palette: qırmızı, mavi, yaşıl, sarı */
   --c-stroop-0: #ff4d4d;
   --c-stroop-1: #3d8bff;
@@ -27,11 +30,12 @@
   --c-stroop-3: #ffd23f;
   /* type */
   --font: "Manrope Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-xs: 0.75rem;
   --fs-s: 0.875rem;
   --fs-m: 1rem;
   --fs-l: 1.25rem;
-  --fs-xl: 1.75rem;
-  --fs-hero: 3.5rem;
+  --fs-xl: clamp(1.75rem, 7vw, 2.25rem);
+  --fs-hero: clamp(3.5rem, 19vw, 5.25rem);
   /* spacing, radius, targets */
   --sp-1: 4px;
   --sp-2: 8px;
@@ -39,7 +43,18 @@
   --sp-4: 16px;
   --sp-5: 24px;
   --sp-6: 32px;
-  --radius: 16px;
+  --radius-s: 12px;
+  --radius: 20px;
+  --radius-l: 28px;
   --tap: 56px; /* minimum touch target height */
   --maxw: 480px;
+  /* motion: transform and opacity only, so it stays smooth on cheap phones */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 140ms;
+  --dur: 280ms;
+  --dur-slow: 700ms;
+  /* elevation */
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow-primary: 0 10px 28px -10px rgba(255, 210, 63, 0.55);
 }

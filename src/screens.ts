@@ -6,7 +6,8 @@ import { SHORT_HOST, CHANNEL_LABEL } from "../config/brand";
 import type { CardModel } from "./card/model";
 import { countRun, installOffer } from "./pwa";
 import { api, me, type FinishResult } from "./api";
-import { h, mount } from "./dom";
+import { burst, countUp, h, mount } from "./dom";
+import { icon, mark } from "./icons";
 import { az, t } from "./i18n/az";
 import { available, loaders } from "./experiments";
 import { go } from "./router";
@@ -16,16 +17,23 @@ export const app = () => document.getElementById("app")!;
 const SLUGS = Object.keys(az.experiments);
 export const accent = (slug: string) => `--accent: var(--c-exp-${slug})`;
 
+/** Colours the soft glow at the top of the page with the current experiment's accent. */
+export function tint(slug: string | null) {
+  if (slug) document.body.style.setProperty("--tint", `var(--c-exp-${slug})`);
+  else document.body.style.removeProperty("--tint");
+}
+
 function tabs(active: string) {
   const items: [string, string, string][] = [
     ["/", az.nav.experiments, "exp"], ["/duels", az.nav.duels, "duels"],
     ["/ranking", az.nav.ranking, "rank"], ["/passport", az.nav.passport, "pass"],
   ];
   return h("nav", { class: "tabs" }, h("div", null, ...items.map(([href, label, id]) =>
-    h("a", { href, "data-link": "", class: id === active ? "on" : "" }, label))));
+    h("a", { href, "data-link": "", class: id === active ? "on" : "", "aria-label": label }, icon(id), h("span", null, label)))));
 }
 
 export function screen(active: string | null, ...kids: (Node | null | false)[]) {
+  tint(null);
   mount(app(), h("div", { class: "screen" }, ...(kids.filter(Boolean) as Node[])), ...(active ? [tabs(active)] : []));
 }
 
@@ -62,23 +70,23 @@ export async function home() {
   const startHref = d && available.includes(d.slug) ? `/play/${d.slug}?daily=1` : `/play/${available[0]}`;
   const dots = d && h("span", { class: "wk" }, ...d.week.map((x: any) =>
     h("i", { class: [x.done && "done", x.frozen && "frozen", x.today && "today"].filter(Boolean).join(" ") })));
-  const dailyCard = d && h("a", { class: "card", style: accent(d.slug), href: startHref, "data-link": "" },
-    h("span", { class: "muted" }, d.weekly ? az.home.weekly : az.home.daily),
-    h("b", null, az.experiments[d.slug as keyof typeof az.experiments].name),
-    h("span", null, t("home.streak", { n: d.streak })), dots,
+  const dailyCard = d && h("div", { class: "hero-card", style: accent(d.slug) },
+    h("span", { class: "eyebrow" }, d.weekly ? az.home.weekly : az.home.daily),
+    h("div", { class: "name" }, icon(d.slug, 34), az.experiments[d.slug as keyof typeof az.experiments].name),
+    h("div", { class: "streak" }, h("span", null, t("home.streak", { n: d.streak })), dots),
+    h("a", { class: "btn primary block", href: startHref, "data-link": "" }, az.home.start),
     h("span", { class: d.done ? "muted" : "soft" }, d.done ? az.home.doneToday : az.home.notYet));
   screen("exp",
-    h("h1", null, az.home.title),
-    h("p", { class: "muted" }, az.home.sub),
-    dailyCard,
-    h("a", { class: "btn primary block", href: startHref, "data-link": "" }, az.home.start),
+    h("div", { class: "top" }, mark(30), az.app.name),
+    h("div", null, h("h1", null, az.home.title), h("p", { class: "muted", style: "margin-top:6px" }, az.home.sub)),
+    dailyCard || h("a", { class: "btn primary block", href: startHref, "data-link": "" }, az.home.start),
     h("h2", null, az.home.all),
-    ...SLUGS.map((slug) => {
+    h("div", { class: "list" }, ...SLUGS.map((slug) => {
       const e = az.experiments[slug as keyof typeof az.experiments];
       const ready = available.includes(slug);
-      return h(ready ? "a" : "div", { class: "card", style: accent(slug), ...(ready ? { href: `/e/${slug}`, "data-link": "" } : {}) },
-        h("b", null, e.name), h("span", { class: "muted" }, ready ? e.hook : az.soon));
-    }),
+      return h(ready ? "a" : "div", { class: "list-row" + (ready ? "" : " off"), style: accent(slug), ...(ready ? { href: `/e/${slug}`, "data-link": "" } : {}) },
+        icon(slug, 28), h("div", { class: "txt" }, h("b", null, e.name), h("span", null, ready ? e.hook : az.soon)), ready ? icon("chevron", 18) : null);
+    })),
     h("p", { class: "muted" }, az.home.privacy));
 }
 
@@ -91,16 +99,18 @@ export async function intro(slug: string) {
     const m = await import("./experiments/reng-ve-soz");
     const box = h("input", { type: "checkbox", id: "cb", ...(m.colorBlindMode() ? { checked: "" } : {}) }) as HTMLInputElement;
     box.addEventListener("change", () => m.setColorBlindMode(box.checked));
-    cb = h("label", { class: "check", for: "cb" }, box, az.play.colorBlind);
+    cb = h("label", { class: "toggle", for: "cb" }, box, az.play.colorBlind);
   }
   screen(null,
+    h("div", { style: accent(slug) }, icon(slug, 64, "ico intro-ico")),
     h("h1", { style: accent(slug) + ";color:var(--accent)" }, e.name),
-    h("p", null, e.hook),
+    h("p", { style: "font-size:1.125rem" }, e.hook),
     h("p", { class: "muted" }, e.measure),
     cb,
     h("a", { class: "btn primary block", href: `/play/${slug}`, "data-link": "" }, az.common.start),
     !!VIDEOS[slug] && h("a", { class: "link", href: VIDEOS[slug], target: "_blank", rel: "noopener" }, az.intro.watch),
     h("a", { class: "link", href: "/", "data-link": "" }, az.common.back));
+  tint(slug);
 }
 
 // ---- play -------------------------------------------------------------------
@@ -110,7 +120,8 @@ export async function play(slug: string, q: URLSearchParams) {
   const duelCode = q.get("d");
   let run: { runId: string; schedule: unknown };
   try {
-    mount(app(), h("div", { class: "screen" }, h("p", { class: "muted" }, az.common.loading)));
+    tint(slug);
+    mount(app(), h("div", { class: "screen full" }, h("div", { class: "loader", role: "status", "aria-label": az.common.loading })));
     run = await api("POST", "/runs/start", { slug, ...(duelCode ? { duelCode } : q.get("daily") ? { daily: true } : {}) });
   } catch (e: any) {
     if (duelCode) return go(`/d/${duelCode}`, true);
@@ -140,7 +151,7 @@ export function result() {
   const levelName = r.level ? az.result.levels[slug]?.[r.level - 1] : "";
   const src = SOURCES[slug]?.url;
   const sec = r.secondary;
-  const secLines = [
+  const facts = [
     sec.earlyTaps !== undefined && t("result.secondary.earlyTaps", { n: sec.earlyTaps }),
     sec.interference !== undefined && t("result.secondary.interference", { n: sec.interference }),
     slug === "reng-ve-soz" && sec.errors !== undefined && t("result.secondary.errors", { n: sec.errors }),
@@ -154,35 +165,41 @@ export function result() {
       if (st.ready) collective.textContent = t("result.lovberCollective", { low: st.low, high: st.high });
     }).catch(() => {});
   }
+  const compare = lq ? t("result.lovberLine", { anchor: sec.anchor, answer: sec.answer, unit: lq.unit, truth: lq.truth })
+    : r.percentile === null ? az.result.compareFirst : t(`result.compare.${slug}`, { pct: r.percentile });
+
+  const heroEl = h("div", { class: "hero" }, formatScore(slug, r.primary));
+  const panel = h("div", { class: "panel", style: accent(slug) },
+    h("div", { class: "nick" }, me()?.nickname ?? ""),
+    h("div", { class: "nick", style: "display:flex;align-items:center;gap:6px;color:var(--accent)" }, icon(slug, 18), e.name),
+    r.level && h("div", { class: "level" },
+      h("div", { class: "pips" }, ...[1, 2, 3, 4].map((i) => h("i", { class: i <= r.level! ? "on" : "" }))),
+      h("span", null, `${t("result.level", { n: r.level })} · ${levelName}`)),
+    heroEl,
+    !!lq && h("p", { class: "muted" }, az.result.lovberDiff),
+    r.valid && r.percentile !== null && h("div", { class: "bar", style: `--v:${r.percentile / 100}` }, h("i")),
+    r.valid ? h("p", null, compare) : h("div", { class: "notice" }, az.result.invalid),
+    !!lq && collective,
+    facts.length ? h("div", { class: "facts" }, ...facts.map((f) => h("span", null, f))) : null);
 
   screen(null,
-    h("div", { class: "nick" }, me()?.nickname ?? ""),
-    h("h2", null, e.name),
-    r.level && h("div", { class: "level" }, `${t("result.level", { n: r.level })} · ${levelName}`),
-    !!lq && h("p", null, t("result.lovberLine", { anchor: sec.anchor, answer: sec.answer, unit: lq.unit, truth: lq.truth })),
-    h("div", { class: "hero", style: accent(slug) }, formatScore(slug, r.primary)),
-    !!lq && h("p", { class: "muted" }, az.result.lovberDiff),
-    !!lq && collective,
-    ...secLines.map((l) => h("p", { class: "muted" }, l)),
-    r.valid
-      ? h("p", null, r.percentile === null ? az.result.compareFirst : t(`result.compare.${slug}`, { pct: r.percentile }))
-      : h("div", { class: "notice" }, az.result.invalid),
-    r.valid && h("a", { class: "btn primary block", href: "/invite", "data-link": "" }, az.result.callFriend),
-    !r.valid && h("a", { class: "btn primary block", href: `/play/${slug}`, "data-link": "" }, az.result.again),
-    r.valid && cardButton((m) => ({
-      kind: "result",
-      model: m.resultCard({
-        slug, brand: az.app.name, nickname: me()?.nickname ?? "", experiment: e.name,
-        level: r.level ? `${t("result.level", { n: r.level })} · ${levelName}` : null,
-        score: formatScore(slug, r.primary),
-        compare: lq ? t("result.lovberLine", { anchor: sec.anchor, answer: sec.answer, unit: lq.unit, truth: lq.truth })
-          : r.percentile === null ? az.result.compareFirst : t(`result.compare.${slug}`, { pct: r.percentile }),
-        extra: slug === "yalanci-yaddas" ? [lureNote(sec)] : slug === "eyni-rengdir" ? [t("result.fooled", { n: r.primary })] : [],
-        footer: cardFooter(),
-      }),
-    }), r.runId),
-    slug === "yaddas-zenciri" && h("a", { class: "btn block", href: "/qrupla", "data-link": "" }, az.result.qrupla),
-    h("a", { class: "btn block", href: "/", "data-link": "" }, az.common.otherExperiment),
+    panel,
+    h("div", { class: "actions" },
+      r.valid && h("a", { class: "btn primary block", href: "/invite", "data-link": "" }, az.result.callFriend),
+      !r.valid && h("a", { class: "btn primary block", href: `/play/${slug}`, "data-link": "" }, az.result.again),
+      h("div", { class: "pair" },
+        r.valid ? cardButton((m) => ({
+          kind: "result",
+          model: m.resultCard({
+            slug, brand: az.app.name, nickname: me()?.nickname ?? "", experiment: e.name,
+            level: r.level ? `${t("result.level", { n: r.level })} · ${levelName}` : null,
+            score: formatScore(slug, r.primary), compare,
+            extra: slug === "yalanci-yaddas" ? [lureNote(sec)] : slug === "eyni-rengdir" ? [t("result.fooled", { n: r.primary })] : [],
+            footer: cardFooter(),
+          }),
+        }), r.runId) : null,
+        h("a", { class: "btn block", href: "/", "data-link": "" }, az.common.otherExperiment)),
+      slug === "yaddas-zenciri" && h("a", { class: "btn block", href: "/qrupla", "data-link": "" }, az.result.qrupla)),
     h("details", null,
       h("summary", null, az.result.science),
       h("p", null, az.science[slug]),
@@ -192,6 +209,9 @@ export function result() {
     installOffer(),
     h("p", { class: "muted" }, az.common.notDiagnosis),
     slug === "refleks" && h("p", { class: "muted" }, az.duel.deviceNote));
+  tint(slug);
+  countUp(heroEl, r.primary, (n) => formatScore(slug, n));
+  if (r.valid && r.level === 4) setTimeout(() => burst(panel), 350);
 }
 
 // ---- invite a friend (create duel) -------------------------------------------
@@ -228,9 +248,10 @@ export async function invite(q: URLSearchParams) {
     h("h1", null, group ? az.share.groupTitle : az.share.title),
     h("p", { class: "muted" }, az.share.intro),
     h("div", { class: "notice" }, text),
-    ext(az.share.whatsapp, `https://wa.me/?text=${encodeURIComponent(full)}`, "whatsapp"),
-    ext(az.share.telegram, `https://t.me/share/url?url=${encodeURIComponent(duel.url)}&text=${encodeURIComponent(text)}`, "telegram"),
-    ig, copy,
+    h("div", { class: "actions" },
+      ext(az.share.whatsapp, `https://wa.me/?text=${encodeURIComponent(full)}`, "whatsapp"),
+      ext(az.share.telegram, `https://t.me/share/url?url=${encodeURIComponent(duel.url)}&text=${encodeURIComponent(text)}`, "telegram"),
+      ig, copy),
     h("a", { class: "link", href: "/result", "data-link": "" }, az.common.back),
     h("a", { class: "link", href: `/duel/${duel.code}`, "data-link": "" }, az.invite.seeResult));
 }
@@ -244,12 +265,14 @@ export async function invitePage(code: string) {
   const e = az.experiments[slug as keyof typeof az.experiments];
   const blocked = d.status === "expired" ? az.invite.expired : d.status === "closed" ? az.invite.closed : null;
   screen(null,
+    h("div", { style: accent(slug) }, icon(slug, 56, "ico intro-ico")),
     h("h2", { style: accent(slug) + ";color:var(--accent)" }, e.name),
     h("h1", null, t("invite.title", { nick: d.creator.nickname })),
-    blocked ? h("div", { class: "notice" }, blocked) : h("p", null, az.invite.hidden),
+    blocked ? h("div", { class: "notice" }, blocked) : h("p", { class: "muted" }, az.invite.hidden),
     blocked
       ? h("a", { class: "btn primary block", href: "/", "data-link": "" }, az.common.otherExperiment)
       : h("a", { class: "btn primary block", href: `/play/${slug}?d=${code}`, "data-link": "" }, az.invite.accept));
+  tint(slug);
 }
 
 // ---- duel result ---------------------------------------------------------------
@@ -281,6 +304,7 @@ export async function duelResult(code: string) {
           slug === "yalanci-yaddas" ? h("small", { class: "muted" }, lureNote(x.secondary)) : null)));
 
   const canGroup = r.type === "1v1" && !!mine;
+  const won = r.type === "1v1" && r.outcome === "win";
   screen(null,
     h("h2", { style: accent(slug) + ";color:var(--accent)" }, az.experiments[slug as keyof typeof az.experiments].name),
     h("h1", null, head), body,
@@ -301,6 +325,8 @@ export async function duelResult(code: string) {
     h("a", { class: "btn block", href: "/", "data-link": "" }, az.common.otherExperiment),
     slug === "refleks" && h("p", { class: "muted" }, az.duel.deviceNote),
     h("p", { class: "muted" }, az.common.notDiagnosis));
+  tint(slug);
+  if (won) setTimeout(() => { const w = document.querySelector(".vs .win") as HTMLElement | null; if (w) burst(w); }, 300);
 }
 
 
