@@ -1,0 +1,33 @@
+// The admin panel is for the owner only, so it has its own (Russian) texts and is not part of the public az/ru dictionaries.
+export const adm = {
+  title: "Админ-панель",
+  tokenLabel: "Токен администратора",
+  tokenHint: "Токен задаётся секретом ADMIN_TOKEN (локально лежит в .dev.vars, на сервере его печатает npm run setup).",
+  enter: "Войти",
+  wrong: "Неверный токен или админка выключена",
+  refresh: "Обновить",
+  kpi: {
+    mau: "Посетители за 30 дней (MAU)",
+    wau: "За 7 дней (WAU)",
+    dau: "Сегодня (DAU)",
+    users: "Всего пользователей",
+    plays: "Пройдено тестов за 30 дней",
+    perUser: "Тестов на активного человека",
+  },
+  charts: { active: "Активные посетители по дням", newUsers: "Новые пользователи по дням", plays: "Пройденные тесты по дням", monthly: "Посетители по месяцам (MAU)" },
+  funnel: {
+    title: "Воронка за 30 дней (в людях)",
+    visited: "Зашли",
+    started: "Начали тест",
+    finished: "Дошли до результата",
+    shared: "Поделились",
+    invited: "Позвали друга (дуэль)",
+    friendsFinished: "Друзей, прошедших по ссылке (штук)",
+  },
+  retention: { title: "Возврат", d1: "На следующий день", d7: "Через 7 дней", of: "из {n} новых" },
+  audience: { title: "Аудитория", cities: "Города (выбрали)", devices: "Устройства", langs: "Языки", sources: "Источники (метка ?s=)", withCity: "Указали город", profile: "Заполнили профиль", emails: "Email с согласием на рассылку" },
+  experiments: "Тесты за 30 дней",
+  kit: { title: "Медиакит для рекламодателей", copy: "Скопировать текст", copied: "Скопировано", note: "Только честные цифры из этой панели. Не округляй вверх: на проверке рекламодатель попросит скриншот." },
+  mod: { title: "Модерация имён", reset: "Сбросить имя", done: "Сброшено", empty: "Пока нет профилей" },
+  emails: { title: "Email-адреса", download: "Скачать CSV (только с согласием)", none: "Пока нет адресов с согласием" },
+};

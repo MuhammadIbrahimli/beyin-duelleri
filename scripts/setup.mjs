@@ -36,5 +36,14 @@ if (!/SESSION_SECRET/.test(list.stdout ?? "")) {
   show(r);
   if (r.status) fail("could not set SESSION_SECRET: run `npx wrangler secret put SESSION_SECRET` by hand");
 }
+// 4. admin token (owner dashboard at /admin). Printed once: save it, it is stored only as a Cloudflare secret.
+let adminToken = null;
+if (!/ADMIN_TOKEN/.test(list.stdout ?? "")) {
+  adminToken = randomBytes(24).toString("hex");
+  const r = run(["secret", "put", "ADMIN_TOKEN"], { input: adminToken + "\n" });
+  show(r);
+  if (r.status) { adminToken = null; console.error("could not set ADMIN_TOKEN: run `npx wrangler secret put ADMIN_TOKEN` by hand"); }
+}
 const url = /https:\/\/[^\s]+\.workers\.dev/.exec(dep.stdout + dep.stderr)?.[0];
 console.log(`\nDone.${url ? " Live at " + url : ""}`);
+if (adminToken) console.log(`Admin panel: ${url ?? "<your url>"}/admin\nAdmin token (shown once, save it): ${adminToken}`);

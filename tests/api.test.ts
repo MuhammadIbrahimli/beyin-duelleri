@@ -9,16 +9,16 @@ const T0 = Date.parse("2026-11-16T10:00:00Z");
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(T0);
-  env = { DB: makeD1(), SESSION_SECRET: "test-secret", SITE_ORIGIN: "https://beyin.test" };
+  env = { DB: makeD1(), SESSION_SECRET: "test-secret", SITE_ORIGIN: "https://beyin.test", ADMIN_TOKEN: "admin-secret-token" };
 });
 afterEach(() => vi.useRealTimers());
 
-async function call(method: string, path: string, token?: string, body?: unknown) {
+async function call(method: string, path: string, token?: string, body?: unknown, extra: Record<string, string> = {}) {
   const res = await app.request(
     path,
     {
       method,
-      headers: { "content-type": "application/json", ...(token ? { authorization: `Bearer ${token}` } : {}), "user-agent": "Mozilla/5.0 (Android 14)" },
+      headers: { "content-type": "application/json", ...(token ? { authorization: `Bearer ${token}` } : {}), "user-agent": "Mozilla/5.0 (Android 14)", ...extra },
       body: body === undefined ? undefined : JSON.stringify(body),
     },
     env,
@@ -418,5 +418,49 @@ describe("daily, badges, my duels", () => {
     await db.batch(stmts);
     expect((await awardBadges(db, uid, "2026-11-16")).sort()).toEqual(["all_six", "streak7"]);
     expect(await awardBadges(db, uid, "2026-11-16")).toEqual([]); // already earned
+  });
+});
+
+describe("admin analytics and moderation", () => {
+  const adm = { "x-admin-token": "admin-secret-token" };
+  it("is closed without the token, and disabled when no token is configured", async () => {
+    expect((await call("GET", "/api/admin/stats")).status).toBe(401);
+    expect((await call("GET", "/api/admin/stats", undefined, undefined, { "x-admin-token": "wrong" })).status).toBe(401);
+    env.ADMIN_TOKEN = undefined;
+    expect((await call("GET", "/api/admin/stats", undefined, undefined, adm)).status).toBe(404);
+  });
+  it("counts visitors, funnel, sources, retention-ready cohorts and audience", async () => {
+    const a = (await call("POST", "/api/session", undefined, { src: "video1", lang: "az" })).json.token as string;
+    const b = (await call("POST", "/api/session", undefined, { src: "video1", lang: "ru" })).json.token as string;
+    await call("POST", "/api/session", undefined, {}); // a third visitor who never plays
+    await call("PATCH", "/api/me", a, { city: "baki", email: "a@b.az", emailConsent: true, profileDone: true });
+    const r = await play(a, [240, 250, 245, 260, 255]);
+    await call("POST", "/api/shares", a, { runId: r.start.runId, channel: "whatsapp" });
+    const { code } = (await call("POST", "/api/duels", a, { runId: r.start.runId })).json;
+    await play(b, [300, 310, 290, 320, 305], { duelCode: code });
+    const s = (await call("GET", "/api/admin/stats", undefined, undefined, adm)).json;
+    expect(s.totals).toMatchObject({ users: 3, dau: 3, wau: 3, mau: 3, playsLast30: 2 });
+    expect(s.funnel).toMatchObject({ visited: 3, started: 2, finished: 2, shared: 1, invited: 1, friendsFinished: 1 });
+    expect(s.monthly.at(-1)).toMatchObject({ month: "2026-11", n: 3 });
+    expect(s.audience.sources.find((x: any) => x.k === "video1").n).toBe(2);
+    expect(s.audience.sources.find((x: any) => x.k === "(direct)").n).toBe(1);
+    expect(s.audience.langs.map((x: any) => x.k).sort()).toEqual(["az", "ru"]);
+    expect(s.audience.cities[0]).toMatchObject({ k: "baki", n: 1 });
+    expect(s.audience.consentedEmails).toBe(1);
+    expect(s.experiments.find((e: any) => e.slug === "refleks").plays).toBe(2);
+    expect(s.retention.d7).toHaveProperty("rate");
+  });
+  it("lists only consented emails and can reset a name", async () => {
+    const a = (await call("POST", "/api/session")).json;
+    const b = (await call("POST", "/api/session")).json;
+    await call("PATCH", "/api/me", a.token, { email: "yes@x.az", emailConsent: true, nickname: "Mehman", profileDone: true });
+    await call("PATCH", "/api/me", b.token, { email: "no@x.az", emailConsent: false });
+    const em = (await call("GET", "/api/admin/emails", undefined, undefined, adm)).json.emails;
+    expect(em.map((e: any) => e.email)).toEqual(["yes@x.az"]);
+    const names = (await call("GET", "/api/admin/names", undefined, undefined, adm)).json.users;
+    expect(names[0].nickname).toBe("Mehman");
+    const rs = await call("POST", `/api/admin/users/${a.user.id}/reset-name`, undefined, undefined, adm);
+    expect(rs.json.ok).toBe(true);
+    expect((await call("GET", "/api/me", a.token)).json.user.nickname).not.toBe("Mehman");
   });
 });

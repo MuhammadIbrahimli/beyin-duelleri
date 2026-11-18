@@ -49,3 +49,11 @@ export function newDuelCode(len = 8): string {
   return Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
 }
 export const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
+
+/** Constant-time string comparison (admin token). */
+export function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}

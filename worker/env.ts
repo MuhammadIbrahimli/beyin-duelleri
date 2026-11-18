@@ -3,6 +3,7 @@ export interface Env {
   ASSETS: Fetcher;
   RATE_LIMITER?: RateLimit;
   SESSION_SECRET: string;
+  ADMIN_TOKEN?: string;
   SITE_ORIGIN: string;
 }
 export interface AuthedVars { userId: string }
