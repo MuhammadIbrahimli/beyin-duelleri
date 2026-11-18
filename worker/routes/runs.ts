@@ -52,7 +52,8 @@ runRoutes.post("/runs/start", async (c) => {
     )
     .bind(id, userId, meta.id, seed, duelCode, dailyDate, deviceOf(c), c.req.header("x-client-version") ?? null, Date.now())
     .run();
-  return c.json({ runId: id, seed, schedule: scorer.schedule(seed) }, 201);
+  const full = scorer.schedule(seed);
+  return c.json({ runId: id, seed, schedule: scorer.publicView ? scorer.publicView(full) : full }, 201);
 });
 
 runRoutes.post("/runs/:id/finish", async (c) => {
@@ -96,6 +97,14 @@ runRoutes.post("/runs/:id/finish", async (c) => {
     )
     .bind(res.primary, JSON.stringify(res.secondary), JSON.stringify(body.payload), level, valid ? 1 : 0, now, run.id)
     .run();
+
+  if (meta.slug === "lovber" && valid) {
+    // first answer per user and question feeds the collective result
+    await db
+      .prepare("INSERT OR IGNORE INTO anchor_assignments (user_id, question_id, anchor_value, answer, created_at) VALUES (?,?,?,?,?)")
+      .bind(userId, schedule.questionId, schedule.anchor, res.secondary.answer, now)
+      .run();
+  }
 
   if (run.daily_date && valid) {
     await db

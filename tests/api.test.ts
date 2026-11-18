@@ -255,3 +255,42 @@ describe("memory + illusions over the API", () => {
     expect(f.json).toMatchObject({ primary: 2, level: 2, valid: true });
   });
 });
+
+describe("yalanci-yaddas + lovber over the API", () => {
+  it("yalanci: client never receives the probe kinds; server scores it", async () => {
+    const t = await newUser();
+    const s = await call("POST", "/api/runs/start", t, { slug: "yalanci-yaddas" });
+    expect(s.json.schedule.probe.every((p: unknown) => typeof p === "string")).toBe(true);
+    expect(JSON.stringify(s.json.schedule)).not.toContain("lure");
+    vi.setSystemTime(Date.now() + 60000);
+    const answers = [true, false, true, false, true, false, true, false, true, false, true, false];
+    const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload: { answers, times: answers.map((_, i) => 700 + i) } });
+    expect(f.status).toBe(200);
+    expect(f.json.primary).toBeGreaterThanOrEqual(0);
+    expect(f.json.secondary.setIndex).toBe(0);
+  });
+  it("lovber: stores the first answer per question, collective result needs 100 per group", async () => {
+    const t = await newUser();
+    const s = await call("POST", "/api/runs/start", t, { slug: "lovber" });
+    const { anchor, questionId } = s.json.schedule;
+    expect(JSON.stringify(s.json.schedule)).not.toContain("1025");
+    vi.setSystemTime(Date.now() + 10000);
+    const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload: { answer: 1500, higher: true } });
+    expect(f.json).toMatchObject({ primary: 475, level: null, valid: true });
+    const row = await env.DB.prepare("SELECT anchor_value, answer FROM anchor_assignments").first();
+    expect(row).toMatchObject({ anchor_value: anchor, answer: 1500 });
+
+    expect((await call("GET", `/api/lovber/stats?question=${questionId}`, t)).json.ready).toBe(false);
+    const now = Date.now();
+    const stmts: D1PreparedStatement[] = [];
+    for (let i = 0; i < 100; i++) for (const [k, a, ans] of [["lo", 200, 400], ["hi", 2000, 1600]] as const) {
+      const id = `${k}${i}`;
+      stmts.push(env.DB.prepare("INSERT INTO users (id,nickname,device_class,created_at,last_seen_at) VALUES (?,?,?,?,?)").bind(id, "x", "other", now, now));
+      stmts.push(env.DB.prepare("INSERT INTO anchor_assignments (user_id,question_id,anchor_value,answer,created_at) VALUES (?,?,?,?,?)").bind(id, questionId, a, ans, now));
+    }
+    await env.DB.batch(stmts);
+    const st = await call("GET", `/api/lovber/stats?question=${questionId}`, t);
+    expect(st.json).toMatchObject({ ready: true, low: 400 });
+    expect(st.json.high).toBeGreaterThan(1500);
+  });
+});

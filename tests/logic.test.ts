@@ -246,3 +246,76 @@ describe("eyni-rengdir scoring", () => {
     expect(compareRuns(m, run(1, { totalMs: 1000 }), run(1, { totalMs: 5000 }))).toBe(1);
   });
 });
+
+import { lovber, yalanciYaddas } from "../shared/scoring";
+import { LOVBER_QUESTIONS } from "../config/lovber";
+
+describe("yalanci-yaddas scoring", () => {
+  const s = yalanciYaddas.schedule(21);
+  const truth = s.probe.map((p) => p.kind === "old");
+  const times = s.probe.map((_, i) => 600 + i);
+  it("schedule: 12 studied words, probe = 6 old + 5 new + the lure, lure never studied", () => {
+    expect(yalanciYaddas.schedule(21)).toEqual(s);
+    expect(s.study).toHaveLength(12);
+    expect(s.probe).toHaveLength(12);
+    const kinds = (k: string) => s.probe.filter((p) => p.kind === k);
+    expect([kinds("old").length, kinds("new").length, kinds("lure").length]).toEqual([6, 5, 1]);
+    expect(s.study).not.toContain(kinds("lure")[0].word);
+    kinds("old").forEach((p) => expect(s.study).toContain(p.word));
+    expect(s.distract).toHaveLength(3);
+    s.distract.forEach((d) => expect(d.options).toContain(d.a + d.b));
+  });
+  it("public view does not reveal which probe word is the lure", () => {
+    const v = yalanciYaddas.publicView!(s) as { probe: unknown[] };
+    expect(typeof v.probe[0]).toBe("string");
+    expect(JSON.stringify(v)).not.toContain("lure");
+  });
+  it("accuracy is over the 11 ordinary words; the lure is reported separately", () => {
+    const lureIdx = s.probe.findIndex((p) => p.kind === "lure");
+    const right = truth.slice(); // lure: not seen
+    const a = yalanciYaddas.score(s, { answers: right, times })!;
+    expect(a.primary).toBe(100);
+    expect(a.secondary.fellForLure).toBe(0);
+    const fell = right.slice(); fell[lureIdx] = true;
+    const b = yalanciYaddas.score(s, { answers: fell, times })!;
+    expect(b.primary).toBe(100); // the lure does not change accuracy
+    expect(b.secondary.fellForLure).toBe(1);
+    const wrong = right.slice();
+    const oldIdx = s.probe.findIndex((p) => p.kind === "old");
+    wrong[oldIdx] = false;
+    expect(yalanciYaddas.score(s, { answers: wrong, times })!.primary).toBe(91); // 10/11
+  });
+  it("invalid: identical answers or impossibly fast; malformed is null", () => {
+    expect(yalanciYaddas.score(s, { answers: truth.map(() => true), times })!.valid).toBe(false);
+    expect(yalanciYaddas.score(s, { answers: truth, times: times.map(() => 40) })!.valid).toBe(false);
+    expect(yalanciYaddas.score(s, { answers: [true], times: [1] })).toBeNull();
+  });
+});
+
+describe("lovber scoring", () => {
+  const q = LOVBER_QUESTIONS[0];
+  it("anchor is derived from the seed and is either the low or the high value; both occur", () => {
+    const anchors = new Set(Array.from({ length: 40 }, (_, i) => lovber.schedule(i).anchor));
+    expect(anchors).toEqual(new Set([q.low, q.high]));
+    expect(lovber.schedule(9)).toEqual(lovber.schedule(9));
+  });
+  it("score = absolute distance from the true value", () => {
+    const s = lovber.schedule(1);
+    expect(lovber.score(s, { answer: q.truth + 75, higher: true })!.primary).toBe(75);
+    expect(lovber.score(s, { answer: q.truth - 75, higher: false })!.primary).toBe(75);
+    const r = lovber.score(s, { answer: 1500, higher: true })!;
+    expect(r.secondary).toMatchObject({ answer: 1500, anchor: s.anchor, saidHigher: 1 });
+  });
+  it("rejects nonsense answers", () => {
+    const s = lovber.schedule(1);
+    expect(lovber.score(s, { answer: -5, higher: true })).toBeNull();
+    expect(lovber.score(s, { answer: q.max + 1, higher: true })).toBeNull();
+    expect(lovber.score(s, { answer: NaN, higher: true })).toBeNull();
+    expect(lovber.score(s, { answer: "1000", higher: true })).toBeNull();
+    expect(lovber.score(s, { answer: 100 })).toBeNull();
+  });
+  it("duel: closer wins", () => {
+    const m = bySlug("lovber")!;
+    expect(compareRuns(m, run(20), run(300))).toBe(1);
+  });
+});

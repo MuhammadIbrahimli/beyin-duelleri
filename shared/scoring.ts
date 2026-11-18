@@ -1,3 +1,5 @@
+import { DRM_SETS } from "../config/wordsets";
+import { LOVBER_QUESTIONS } from "../config/lovber";
 import { randInt, rng, shuffle } from "./rng";
 import { median } from "./stats";
 import { hasIdenticalTimes, hasImpossibleReaction } from "./validity";
@@ -13,6 +15,8 @@ export interface Scorer<S = unknown> {
   schedule(seed: number): S;
   /** Fastest a human could physically finish, used for the "too fast" validity rule. */
   minDurationMs(schedule: S): number;
+  /** What the client may see. Defaults to the whole schedule; strip anything that gives answers away. */
+  publicView?(schedule: S): unknown;
   /** Returns null when the payload is malformed (client bug or tampering) -> HTTP 400. */
   score(schedule: S, payload: unknown): ScoreResult | null;
 }
@@ -173,10 +177,89 @@ export const eyniRengdir: Scorer<IllusionSchedule> = {
   },
 };
 
+// ---- Yalançı yaddaş (false memory, DRM paradigm) ---------------------------------
+export type DrmKind = "old" | "new" | "lure";
+export interface DrmSchedule {
+  setIndex: number;
+  study: string[];
+  probe: { word: string; kind: DrmKind }[];
+  distract: { a: number; b: number; options: number[] }[];
+}
+export const DRM_PROBES = 12;
+
+export const yalanciYaddas: Scorer<DrmSchedule> = {
+  schedule(seed) {
+    const r = rng(seed);
+    const setIndex = randInt(r, 0, DRM_SETS.length - 1);
+    const set = DRM_SETS[setIndex];
+    const study = shuffle(r, set.studied);
+    const old = shuffle(r, set.studied).slice(0, 6);
+    const probe = shuffle(r, [
+      ...old.map((word) => ({ word, kind: "old" as DrmKind })),
+      ...set.unrelated.map((word) => ({ word, kind: "new" as DrmKind })),
+      { word: set.lure, kind: "lure" as DrmKind },
+    ]);
+    const distract = Array.from({ length: 3 }, () => {
+      const a = randInt(r, 3, 9), b = randInt(r, 3, 9), sum = a + b;
+      const wrong = shuffle(r, [sum - 2, sum - 1, sum + 1, sum + 2, sum + 3]).slice(0, 3);
+      return { a, b, options: shuffle(r, [sum, ...wrong]) };
+    });
+    return { setIndex, study, probe, distract };
+  },
+  publicView: (s) => ({ study: s.study, probe: s.probe.map((p) => p.word), distract: s.distract }),
+  minDurationMs: () => 12 * 1500 + 15000,
+  score(s, payload) {
+    const p = payload as { answers?: unknown; times?: unknown };
+    if (!Array.isArray(p?.answers) || !Array.isArray(p?.times)) return null;
+    const answers = p.answers as boolean[], times = p.times as number[];
+    if (answers.length !== DRM_PROBES || times.length !== DRM_PROBES) return null;
+    if (!answers.every((a) => typeof a === "boolean")) return null;
+    if (!times.every((x) => Number.isFinite(x) && x >= 0 && x < 300000)) return null;
+    let correct = 0, lured = 0;
+    s.probe.forEach((q, i) => {
+      if (q.kind === "lure") lured = answers[i] ? 1 : 0;
+      else if (answers[i] === (q.kind === "old")) correct++;
+    });
+    let invalidReason: string | undefined;
+    if (hasImpossibleReaction(times)) invalidReason = "too_fast";
+    else if (answers.every((a) => a === answers[0])) invalidReason = "uniform";
+    return {
+      primary: Math.round((correct / (DRM_PROBES - 1)) * 100),
+      secondary: { fellForLure: lured, setIndex: s.setIndex },
+      valid: !invalidReason,
+      invalidReason,
+    };
+  },
+};
+
+// ---- Lövbər (anchoring) ---------------------------------------------------------
+export interface LovberSchedule { questionId: string; anchor: number }
+
+export const lovber: Scorer<LovberSchedule> = {
+  schedule(seed) {
+    const r = rng(seed);
+    const q = LOVBER_QUESTIONS[randInt(r, 0, LOVBER_QUESTIONS.length - 1)];
+    return { questionId: q.id, anchor: r() < 0.5 ? q.low : q.high };
+  },
+  minDurationMs: () => 3000,
+  score(s, payload) {
+    const p = payload as { answer?: unknown; higher?: unknown };
+    const q = LOVBER_QUESTIONS.find((x) => x.id === s.questionId)!;
+    if (typeof p?.answer !== "number" || !Number.isFinite(p.answer) || p.answer < 0 || p.answer > q.max) return null;
+    if (typeof p.higher !== "boolean") return null;
+    return {
+      primary: Math.round(Math.abs(p.answer - q.truth)),
+      secondary: { answer: Math.round(p.answer), anchor: s.anchor, saidHigher: p.higher ? 1 : 0, qIndex: LOVBER_QUESTIONS.indexOf(q) },
+      valid: true,
+    };
+  },
+};
+
 export const SCORERS: Record<string, Scorer<any>> = {
   refleks,
   "reng-ve-soz": rengVeSoz,
   "yaddas-zenciri": yaddasZenciri,
   "eyni-rengdir": eyniRengdir,
-  // stage 4: yalanci-yaddas, lovber
+  "yalanci-yaddas": yalanciYaddas,
+  lovber,
 };

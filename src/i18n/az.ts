@@ -37,7 +37,7 @@ export const az = {
     "yaddas-zenciri": { name: "Yaddaş zənciri", hook: "Plitələrin ardıcıllığını yadda saxla.", measure: "Ölçürük: işçi yaddaşın həcmini.", unit: "" },
     "yalanci-yaddas": { name: "Yalançı yaddaş", hook: "Sözləri xatırla. Hamısını?", measure: "Ölçürük: yaddaşın nə qədər dəqiq olduğunu.", unit: "%" },
     "eyni-rengdir": { name: "Eyni rəngdir?", hook: "Gözlərinə nə qədər inanırsan?", measure: "Ölçürük: görmənin kontekstə necə aldandığını.", unit: "" },
-    lovber: { name: "Lövbər", hook: "Təsadüfi rəqəm cavabını dəyişir?", measure: "Ölçürük: ilk görülən rəqəmin təxmin üzərində təsirini.", unit: "" },
+    lovber: { name: "Lövbər", hook: "Təsadüfi rəqəm cavabını dəyişir?", measure: "Ölçürük: ilk görülən rəqəmin təxmin üzərində təsirini.", unit: "m" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -59,6 +59,15 @@ export const az = {
     check: "Yoxla",
     next: "Növbəti",
     finish: "Nəticə",
+    studyHint: "Sözləri yadda saxla",
+    distractHint: "Hesabla",
+    probeQ: "Bu sözü siyahıda gördün?",
+    seen: "Gördüm",
+    unseen: "Görmədim",
+    wheel: "Çarx fırlanır…",
+    more: "Çoxdur",
+    less: "Azdır",
+    send: "Cavabla",
     alwaysOk: "İkisi də eyni idi. Aldanmaq normaldır: beyin kontekstə baxır.",
   },
   result: {
@@ -74,6 +83,11 @@ export const az = {
       lovber: "",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
+    lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
+    lureNo: "Beynin aldanmadı",
+    lovberLine: "Sənə {anchor} göstərildi. Cavabın: {answer} {unit}. Faktiki: ~{truth} {unit}.",
+    lovberCollective: "Lövbər rəqəmi kiçik olanların orta təxmini {low} m, böyük olanların — {high} m",
+    lovberDiff: "Dəqiq cavabdan fərq",
     qrupla: "Qrupla!",
     callFriend: "Dostunu çağır",
     again: "Yenidən cəhd et",
@@ -102,10 +116,12 @@ export const az = {
       "Stroop effekti 1935-ci ildə təsvir olunub: sözü oxumaq demək olar ki, avtomatikdir və rəngi adlandırmağa mane olur. Beyin artıq cavabı basdırmalıdır. Bu, diqqətə nəzarətin klassik ölçüsüdür.",
     "yaddas-zenciri":
       "İşçi yaddaşın həcmi məhduddur. Klassik «yeddi artı-əksi iki» qaydası (Miller, 1956) var, lakin sonrakı işlər (Cowan, 2001) bunu dörd vahidə yaxın qiymətləndirir. Qruplama (çanking) daha çox yadda saxlamağa kömək edir.",
-    "yalanci-yaddas": "TODO(verify)",
+    "yalanci-yaddas":
+      "Bu, Dis-Rediger-Makdermott paradiqmasıdır (ideya 1959, klassik iş 1995). İnsanlar çox vaxt olmayan sözü «xatırlayır», çünki yaddaş hərfləri yox, mənanı saxlayır. Bu normadır, pozuntu deyil.",
     "eyni-rengdir":
       "Görmə sistemi parlaqlığı və ölçünü mütləq deyil, ətrafa nisbətən qiymətləndirir. Müller-Lyer illüziyası 1889-cu ildə təsvir olunub, Ebbinghaus effekti isə XIX əsrin sonlarında. Aldanmaq normaldır.",
-    lovber: "TODO(verify)",
+    lovber:
+      "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk. TODO(verify)",
   } as Record<string, string>,
   share: {
     title: "Dostunu çağır",
@@ -119,6 +135,8 @@ export const az = {
     groupTitle: "Qrup duelu",
     custom: {
       "eyni-rengdir": "Beynim bu testdə məni aldatdı. Səni də aldadacaq? Yoxla:",
+      "yalanci-yaddas": "Beynim bu testdə məni aldatdı. Səni də aldadacaq? Yoxla:",
+      lovber: "Bir təsadüfi rəqəm cavabımı dəyişdi. Səninkini də dəyişəcək? Yoxla:",
     } as Record<string, string>,
     groupMessage: "Qrupda kim ən sürətlidir? Gəlin görək:",
   },
@@ -141,6 +159,14 @@ export const az = {
     you: "Sən",
     groupRank: "Qrup reytinqi",
     deviceNote: "Fərqli cihazlar nəticəyə təsir edə bilər.",
+  },
+  lovber: {
+    questions: {
+      "caspian-depth": {
+        q1: "Xəzər dənizinin ən dərin yeri bu rəqəmdən çoxdur, yoxsa az?",
+        q2: "Sənin təxminin nə qədərdir? (metrlə)",
+      },
+    } as Record<string, { q1: string; q2: string }>,
   },
   qrupla: {
     title: "Qrupla!",

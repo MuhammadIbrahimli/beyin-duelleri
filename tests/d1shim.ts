@@ -1,5 +1,5 @@
 // Minimal D1 stand-in on top of node:sqlite, so API tests run without a Workers runtime.
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 
 class Stmt {
@@ -24,7 +24,8 @@ class Stmt {
 export function makeD1(): D1Database {
   const db = new DatabaseSync(":memory:");
   db.exec("PRAGMA foreign_keys = ON");
-  db.exec(readFileSync(new URL("../migrations/0001_init.sql", import.meta.url), "utf8"));
+  const dir = new URL("../migrations/", import.meta.url);
+  for (const f of readdirSync(dir).filter((n) => n.endsWith(".sql")).sort()) db.exec(readFileSync(new URL(f, dir), "utf8"));
   return {
     prepare: (sql: string) => new Stmt(db, sql),
     batch: async (stmts: Stmt[]) => {

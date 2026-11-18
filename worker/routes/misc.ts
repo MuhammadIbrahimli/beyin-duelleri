@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { CITY_MIN_PARTICIPANTS } from "../../config/cities";
+import { LOVBER_MIN_GROUP, LOVBER_QUESTIONS } from "../../config/lovber";
 import { SOURCES } from "../../config/sources";
 import { EXPERIMENTS, bySlug, dailySlug, todayUTC } from "../../shared/experiments";
 import type { AppEnv } from "../env";
@@ -93,4 +94,18 @@ miscRoutes.post("/shares", async (c) => {
     .bind(run.id, ch, Date.now())
     .run();
   return c.json({ ok: true });
+});
+
+/** Collective Lövbər result: mean answer per anchor group, shown once every group has enough answers. */
+miscRoutes.get("/lovber/stats", async (c) => {
+  const q = LOVBER_QUESTIONS.find((x) => x.id === c.req.query("question"));
+  if (!q) return c.json({ error: "unknown_question" }, 400);
+  const { results } = await c.env.DB.prepare(
+    "SELECT anchor_value AS anchor, COUNT(*) AS n, AVG(answer) AS mean FROM anchor_assignments WHERE question_id = ? AND answer IS NOT NULL GROUP BY anchor_value",
+  ).bind(q.id).all<{ anchor: number; n: number; mean: number }>();
+  const byAnchor = (a: number) => results.find((r) => r.anchor === a);
+  const lo = byAnchor(q.low), hi = byAnchor(q.high);
+  const ready = !!lo && !!hi && lo.n >= LOVBER_MIN_GROUP && hi.n >= LOVBER_MIN_GROUP;
+  c.header("Cache-Control", "private, max-age=300");
+  return c.json({ ready, minGroup: LOVBER_MIN_GROUP, low: ready ? Math.round(lo!.mean) : null, high: ready ? Math.round(hi!.mean) : null });
 });

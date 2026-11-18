@@ -1,5 +1,7 @@
 import { VIDEOS } from "../config/videos";
 import { SOURCES } from "../config/sources";
+import { LOVBER_QUESTIONS } from "../config/lovber";
+import { DRM_SETS } from "../config/wordsets";
 import { api, me, type FinishResult } from "./api";
 import { h, mount } from "./dom";
 import { az, t } from "./i18n/az";
@@ -28,10 +30,14 @@ const showError = (retry?: () => void) =>
   screen(null, h("h1", null, az.common.error), retry ? h("button", { class: "btn primary block", onclick: retry }, az.common.retry) : null,
     h("a", { class: "link", href: "/", "data-link": "" }, az.common.back));
 
+const lureNote = (sec: Record<string, number>) =>
+  sec.fellForLure === undefined ? ""
+    : sec.fellForLure ? t("result.lureFell", { word: DRM_SETS[sec.setIndex]?.lure ?? "" }) : az.result.lureNo;
+
 const formatScore = (slug: string, n: number) => {
   if (slug === "eyni-rengdir") return `${n}/3`;
   const u = az.experiments[slug as keyof typeof az.experiments]?.unit;
-  return u ? `${n} ${u}` : String(n);
+  return u === "%" ? `${n}%` : u ? `${n} ${u}` : String(n);
 };
 
 // ---- home -------------------------------------------------------------------
@@ -115,13 +121,24 @@ export function result() {
     sec.interference !== undefined && t("result.secondary.interference", { n: sec.interference }),
     slug === "reng-ve-soz" && sec.errors !== undefined && t("result.secondary.errors", { n: sec.errors }),
     slug === "eyni-rengdir" && t("result.fooled", { n: r.primary }),
+    slug === "yalanci-yaddas" && lureNote(sec),
   ].filter(Boolean) as string[];
+  const lq = slug === "lovber" ? LOVBER_QUESTIONS[sec.qIndex] : undefined;
+  const collective = h("p", { class: "muted" });
+  if (lq) {
+    void api("GET", `/lovber/stats?question=${lq.id}`).then((st) => {
+      if (st.ready) collective.textContent = t("result.lovberCollective", { low: st.low, high: st.high });
+    }).catch(() => {});
+  }
 
   screen(null,
     h("div", { class: "nick" }, me()?.nickname ?? ""),
     h("h2", null, e.name),
     r.level && h("div", { class: "level" }, `${t("result.level", { n: r.level })} · ${levelName}`),
+    !!lq && h("p", null, t("result.lovberLine", { anchor: sec.anchor, answer: sec.answer, unit: lq.unit, truth: lq.truth })),
     h("div", { class: "hero", style: accent(slug) }, formatScore(slug, r.primary)),
+    !!lq && h("p", { class: "muted" }, az.result.lovberDiff),
+    !!lq && collective,
     ...secLines.map((l) => h("p", { class: "muted" }, l)),
     r.valid
       ? h("p", null, r.percentile === null ? az.result.compareFirst : t(`result.compare.${slug}`, { pct: r.percentile }))
@@ -218,11 +235,13 @@ export async function duelResult(code: string) {
 
   const body = r.type === "group" || !other
     ? h("ul", { class: "lb" }, ...r.entries.map((x: any) =>
-        h("li", { class: x.isMe ? "me" : "" }, h("span", null, `${x.rank}. ${x.isMe ? az.duel.you : x.nickname}`), h("b", null, formatScore(slug, x.primary)))))
+        h("li", { class: x.isMe ? "me" : "" }, h("span", null, `${x.rank}. ${x.isMe ? az.duel.you : x.nickname}`), h("b", null, formatScore(slug, x.primary)),
+        slug === "yalanci-yaddas" ? h("small", { class: "muted" }, lureNote(x.secondary)) : null)))
     : h("div", { class: "vs" },
         ...[meE, other].map((x: any) => h("div", { class: x.rank === 1 && r.outcome !== "tie" ? "win" : "" },
           h("span", { class: "nick" }, x.isMe ? az.duel.you : x.nickname),
-          h("div", { class: "hero", style: accent(slug) + ";font-size:2.25rem" }, formatScore(slug, x.primary)))));
+          h("div", { class: "hero", style: accent(slug) + ";font-size:2.25rem" }, formatScore(slug, x.primary)),
+          slug === "yalanci-yaddas" ? h("small", { class: "muted" }, lureNote(x.secondary)) : null)));
 
   const canGroup = r.type === "1v1" && !!mine;
   screen(null,
