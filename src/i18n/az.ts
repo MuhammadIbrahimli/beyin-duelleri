@@ -364,6 +364,7 @@ export const az = {
     story: "Story 9:16",
     post: "Post 1:1",
     close: "Bağla",
+    hold: "Şəkli basıb saxla → «Şəkli saxla» seç, sonra Fotoşəkillərdə tap.",
   },
   qrupla: {
     title: "Qrupla!",
