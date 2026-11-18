@@ -42,6 +42,8 @@ export const az = {
     "yalanci-yaddas": { name: "Yalançı yaddaş", hook: "Sözləri xatırla. Hamısını?", measure: "Ölçürük: yaddaşın nə qədər dəqiq olduğunu.", unit: "%" },
     "eyni-rengdir": { name: "Eyni rəngdir?", hook: "Gözlərinə nə qədər inanırsan?", measure: "Ölçürük: görmənin kontekstə necə aldandığını.", unit: "" },
     lovber: { name: "Lövbər", hook: "Təsadüfi rəqəm cavabını dəyişir?", measure: "Ölçürük: ilk görülən rəqəmin təxmin üzərində təsirini.", unit: "m" },
+    "go-no-go": { name: "Toxun, ya yox", hook: "Yaşıl dairəyə toxun. Qırmızı kvadrata toxunma.", measure: "Ölçürük: reaksiya sürətini və lazım olanda özünü saxlamağı.", unit: "ms" },
+    "reqem-yaddasi": { name: "Rəqəm yaddaşı", hook: "Rəqəmləri ardıcıllıqla yadda saxla və yaz.", measure: "Ölçürük: rəqəmlərin nə qədər uzun ardıcıllığını xatırlaya bildiyini.", unit: "" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -85,6 +87,8 @@ export const az = {
       "eyni-rengdir": "Sən bu təcrübədə iştirakçıların {pct}%-dən az aldanırsan",
       "yalanci-yaddas": "Sən bu təcrübədə iştirakçıların {pct}%-dən dəqiqsən",
       lovber: "",
+      "go-no-go": "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətli və təmkinlisən",
+      "reqem-yaddasi": "Sən bu təcrübədə iştirakçıların {pct}%-dən çox rəqəm yadda saxlayırsan",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -108,6 +112,8 @@ export const az = {
       earlyTaps: "Tez toxunma: {n}",
       errors: "Səhv: {n}",
       interference: "Beynin nə qədər çaşdı: +{n} ms",
+      commission: "Qırmızıya toxunma: {n}",
+      miss: "Buraxılmış yaşıl: {n}",
     },
     levels: {
       refleks: ["Tısbağa", "Pişik", "Qartal", "Şimşək"],
@@ -116,6 +122,8 @@ export const az = {
       "yalanci-yaddas": ["Dumanlı", "Aydın", "Kəskin", "Arxiv"],
       "eyni-rengdir": ["Tam aldandın", "Aldandın", "Diqqətli", "Şübhəçi"],
       lovber: ["", "", "", ""],
+      "go-no-go": ["Həyəcanlı", "Diqqətli", "Soyuqqanlı", "Ustad"],
+      "reqem-yaddasi": ["Qısa", "Orta", "Uzun", "Rəqəm ustası"],
     } as Record<string, string[]>,
   },
   science: {
@@ -129,6 +137,10 @@ export const az = {
       "Bu, Dis-Rediger-Makdermott paradiqmasıdır (ideya 1959, klassik iş 1995). İnsanlar çox vaxt olmayan sözü «xatırlayır», çünki yaddaş hərfləri yox, mənanı saxlayır. Bu normadır, pozuntu deyil.",
     "eyni-rengdir":
       "Görmə sistemi parlaqlığı və ölçünü mütləq deyil, ətrafa nisbətən qiymətləndirir. Müller-Lyer illüziyası 1889-cu ildə təsvir olunub, Ebbinghaus effekti isə XIX əsrin sonlarında. Aldanmaq normaldır.",
+    "go-no-go":
+      "Go/No-Go klassik tapşırıqdır: tez toxunmaq lazımdır, amma bəzən toxunmamaq lazımdır. Beyin cavabı vaxtında dayandırmağı (inhibisiya) məşq edir. Bu rəqəm diaqnoz deyil, yalnız bu oyunun nəticəsidir.",
+    "reqem-yaddasi":
+      "Rəqəm ardıcıllığını xatırlamaq işçi yaddaşın klassik ölçüsüdür. Əksər insanlar təxminən yeddi rəqəm xatırlayır, qruplama isə kömək edir.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,
@@ -227,6 +239,10 @@ export const az = {
     privacy: "Məxfilik",
     earlier: "əvvəl",
     language: "Dil",
+    sound: "Səs",
+    soundOn: "Açıq",
+    soundOff: "Bağlı",
+    groups: "Qruplarım",
   },
   badges: {
     streak7: { name: "7 gün seriya", desc: "Yeddi gün ardıcıl keçdin" },
@@ -268,6 +284,26 @@ export const az = {
       link: "Ad link, nömrə və ya əlaqə ola bilməz",
       blocked: "Bu addan istifadə etmək olmaz",
     } as Record<string, string>,
+  },
+  groups: {
+    title: "Qruplar",
+    sub: "Sinif, dostlar və ya iş yoldaşları üçün daimi reytinq. Bir kod: hamı qoşulur.",
+    create: "Qrup yarat",
+    join: "Kodla qoşul",
+    namePh: "Qrupun adı",
+    codePh: "Qrup kodu",
+    empty: "Hələ qrupun yoxdur.",
+    members: "{n} üzv",
+    invite: "Dostları çağır",
+    leave: "Qrupdan çıx",
+    notFound: "Belə qrup tapılmadı",
+    full: "Qrup doludur",
+    errName: "Qrup adı 2-24 simvol olmalıdır",
+    code: "Kod: {code}",
+    shareMsg: "Beyin duellərində qrupuma qoşul! Kod: {code}",
+    you: "sən",
+    back: "Qruplara qayıt",
+    score: "bal",
   },
   pwa: { install: "Ekrana əlavə et" },
   card: {

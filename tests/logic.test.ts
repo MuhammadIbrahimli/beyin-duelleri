@@ -362,6 +362,7 @@ describe("points", () => {
   });
   it("overall score averages over all experiments, so unplayed ones count as 0", () => {
     expect(overallScore([], 6)).toBe(0);
+    expect(overallScore([85], 8)).toBe(10.6);
     expect(overallScore([90], 6)).toBe(15);
     expect(overallScore([90, 60, 60, 60, 60, 60], 6)).toBe(65);
   });
@@ -384,5 +385,81 @@ describe("profile validation", () => {
     expect(validateEmail(" A@B.az ")).toEqual({ ok: true, value: "a@b.az" });
     expect(validateEmail("a@b")).toMatchObject({ ok: false });
     expect(validateEmail("a b@c.com")).toMatchObject({ ok: false });
+  });
+});
+
+import { goNoGo, reqemYaddasi } from "../shared/scoring";
+
+describe("go-no-go scoring", () => {
+  const s = goNoGo.schedule(9);
+  const perfect = (rt: number) => ({ taps: s.trials.map((t) => (t.go ? rt : null)) });
+  it("schedule: 30 trials, 21 go and 9 no-go, deterministic", () => {
+    expect(goNoGo.schedule(9)).toEqual(s);
+    expect(s.trials).toHaveLength(30);
+    expect(s.trials.filter((t) => t.go)).toHaveLength(21);
+    expect(goNoGo.schedule(10)).not.toEqual(s);
+    s.trials.forEach((t) => { expect(t.gapMs).toBeGreaterThanOrEqual(500); expect(t.gapMs).toBeLessThanOrEqual(900); });
+  });
+  it("perfect play scores the mean reaction time", () => {
+    const r = goNoGo.score(s, { taps: s.trials.map((t, i) => (t.go ? 300 + (i % 3) : null)) })!;
+    expect(r.valid).toBe(true);
+    expect(r.secondary).toMatchObject({ commission: 0, miss: 0, hits: 21 });
+    expect(r.primary).toBeGreaterThanOrEqual(300);
+    expect(r.primary).toBeLessThanOrEqual(302);
+  });
+  it("tapping the red square costs 300 ms, missing a green circle costs 150 ms", () => {
+    const base = goNoGo.score(s, perfect(300))!;
+    const noGo = s.trials.findIndex((t) => !t.go);
+    const taps1 = perfect(300).taps.slice(); taps1[noGo] = 350;
+    const c = goNoGo.score(s, { taps: taps1 })!;
+    expect(c.secondary.commission).toBe(1);
+    expect(c.primary).toBe(base.primary + 300);
+    const go = s.trials.findIndex((t) => t.go);
+    const taps2 = perfect(300).taps.slice(); taps2[go] = null;
+    const m = goNoGo.score(s, { taps: taps2 })!;
+    expect(m.secondary.miss).toBe(1);
+    expect(m.primary).toBe(base.primary + 150);
+  });
+  it("invalid: impossible reaction, no hits, tapping everything; malformed is null", () => {
+    expect(goNoGo.score(s, perfect(60))!.valid).toBe(false);
+    expect(goNoGo.score(s, { taps: s.trials.map(() => null) })!.valid).toBe(false);
+    expect(goNoGo.score(s, { taps: s.trials.map(() => 300) })!.valid).toBe(false);
+    expect(goNoGo.score(s, { taps: [300] })).toBeNull();
+    expect(goNoGo.score(s, { taps: s.trials.map(() => "x") })).toBeNull();
+  });
+});
+
+describe("reqem-yaddasi (digit span) scoring", () => {
+  const s = reqemYaddasi.schedule(4);
+  it("uses digits 0-9 and keeps the span rules of the grid memory test", () => {
+    expect(reqemYaddasi.schedule(4)).toEqual(s);
+    expect(s.seqs.flat(2).every((d) => d >= 0 && d <= 9)).toBe(true);
+    const ok = (len: number) => ({ digits: s.seqs[len - 3][0].slice(), ms: len * 500 });
+    const bad = (len: number, a = 0) => ({ digits: [(s.seqs[len - 3][a][0] + 1) % 10], ms: 400 });
+    const r = reqemYaddasi.score(s, { attempts: [ok(3), ok(4), ok(5), ok(6), bad(7), bad(7, 1)] })!;
+    expect(r.primary).toBe(6);
+    expect(r.valid).toBe(true);
+    // the digit scorer reads "digits", not "taps"
+    expect(reqemYaddasi.score(s, { attempts: [{ taps: [1, 2, 3], ms: 900 }] })).toBeNull();
+    // a tapped value of 9 is fine here (it would be rejected on the 3x3 grid)
+    expect(reqemYaddasi.score(s, { attempts: [{ digits: [9, 9, 9, 9], ms: 900 }] })).toBeNull(); // too long for length 3
+  });
+});
+
+describe("new experiments are wired into points, levels and daily rotation", () => {
+  it("points never decrease with better results", () => {
+    let prev = 101;
+    for (let raw = 0; raw <= 2000; raw += 20) { const p = pointsFor("go-no-go", raw); expect(p).toBeLessThanOrEqual(prev); prev = p; }
+    expect(pointsFor("reqem-yaddasi", 9)).toBe(85);
+    expect(pointsFor("reqem-yaddasi", 12)).toBe(100);
+  });
+  it("levels", () => {
+    expect([300, 400, 500, 700].map((v) => levelFor("go-no-go", v))).toEqual([4, 3, 2, 1]);
+    expect([3, 5, 7, 9].map((v) => levelFor("reqem-yaddasi", v))).toEqual([1, 2, 3, 4]);
+  });
+  it("Sunday cycles through every experiment, weekdays stay fixed", () => {
+    const sundays = Array.from({ length: 8 }, (_, i) => dailySlug(new Date(Date.parse("2026-11-22T00:00:00Z") + i * 7 * 86400000).toISOString().slice(0, 10)));
+    expect(new Set(sundays).size).toBe(8);
+    expect(dailySlug("2026-11-16")).toBe("refleks");
   });
 });

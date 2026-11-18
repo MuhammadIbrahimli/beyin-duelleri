@@ -215,8 +215,8 @@ describe("profile, Beyin balı and rankings", () => {
     const t = await newUser();
     const r = await play(t, [230, 230, 231, 232, 233]); // ~85 points on Refleks
     expect(r.fin.json.points).toBeGreaterThanOrEqual(84);
-    expect(r.fin.json.overall).toMatchObject({ played: 1, total: 6 });
-    expect(r.fin.json.overall.score).toBe(Math.round(r.fin.json.points / 6));
+    expect(r.fin.json.overall).toMatchObject({ played: 1, total: 8 });
+    expect(r.fin.json.overall.score).toBe(Math.round((r.fin.json.points / 8) * 10) / 10);
     const p = await call("GET", "/api/me/passport", t);
     expect(p.json.overall).toMatchObject({ played: 1, rank: 1 });
     expect(p.json.experiments[0].best.points).toBe(r.fin.json.points);
@@ -409,7 +409,7 @@ describe("daily, badges, my duels", () => {
     const db: D1Database = env.DB;
     const now = Date.now();
     const stmts: D1PreparedStatement[] = [];
-    for (let e = 1; e <= 6; e++) {
+    for (let e = 1; e <= 8; e++) {
       stmts.push(db.prepare("INSERT INTO runs (id,user_id,experiment_id,seed,status,primary_score,valid,device_class,created_at,finished_at) VALUES (?,?,?,1,'finished',1,1,'other',?,?)").bind(`rr${e}`, uid, e, now, now));
     }
     for (let d = 10; d <= 16; d++) {
@@ -482,5 +482,58 @@ describe("Russian word sets", () => {
     // a normal Azerbaijani run still gets Azerbaijani words
     const z = await call("POST", "/api/runs/start", az, { slug: "yalanci-yaddas", lang: "az" });
     expect(z.json.schedule.study.every((w: string) => /^[a-zəıöüçşğ]+$/i.test(w))).toBe(true);
+  });
+});
+
+describe("persistent groups", () => {
+  it("create, join by code, leaderboard by Beyin balı, leave", async () => {
+    const [owner, friend, outsider] = [await newUser(), await newUser(), await newUser()];
+    await call("PATCH", "/api/me", owner, { nickname: "Sahib" });
+    await call("PATCH", "/api/me", friend, { nickname: "Dost" });
+    expect((await call("POST", "/api/groups", owner, { name: "x" })).status).toBe(400);
+    const g = await call("POST", "/api/groups", owner, { name: "10-A sinfi" });
+    expect(g.status).toBe(201);
+    const code = g.json.code as string;
+    expect(code).toMatch(/^[A-Z0-9]{6}$/);
+    expect(g.json.url).toBe(`https://beyin.test/g/${code}`);
+
+    // a stranger sees only name and size until they join
+    const peek = await call("GET", `/api/groups/${code}`, outsider);
+    expect(peek.status).toBe(403);
+    expect(peek.json).toMatchObject({ error: "not_member", name: "10-A sinfi", members: 1 });
+
+    expect((await call("POST", "/api/groups/join", friend, { code: code.toLowerCase() })).status).toBe(200); // codes are case-insensitive
+    expect((await call("POST", "/api/groups/join", friend, { code })).status).toBe(200); // joining twice is harmless
+    expect((await call("POST", "/api/groups/join", friend, { code: "NOPE00" })).status).toBe(404);
+
+    await play(owner, [330, 340, 350, 360, 370]);
+    await play(friend, [235, 236, 237, 238, 239]);
+    const board = (await call("GET", `/api/groups/${code}`, owner)).json;
+    expect(board.members.map((m: any) => m.nickname)).toEqual(["Dost", "Sahib"]);
+    expect(board.members[1]).toMatchObject({ isMe: true, rank: 2 });
+    expect(board.isOwner).toBe(true);
+
+    const mine = (await call("GET", "/api/groups", owner)).json.groups;
+    expect(mine).toEqual([{ code, name: "10-A sinfi", members: 2, rank: 2, isOwner: true }]);
+
+    // the owner leaves: ownership passes on; the last member leaving removes the group
+    await call("DELETE", `/api/groups/${code}/leave`, owner);
+    expect((await call("GET", `/api/groups/${code}`, friend)).json.isOwner).toBe(true);
+    await call("DELETE", `/api/groups/${code}/leave`, friend);
+    expect((await call("GET", `/api/groups/${code}`, friend)).status).toBe(404);
+  });
+  it("is limited to 50 members and 5 owned groups", async () => {
+    const owner = await newUser();
+    const code = (await call("POST", "/api/groups", owner, { name: "Big group" })).json.code;
+    const stmts: D1PreparedStatement[] = [];
+    const gid = (await env.DB.prepare("SELECT id FROM groups WHERE code = ?").bind(code).first()).id;
+    for (let i = 0; i < 49; i++) {
+      stmts.push(env.DB.prepare("INSERT INTO users (id,nickname,device_class,created_at,last_seen_at) VALUES (?,?,?,?,?)").bind(`m${i}`, "x", "other", 1, 1));
+      stmts.push(env.DB.prepare("INSERT INTO group_members (group_id,user_id,joined_at) VALUES (?,?,?)").bind(gid, `m${i}`, 1));
+    }
+    await env.DB.batch(stmts);
+    expect((await call("POST", "/api/groups/join", await newUser(), { code })).json.error).toBe("full");
+    for (let i = 0; i < 4; i++) expect((await call("POST", "/api/groups", owner, { name: `Group ${i}` })).status).toBe(201);
+    expect((await call("POST", "/api/groups", owner, { name: "Sixth" })).status).toBe(409);
   });
 });

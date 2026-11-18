@@ -5,6 +5,8 @@ export const EXPERIMENTS = [
   { id: 4, slug: "yalanci-yaddas", direction: "higher", tiebreak: null },
   { id: 5, slug: "eyni-rengdir", direction: "lower", tiebreak: { key: "totalMs", direction: "lower" } },
   { id: 6, slug: "lovber", direction: "lower", tiebreak: null }, // primary = |answer - truth|
+  { id: 7, slug: "go-no-go", direction: "lower", tiebreak: { key: "commission", direction: "lower" } },
+  { id: 8, slug: "reqem-yaddasi", direction: "higher", tiebreak: { key: "totalMs", direction: "lower" } },
 ] as const;
 
 export type Slug = (typeof EXPERIMENTS)[number]["slug"];
@@ -17,7 +19,10 @@ export const byId = (id: number): ExperimentMeta | undefined => EXPERIMENTS.find
 const DAILY_BY_WEEKDAY: Slug[] = ["refleks", "reng-ve-soz", "yaddas-zenciri", "yalanci-yaddas", "eyni-rengdir", "lovber"];
 export function dailySlug(date: string): Slug {
   const wd = new Date(date + "T00:00:00Z").getUTCDay(); // 0 = Sunday
-  return wd === 0 ? "refleks" : DAILY_BY_WEEKDAY[wd - 1];
+  if (wd !== 0) return DAILY_BY_WEEKDAY[wd - 1];
+  // Sunday = "weekly duel": cycles through every experiment, one per week
+  const week = Math.floor(Date.parse(date + "T00:00:00Z") / (7 * 86400000));
+  return EXPERIMENTS[week % EXPERIMENTS.length].slug;
 }
 /** Calendar day in Azerbaijan (UTC+4, no daylight saving): the daily test and streaks roll over at local midnight. */
 export const todayBaku = (now = Date.now()) => new Date(now + 4 * 3600000).toISOString().slice(0, 10);

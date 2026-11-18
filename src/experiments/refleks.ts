@@ -1,4 +1,5 @@
 import { h, mount } from "../dom";
+import { fx } from "../fx";
 import { t } from "../i18n";
 
 export interface RefleksSchedule { delays: number[] }
@@ -46,6 +47,7 @@ export default function play(root: HTMLElement, schedule: RefleksSchedule): Prom
       stage.onpointerdown = () => {
         const now = performance.now();
         if (state === "go") {
+          fx.tap();
           times.push(Math.round(now - greenAt));
           state = "pause";
           stage.onpointerdown = null;
@@ -54,6 +56,7 @@ export default function play(root: HTMLElement, schedule: RefleksSchedule): Prom
         } else if (state === "wait" && early < MAX_EARLY) {
           cancelAnimationFrame(raf);
           early++;
+          fx.bad();
           state = "pause";
           stage.className = "stage early";
           label.textContent = "";

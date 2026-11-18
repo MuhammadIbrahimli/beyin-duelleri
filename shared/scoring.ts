@@ -102,7 +102,7 @@ export const rengVeSoz: Scorer<StroopSchedule> = {
   },
 };
 
-// ---- Yaddaş zənciri (working memory) -------------------------------------------
+// ---- Memory span (Yaddaş zənciri on a 3x3 grid, Rəqəm yaddaşı with digits) --------------
 export const MEM_MIN = 3;
 export const MEM_MAX = 12;
 export const MEM_CELLS = 9;
@@ -110,39 +110,84 @@ export const MEM_MIN_TAP_MS = 100;
 /** seqs[len - MEM_MIN][attempt]: two different sequences per length (a second chance after one error). */
 export interface MemSchedule { seqs: number[][][] }
 
-export const yaddasZenciri: Scorer<MemSchedule> = {
+/** Both span experiments share the rules: start at 3, +1 per success, a second error in a row ends it, max 12. */
+function spanScorer(cells: number, entryKey: "taps" | "digits"): Scorer<MemSchedule> {
+  return {
+    schedule(seed) {
+      const r = rng(seed);
+      const seq = (len: number) => {
+        const s: number[] = [];
+        while (s.length < len) {
+          const c = randInt(r, 0, cells - 1);
+          if (c !== s[s.length - 1]) s.push(c); // no immediate repeats: easier to follow on screen
+        }
+        return s;
+      };
+      return { seqs: Array.from({ length: MEM_MAX - MEM_MIN + 1 }, (_, i) => [seq(MEM_MIN + i), seq(MEM_MIN + i)]) };
+    },
+    minDurationMs: () => MEM_MIN * 700,
+    score(s, payload) {
+      const attempts = (payload as { attempts?: unknown })?.attempts;
+      if (!Array.isArray(attempts) || attempts.length === 0 || attempts.length > 2 * (MEM_MAX - MEM_MIN + 1)) return null;
+      let len = MEM_MIN, attempt = 0, best = 0, total = 0, done = false, tooFast = false;
+      for (const a of attempts as Record<string, unknown>[]) {
+        const taps = a?.[entryKey];
+        if (done || !Array.isArray(taps) || !Number.isFinite(a.ms) || (a.ms as number) < 0 || (a.ms as number) > 300000) return null;
+        const entered = taps as number[];
+        if (entered.length < 1 || entered.length > len || !entered.every((c) => Number.isInteger(c) && c >= 0 && c < cells)) return null;
+        total += a.ms as number;
+        if ((a.ms as number) / entered.length < MEM_MIN_TAP_MS) tooFast = true;
+        const want = s.seqs[len - MEM_MIN][attempt];
+        if (entered.length === len && entered.every((c, i) => c === want[i])) {
+          best = len;
+          if (len === MEM_MAX) done = true; else { len++; attempt = 0; }
+        } else if (attempt === 1) done = true; // two errors in a row end the task
+        else attempt = 1;
+      }
+      if (!done) return null;
+      return { primary: best, secondary: { totalMs: Math.round(total) }, valid: !tooFast, invalidReason: tooFast ? "too_fast" : undefined };
+    },
+  };
+}
+export const yaddasZenciri = spanScorer(MEM_CELLS, "taps");
+export const reqemYaddasi = spanScorer(10, "digits");
+
+// ---- Go / No-Go (reaction with inhibition) ---------------------------------------------
+export const GNG_TRIALS = 30;
+export const GNG_PENALTY_COMMISSION_MS = 300; // tapped the red square
+export const GNG_PENALTY_MISS_MS = 150;       // missed a green circle
+export interface GngTrial { go: boolean; gapMs: number }
+export interface GngSchedule { trials: GngTrial[] }
+
+export const goNoGo: Scorer<GngSchedule> = {
   schedule(seed) {
     const r = rng(seed);
-    const seq = (len: number) => {
-      const s: number[] = [];
-      while (s.length < len) {
-        const c = randInt(r, 0, MEM_CELLS - 1);
-        if (c !== s[s.length - 1]) s.push(c); // no immediate repeats: easier to see on screen
-      }
-      return s;
-    };
-    return { seqs: Array.from({ length: MEM_MAX - MEM_MIN + 1 }, (_, i) => [seq(MEM_MIN + i), seq(MEM_MIN + i)]) };
+    const kinds = shuffle(r, [...Array(21).fill(true), ...Array(9).fill(false)] as boolean[]);
+    return { trials: kinds.map((go) => ({ go, gapMs: randInt(r, 500, 900) })) };
   },
-  minDurationMs: () => MEM_MIN * 700,
+  minDurationMs: () => GNG_TRIALS * 900,
   score(s, payload) {
-    const attempts = (payload as { attempts?: unknown })?.attempts;
-    if (!Array.isArray(attempts) || attempts.length === 0 || attempts.length > 2 * (MEM_MAX - MEM_MIN + 1)) return null;
-    let len = MEM_MIN, attempt = 0, best = 0, total = 0, done = false, tooFast = false;
-    for (const a of attempts as { taps?: unknown; ms?: unknown }[]) {
-      if (done || !Array.isArray(a?.taps) || !Number.isFinite(a.ms) || (a.ms as number) < 0 || (a.ms as number) > 300000) return null;
-      const taps = a.taps as number[];
-      if (taps.length < 1 || taps.length > len || !taps.every((c) => Number.isInteger(c) && c >= 0 && c < MEM_CELLS)) return null;
-      total += a.ms as number;
-      if ((a.ms as number) / taps.length < MEM_MIN_TAP_MS) tooFast = true;
-      const want = s.seqs[len - MEM_MIN][attempt];
-      if (taps.length === len && taps.every((c, i) => c === want[i])) {
-        best = len;
-        if (len === MEM_MAX) done = true; else { len++; attempt = 0; }
-      } else if (attempt === 1) done = true; // two errors in a row end the task
-      else attempt = 1;
-    }
-    if (!done) return null;
-    return { primary: best, secondary: { totalMs: Math.round(total) }, valid: !tooFast, invalidReason: tooFast ? "too_fast" : undefined };
+    const taps = (payload as { taps?: unknown })?.taps;
+    if (!Array.isArray(taps) || taps.length !== GNG_TRIALS) return null;
+    if (!taps.every((x) => x === null || (typeof x === "number" && Number.isFinite(x) && x >= 0 && x < 5000))) return null;
+    const hits: number[] = [];
+    let commission = 0, miss = 0, noGoTotal = 0;
+    s.trials.forEach((t, i) => {
+      const rt = taps[i] as number | null;
+      if (t.go) { if (rt === null) miss++; else hits.push(rt); }
+      else { noGoTotal++; if (rt !== null) commission++; }
+    });
+    let invalidReason: string | undefined;
+    if (hasImpossibleReaction(hits)) invalidReason = "too_fast";
+    else if (hits.length === 0) invalidReason = "no_hits";
+    else if (commission > noGoTotal / 2 && hits.length > 0) invalidReason = "tapping_everything";
+    const meanRt = hits.length ? hits.reduce((a, b) => a + b, 0) / hits.length : 0;
+    return {
+      primary: Math.round(meanRt + GNG_PENALTY_COMMISSION_MS * commission + GNG_PENALTY_MISS_MS * miss),
+      secondary: { commission, miss, hits: hits.length, meanRt: Math.round(meanRt) },
+      valid: !invalidReason,
+      invalidReason,
+    };
   },
 };
 
@@ -263,6 +308,8 @@ export const SCORERS: Record<string, Scorer<any>> = {
   "reng-ve-soz": rengVeSoz,
   "yaddas-zenciri": yaddasZenciri,
   "eyni-rengdir": eyniRengdir,
+  "go-no-go": goNoGo,
+  "reqem-yaddasi": reqemYaddasi,
   "yalanci-yaddas": yalanciYaddas,
   lovber,
 };

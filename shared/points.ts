@@ -19,5 +19,5 @@ export function pointsFor(slug: string, raw: number): number {
  */
 export function overallScore(bestPoints: number[], totalExperiments: number): number {
   if (totalExperiments <= 0) return 0;
-  return Math.round(bestPoints.reduce((a, b) => a + b, 0) / totalExperiments);
+  return Math.round((bestPoints.reduce((a, b) => a + b, 0) / totalExperiments) * 10) / 10; // one decimal keeps the ranking fine-grained
 }

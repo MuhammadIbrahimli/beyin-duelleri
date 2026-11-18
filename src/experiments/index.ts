@@ -6,5 +6,7 @@ export const loaders: Record<string, () => Promise<{ default: (root: HTMLElement
   "eyni-rengdir": () => import("./eyni-rengdir"),
   "yalanci-yaddas": () => import("./yalanci-yaddas"),
   lovber: () => import("./lovber"),
+  "go-no-go": () => import("./go-no-go"),
+  "reqem-yaddasi": () => import("./reqem-yaddasi"),
 };
 export const available = Object.keys(loaders);

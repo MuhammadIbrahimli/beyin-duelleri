@@ -7,6 +7,7 @@ import type { CardModel } from "./card/model";
 import { countRun, installOffer } from "./pwa";
 import { api, me, type FinishResult } from "./api";
 import { burst, countUp, h, mount } from "./dom";
+import { fx } from "./fx";
 import { icon, mark } from "./icons";
 import { az, getLang, setLang, t, type Lang } from "./i18n";
 import { available, loaders } from "./experiments";
@@ -228,7 +229,7 @@ export function result() {
     slug === "refleks" && h("p", { class: "muted" }, az.duel.deviceNote));
   tint(slug);
   countUp(heroEl, r.points, (n) => String(n));
-  if (r.valid && r.level === 4) setTimeout(() => burst(panel), 350);
+  if (r.valid && r.level === 4) setTimeout(() => { burst(panel); fx.win(); }, 350);
   // optional profile (name, city, email): offered once, right after the first finished result
   if (r.valid && !me()?.profileDone) setTimeout(() => void import("./profile").then((m) => m.openProfileSheet(() => result())), 1500);
 }
@@ -345,7 +346,7 @@ export async function duelResult(code: string) {
     slug === "refleks" && h("p", { class: "muted" }, az.duel.deviceNote),
     h("p", { class: "muted" }, az.common.notDiagnosis));
   tint(slug);
-  if (won) setTimeout(() => { const w = document.querySelector(".vs .win") as HTMLElement | null; if (w) burst(w); }, 300);
+  if (won) setTimeout(() => { fx.win(); const w = document.querySelector(".vs .win") as HTMLElement | null; if (w) burst(w); }, 300);
 }
 
 

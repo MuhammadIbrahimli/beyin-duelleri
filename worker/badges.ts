@@ -1,3 +1,4 @@
+import { EXPERIMENTS } from "../shared/experiments";
 import { streakWithFreeze } from "../shared/streak";
 
 export const BADGES = ["streak7", "first_duel", "ten_duels", "all_six", "group_leader"] as const;
@@ -31,7 +32,7 @@ export async function awardBadges(db: D1Database, userId: string, today: string,
   await check("first_duel", async () => duels >= 1);
   await check("ten_duels", async () => duels >= 10);
   await check("all_six", async () =>
-    (await count(db, "SELECT COUNT(DISTINCT experiment_id) AS n FROM runs WHERE user_id = ? AND status = 'finished' AND valid = 1", userId)) >= 6);
+    (await count(db, "SELECT COUNT(DISTINCT experiment_id) AS n FROM runs WHERE user_id = ? AND status = 'finished' AND valid = 1", userId)) >= EXPERIMENTS.length);
   await check("group_leader", async () =>
     (await count(db,
       `SELECT COUNT(*) AS n FROM duel_entries e JOIN runs r ON r.id = e.run_id JOIN duels d ON d.id = e.duel_id

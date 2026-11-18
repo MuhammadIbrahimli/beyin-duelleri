@@ -8,4 +8,6 @@ export const LEVELS: Record<string, LevelRule | null> = {
   "yalanci-yaddas": { direction: "higher", l4: 96, l3: 86, l2: 70 },
   "eyni-rengdir": { direction: "lower", l4: 1, l3: 2, l2: 3 },
   lovber: null,
+  "go-no-go": { direction: "lower", l4: 380, l3: 480, l2: 650 },
+  "reqem-yaddasi": { direction: "higher", l4: 9, l3: 7, l2: 5 },
 };

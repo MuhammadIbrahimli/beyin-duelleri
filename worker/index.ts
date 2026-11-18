@@ -4,6 +4,7 @@ import type { AppEnv, Env } from "./env";
 import { rateLimit } from "./middleware/auth";
 import { adminRoutes } from "./routes/admin";
 import { duelRoutes } from "./routes/duels";
+import { groupRoutes } from "./routes/groups";
 import { miscRoutes } from "./routes/misc";
 import { runRoutes } from "./routes/runs";
 import { meRoutes, sessionRoutes } from "./routes/session";
@@ -15,6 +16,7 @@ app.route("/", adminRoutes); // before the user routes: it has its own token che
 app.route("/", meRoutes);
 app.route("/", runRoutes);
 app.route("/", duelRoutes);
+app.route("/", groupRoutes);
 app.route("/", miscRoutes);
 app.notFound((c) => c.json({ error: "not_found" }, 404));
 app.onError((e, c) => {

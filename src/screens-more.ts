@@ -2,7 +2,9 @@
 import { CITY_CODES } from "../config/cities";
 import { bySlug } from "../shared/experiments";
 import { api, me } from "./api";
+import { go } from "./router";
 import { h } from "./dom";
+import { setSound, soundOn } from "./fx";
 import { icon } from "./icons";
 import { az, t } from "./i18n";
 import { accent, cardFooter, formatScore, langSwitch, openCard, screen, showError } from "./screens";
@@ -10,12 +12,39 @@ import { accent, cardFooter, formatScore, langSwitch, openCard, screen, showErro
 const expName = (slug: string) => az.experiments[slug as keyof typeof az.experiments].name;
 const SLUGS = Object.keys(az.experiments);
 
-// ---- Duellər -------------------------------------------------------------------
+// ---- Duellər + persistent groups --------------------------------------------------
 export async function duelsTab() {
-  let data: any;
-  try { data = await api("GET", "/me/duels"); } catch { return showError(); }
+  let data: any, groups: any;
+  try { [data, groups] = await Promise.all([api("GET", "/me/duels"), api("GET", "/groups")]); } catch { return showError(); }
+
+  const msg = h("p", { class: "soft", role: "alert" });
+  const nameIn = h("input", { class: "field", placeholder: az.groups.namePh, maxlength: 24, "aria-label": az.groups.namePh }) as HTMLInputElement;
+  const codeIn = h("input", { class: "field", placeholder: az.groups.codePh, maxlength: 8, autocapitalize: "characters", "aria-label": az.groups.codePh }) as HTMLInputElement;
+  const create = h("button", { class: "btn", onclick: async () => {
+    msg.textContent = "";
+    try { const g = await api("POST", "/groups", { name: nameIn.value }); go(`/g/${g.code}`); }
+    catch (e: any) { msg.textContent = e.code === "bad_name" ? az.groups.errName : az.common.error; }
+  } }, az.groups.create);
+  const join = h("button", { class: "btn", onclick: async () => {
+    msg.textContent = "";
+    try { const g = await api("POST", "/groups/join", { code: codeIn.value }); go(`/g/${g.code}`); }
+    catch (e: any) { msg.textContent = e.code === "full" ? az.groups.full : e.status === 404 ? az.groups.notFound : az.common.error; }
+  } }, az.groups.join);
+
   screen("duels",
-    h("h1", null, az.duels.title),
+    h("h1", null, az.groups.title),
+    h("p", { class: "muted" }, az.groups.sub),
+    groups.groups.length
+      ? h("div", { class: "list" }, ...groups.groups.map((g: any) =>
+          h("a", { class: "list-row", style: "--accent: var(--c-primary)", href: `/g/${g.code}`, "data-link": "" },
+            icon("pass", 28),
+            h("div", { class: "txt" }, h("b", null, g.name), h("span", null, [t("groups.members", { n: g.members }), t("duels.rank", { n: g.rank })].join(" · "))),
+            icon("chevron", 18))))
+      : h("p", { class: "muted" }, az.groups.empty),
+    h("div", { class: "pair-input" }, nameIn, create),
+    h("div", { class: "pair-input" }, codeIn, join),
+    msg,
+    h("h2", null, az.duels.title),
     ...(data.duels.length === 0 ? [h("p", { class: "muted" }, az.duels.empty)] : [h("div", { class: "list" }, ...data.duels.map((d: any) =>
       h("a", { class: "list-row", style: accent(d.slug), href: `/duel/${d.code}`, "data-link": "" },
         icon(d.slug, 28),
@@ -23,6 +52,46 @@ export async function duelsTab() {
           h("span", null, [az.duels[d.status as "open" | "closed" | "expired"], t("duels.players", { n: d.finished }),
             d.myRank ? t("duels.rank", { n: d.myRank }) : ""].filter(Boolean).join(" · "))),
         icon("chevron", 18))))]));
+}
+
+/** One group: its code, invite buttons and the standing leaderboard. A link from a friend lands here too. */
+export async function groupPage(code: string) {
+  let g: any;
+  try { g = await api("GET", `/groups/${code}`); }
+  catch (e: any) {
+    if (e.code === "not_member") {
+      const err = h("p", { class: "soft", role: "alert" });
+      return screen("duels",
+        h("div", { style: "--accent: var(--c-primary)" }, icon("pass", 56, "ico intro-ico")),
+        h("h1", null, e.data.name),
+        h("p", { class: "muted" }, t("groups.members", { n: e.data.members })),
+        err,
+        h("button", { class: "btn primary block", onclick: async () => {
+          try { await api("POST", "/groups/join", { code }); void groupPage(code); }
+          catch (er: any) { err.textContent = er.code === "full" ? az.groups.full : az.common.error; }
+        } }, az.groups.join));
+    }
+    return showError();
+  }
+  const url = `${location.origin}/g/${g.code}`;
+  const text = t("groups.shareMsg", { code: g.code }) + " " + url;
+  const copy = h("button", { class: "btn" }, az.share.copy);
+  copy.addEventListener("click", async () => { await navigator.clipboard?.writeText(text).catch(() => {}); copy.textContent = az.share.copied; });
+  screen("duels",
+    h("h1", null, g.name),
+    h("p", { class: "muted" }, [t("groups.code", { code: g.code }), t("groups.members", { n: g.members.length })].join(" · ")),
+    h("div", { class: "actions" },
+      h("a", { class: "btn primary block", href: `https://wa.me/?text=${encodeURIComponent(text)}`, target: "_blank", rel: "noopener" }, az.groups.invite + " · WhatsApp"),
+      h("a", { class: "btn block", href: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(t("groups.shareMsg", { code: g.code }))}`, target: "_blank", rel: "noopener" }, "Telegram"),
+      copy),
+    h("ol", { class: "lb rank" }, ...g.members.map((m: any) =>
+      h("li", { class: m.isMe ? "me" : "" },
+        h("span", { class: "rk" }, String(m.rank)),
+        h("span", { class: "who" }, m.isMe ? `${m.nickname} (${az.groups.you})` : m.nickname,
+          h("small", { class: "muted" }, [m.city ? az.cities[m.city] : "", t("ranking.played", { n: m.played, total: g.total })].filter(Boolean).join(" · "))),
+        h("b", null, String(m.score))))),
+    h("button", { class: "link", onclick: async () => { await api("DELETE", `/groups/${g.code}/leave`).catch(() => {}); go("/duels"); } }, az.groups.leave),
+    h("a", { class: "link", href: "/duels", "data-link": "" }, az.groups.back));
 }
 
 // ---- Reytinq: Beyin balı by city and by player -------------------------------------------
@@ -148,6 +217,7 @@ export async function passport() {
     ...(badgeItems.length ? badgeItems : [h("p", { class: "muted" }, az.passport.noBadges)]),
     h("h2", null, az.passport.settings),
     h("div", { class: "kv-row" }, h("span", null, az.passport.language), langSwitch()),
+    h("div", { class: "kv-row" }, h("span", null, az.passport.sound), soundSwitch()),
     h("button", { class: "btn block", onclick: () => void import("./profile").then((m) => m.openProfileSheet(() => void passport())) }, az.profile.edit),
     h("button", { class: "btn block", onclick: async () => {
       const r = await api("PATCH", "/me", { rerollNickname: true }).catch(() => null);
@@ -156,6 +226,12 @@ export async function passport() {
     } }, az.passport.reroll),
     del,
     h("a", { class: "link", href: "/privacy", "data-link": "" }, az.passport.privacy));
+}
+
+function soundSwitch(): HTMLElement {
+  const b = h("button", { class: "chip" + (soundOn() ? " on" : "") }, soundOn() ? az.passport.soundOn : az.passport.soundOff);
+  b.addEventListener("click", () => { setSound(!soundOn()); b.classList.toggle("on", soundOn()); b.textContent = soundOn() ? az.passport.soundOn : az.passport.soundOff; });
+  return b;
 }
 
 export function privacy() {

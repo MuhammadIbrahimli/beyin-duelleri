@@ -6,4 +6,6 @@ export const SOURCES: Record<string, { url: string }> = {
   "yalanci-yaddas": { url: "TODO(verify)" },
   "eyni-rengdir": { url: "TODO(verify)" },
   lovber: { url: "TODO(verify)" },
+  "go-no-go": { url: "TODO(verify)" },
+  "reqem-yaddasi": { url: "TODO(verify)" },
 };

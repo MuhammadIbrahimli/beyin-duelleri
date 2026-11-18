@@ -14,6 +14,8 @@ export const ICONS: Record<string, string> = {
   "yalanci-yaddas": "M9 9a3 3 0 116 0c0 2-3 2.5-3 5M12 18.5h.01",
   "eyni-rengdir": "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z",
   lovber: "M12 5a2 2 0 100-4 2 2 0 000 4zM12 5v16M5 12H3a9 9 0 0018 0h-2M8.5 9h7",
+  "go-no-go": "M9 8a4 4 0 100 8 4 4 0 000-8zM14 14h7v7h-7z",
+  "reqem-yaddasi": "M5 9h14M5 15h14M10 4L8 20M16 4l-2 16",
   // misc
   chevron: "M9 6l6 6-6 6",
   check: "M5 12.5l4.5 4.5L19 7.5",

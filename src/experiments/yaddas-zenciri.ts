@@ -1,4 +1,5 @@
 import { h, mount } from "../dom";
+import { fx } from "../fx";
 import { az, t } from "../i18n";
 
 export interface MemSchedule { seqs: number[][][] }
@@ -30,6 +31,7 @@ export default async function play(root: HTMLElement, schedule: MemSchedule): Pr
     status.textContent = az.play.watch;
     await sleep(500);
     for (const c of seq) {
+      fx.tile(c);
       await flash(c, "on", STEP_ON);
       await sleep(STEP_OFF);
     }
@@ -41,6 +43,7 @@ export default async function play(root: HTMLElement, schedule: MemSchedule): Pr
       onTap = (i) => {
         taps.push(i);
         const right = i === seq[taps.length - 1];
+        if (right) fx.tile(i); else fx.bad();
         void flash(i, right ? "on" : "bad", 200);
         if (!right || taps.length === len) {
           onTap = null;

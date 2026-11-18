@@ -13,6 +13,7 @@ route("/d/:code", (c) => invitePage(c.params.code));
 route("/duel/:code", (c) => duelResult(c.params.code));
 route("/qrupla", () => import("./qrupla").then((q) => q.qrupla()));
 route("/duels", () => import("./screens-more").then((m) => m.duelsTab()));
+route("/g/:code", (c) => import("./screens-more").then((x) => x.groupPage(c.params.code)));
 route("/ranking", () => import("./screens-more").then((m) => m.ranking()));
 route("/passport", () => import("./screens-more").then((m) => m.passport()));
 route("/admin", () => import("./screens-admin").then((x) => x.admin()));

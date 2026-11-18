@@ -24,7 +24,7 @@ async function raw(method: string, path: string, body?: unknown, token?: string 
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(json.error ?? "error"), { status: res.status, code: json.error, reason: json.reason });
+  if (!res.ok) throw Object.assign(new Error(json.error ?? "error"), { status: res.status, code: json.error, reason: json.reason, data: json });
   return json;
 }
 
