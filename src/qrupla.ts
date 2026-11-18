@@ -1,6 +1,6 @@
 // "Qrupla!" bonus after Yaddaş zənciri: purely local, nothing is sent to the server.
 import { h, mount } from "./dom";
-import { az, t } from "./i18n/az";
+import { az, t } from "./i18n";
 
 const digits = (n: number) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join("");
 const group = (d: string) => `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}`;

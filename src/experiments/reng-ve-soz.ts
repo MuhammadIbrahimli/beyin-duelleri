@@ -1,5 +1,5 @@
 import { h, mount, svg } from "../dom";
-import { t, az } from "../i18n/az";
+import { t, az } from "../i18n";
 
 export interface StroopSchedule { trials: { word: number; ink: number; congruent: boolean }[] }
 

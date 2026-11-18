@@ -1,5 +1,5 @@
 import { h, mount } from "../dom";
-import { az, t } from "../i18n/az";
+import { az, t } from "../i18n";
 
 export interface MemSchedule { seqs: number[][][] }
 interface Attempt { taps: number[]; ms: number }

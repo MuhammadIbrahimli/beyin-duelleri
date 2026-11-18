@@ -175,28 +175,95 @@ describe("privacy", () => {
 });
 
 describe("aggregate (cron)", () => {
-  it("builds city stats only for cities with >= 30 participants and percentiles from 200 runs", async () => {
+  it("builds percentiles from one best result per person (200 people needed)", async () => {
     const db: D1Database = env.DB;
     const now = Date.now();
     const stmts: D1PreparedStatement[] = [];
-    const city = (i: number) => (i < 30 ? "baki" : i < 59 ? "gence" : null);
     for (let i = 0; i < 200; i++) {
-      stmts.push(db.prepare("INSERT INTO users (id,nickname,city_code,device_class,created_at,last_seen_at) VALUES (?,?,?,?,?,?)").bind(`u${i}`, "x", city(i), "android", now, now));
+      stmts.push(db.prepare("INSERT INTO users (id,nickname,device_class,created_at,last_seen_at) VALUES (?,?,?,?,?)").bind(`u${i}`, "x", "android", now, now));
       stmts.push(db.prepare("INSERT INTO runs (id,user_id,experiment_id,seed,status,primary_score,device_class,valid,created_at,finished_at) VALUES (?,?,1,1,'finished',?,'android',1,?,?)").bind(`r${i}`, `u${i}`, 200 + i, now, now));
+    }
+    // one heavy player with 50 extra runs must still count once
+    for (let k = 0; k < 50; k++) {
+      stmts.push(db.prepare("INSERT INTO runs (id,user_id,experiment_id,seed,status,primary_score,device_class,valid,created_at,finished_at) VALUES (?,?,1,1,'finished',?,'android',1,?,?)").bind(`x${k}`, "u0", 210 + k, now, now));
     }
     await db.batch(stmts);
     await aggregate(db, now);
-    const { results } = await db.prepare("SELECT city_code, n, median FROM city_stats WHERE experiment_id = 1 ORDER BY city_code").all<any>();
-    expect(results.map((r: any) => [r.city_code, r.n])).toEqual([["baki", 30], ["diger", 170]]);
     const p = await db.prepare("SELECT n FROM percentiles WHERE experiment_id = 1 AND device_class = 'android'").first<any>();
     expect(p.n).toBe(200);
-
     const t = await newUser();
     const { fin } = await play(t, [300, 250, 280, 400, 260]);
     expect(fin.json.percentile).toBeGreaterThan(0);
+  });
+});
 
-    const r = await call("GET", "/api/rankings/cities?experiment=refleks", t);
-    expect(r.json.cities.map((c: any) => c.city)).toEqual(["baki", "diger"]);
+describe("profile, Beyin balı and rankings", () => {
+  it("name, city and email are optional, validated, and saved on the profile", async () => {
+    const t = await newUser();
+    expect((await call("GET", "/api/me", t)).json.user.profileDone).toBe(false);
+    expect((await call("PATCH", "/api/me", t, { nickname: "x" })).status).toBe(400);
+    expect((await call("PATCH", "/api/me", t, { nickname: "www.spam.az" })).json.reason).toBe("link");
+    expect((await call("PATCH", "/api/me", t, { nickname: "Ali <b>" })).json.reason).toBe("chars");
+    expect((await call("PATCH", "/api/me", t, { email: "not-an-email" })).status).toBe(400);
+    const ok = await call("PATCH", "/api/me", t, { nickname: "  Əli   Məmmədov ", city: "gence", email: "Ali@Example.com", emailConsent: true, profileDone: true });
+    expect(ok.json.user).toMatchObject({ nickname: "Əli Məmmədov", city: "gence", email: "ali@example.com", emailConsent: true, profileDone: true });
+    // consent flag is dropped when the email is removed
+    const cleared = await call("PATCH", "/api/me", t, { email: "" });
+    expect(cleared.json.user).toMatchObject({ email: null, emailConsent: false });
+  });
+  it("each finished valid run updates the overall score; unplayed experiments count as 0", async () => {
+    const t = await newUser();
+    const r = await play(t, [230, 230, 231, 232, 233]); // ~85 points on Refleks
+    expect(r.fin.json.points).toBeGreaterThanOrEqual(84);
+    expect(r.fin.json.overall).toMatchObject({ played: 1, total: 6 });
+    expect(r.fin.json.overall.score).toBe(Math.round(r.fin.json.points / 6));
+    const p = await call("GET", "/api/me/passport", t);
+    expect(p.json.overall).toMatchObject({ played: 1, rank: 1 });
+    expect(p.json.experiments[0].best.points).toBe(r.fin.json.points);
+  });
+  it("invalid runs never reach the ranking", async () => {
+    const t = await newUser();
+    const r = await play(t, [50, 250, 280, 400, 260]); // < 100 ms: invalid
+    expect(r.fin.json.valid).toBe(false);
+    expect(r.fin.json.overall).toBeNull();
+    expect((await call("GET", "/api/rankings/players", t)).json.players).toHaveLength(0);
+  });
+  it("a city shows up with just one player; players are ordered by score with my own rank", async () => {
+    const [a, b, c] = [await newUser(), await newUser(), await newUser()];
+    await call("PATCH", "/api/me", a, { nickname: "Aydın", city: "baki" });
+    await call("PATCH", "/api/me", b, { nickname: "Bəxtiyar", city: "baki" });
+    await call("PATCH", "/api/me", c, { nickname: "Cavid", city: "seki" });
+    await play(a, [240, 250, 245, 260, 255]);
+    await play(b, [330, 340, 350, 360, 370]);
+    await play(c, [235, 236, 237, 238, 239]);
+    const cities = (await call("GET", "/api/rankings/cities", a)).json.cities;
+    expect(cities.map((x: any) => [x.city, x.players])).toEqual([["seki", 1], ["baki", 2]]);
+    const all = (await call("GET", "/api/rankings/players", b)).json;
+    expect(all.players.map((p: any) => p.nickname)).toEqual(["Cavid", "Aydın", "Bəxtiyar"]);
+    expect(all.players[2].isMe).toBe(true);
+    expect(all.me.rank).toBe(3);
+    const baki = (await call("GET", "/api/rankings/players?city=baki", b)).json;
+    expect(baki.players.map((p: any) => p.nickname)).toEqual(["Aydın", "Bəxtiyar"]);
+    expect(baki.me.rank).toBe(2);
+  });
+  it("deleting my data removes the email and the score", async () => {
+    const t = await newUser();
+    await call("PATCH", "/api/me", t, { email: "gone@example.com" });
+    await play(t, [240, 250, 245, 260, 255]);
+    await call("DELETE", "/api/me", t);
+    for (const table of ["users", "user_scores", "activity"]) {
+      expect((await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${table}`).first()).n).toBe(0);
+    }
+  });
+  it("source tag and language are stored on first contact; activity is logged once per day", async () => {
+    const res = await call("POST", "/api/session", undefined, { src: "Video3", lang: "ru" });
+    const id = res.json.user.id;
+    expect(res.json.user.lang).toBe("ru");
+    await call("POST", "/api/session", undefined, { token: res.json.token, src: "other" });
+    const u = await env.DB.prepare("SELECT src FROM users WHERE id = ?").bind(id).first();
+    expect(u.src).toBe("video3");
+    expect((await env.DB.prepare("SELECT COUNT(*) AS n FROM activity WHERE user_id = ?").bind(id).first()).n).toBe(1);
+    expect((await call("POST", "/api/session", undefined, { src: "bad src!" })).status).toBe(201);
   });
 });
 

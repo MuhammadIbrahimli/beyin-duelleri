@@ -1,5 +1,5 @@
 import { h } from "../dom";
-import { az } from "../i18n/az";
+import { az } from "../i18n";
 import { renderCard } from "./draw";
 import { fileName, type CardModel, type Format } from "./model";
 

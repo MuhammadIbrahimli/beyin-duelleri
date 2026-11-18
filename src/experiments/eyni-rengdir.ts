@@ -1,5 +1,5 @@
 import { el, h, mount } from "../dom";
-import { az, t } from "../i18n/az";
+import { az, t } from "../i18n";
 
 interface Round { kind: "brightness" | "muller" | "ebbinghaus"; flip: boolean; v: number }
 export interface IllusionSchedule { rounds: Round[] }

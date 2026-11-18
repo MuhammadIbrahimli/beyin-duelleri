@@ -338,3 +338,51 @@ describe("streak with a weekly free freeze", () => {
     expect(weekStart("2026-11-23")).toBe("2026-11-23");
   });
 });
+
+import { overallScore, pointsFor } from "../shared/points";
+import { validateEmail, validateName } from "../shared/profile";
+
+describe("points", () => {
+  it("anchors follow the level thresholds and interpolate in between", () => {
+    expect(pointsFor("refleks", 230)).toBe(85);
+    expect(pointsFor("refleks", 280)).toBe(65);
+    expect(pointsFor("refleks", 255)).toBe(75);
+    expect(pointsFor("refleks", 100)).toBe(100); // clamped
+    expect(pointsFor("refleks", 900)).toBe(0);
+    expect(pointsFor("yaddas-zenciri", 7)).toBe(75);
+    expect(pointsFor("eyni-rengdir", 0)).toBe(100);
+    expect(pointsFor("eyni-rengdir", 3)).toBe(10);
+    expect(pointsFor("lovber", 0)).toBe(100);
+  });
+  it("better results never give fewer points", () => {
+    for (const slug of ["refleks", "reng-ve-soz", "lovber"]) {
+      let prev = 101;
+      for (let raw = 0; raw <= 3500; raw += 25) { const p = pointsFor(slug, raw); expect(p).toBeLessThanOrEqual(prev); prev = p; }
+    }
+  });
+  it("overall score averages over all experiments, so unplayed ones count as 0", () => {
+    expect(overallScore([], 6)).toBe(0);
+    expect(overallScore([90], 6)).toBe(15);
+    expect(overallScore([90, 60, 60, 60, 60, 60], 6)).toBe(65);
+  });
+});
+
+describe("profile validation", () => {
+  it("names: length, characters, links", () => {
+    expect(validateName("Əli Məmmədov")).toEqual({ ok: true, value: "Əli Məmmədov" });
+    expect(validateName("  Анна   К. ")).toEqual({ ok: true, value: "Анна К." });
+    expect(validateName("a")).toMatchObject({ ok: false, reason: "length" });
+    expect(validateName("x".repeat(21))).toMatchObject({ ok: false, reason: "length" });
+    expect(validateName("Ali<script>")).toMatchObject({ ok: false, reason: "chars" });
+    expect(validateName("t.me/spam")).toMatchObject({ ok: false });
+    expect(validateName("0501234567")).toMatchObject({ ok: false, reason: "link" });
+    expect(validateName(5)).toMatchObject({ ok: false });
+  });
+  it("email is optional and normalised", () => {
+    expect(validateEmail("")).toEqual({ ok: true, value: null });
+    expect(validateEmail(null)).toEqual({ ok: true, value: null });
+    expect(validateEmail(" A@B.az ")).toEqual({ ok: true, value: "a@b.az" });
+    expect(validateEmail("a@b")).toMatchObject({ ok: false });
+    expect(validateEmail("a b@c.com")).toMatchObject({ ok: false });
+  });
+});

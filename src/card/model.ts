@@ -71,6 +71,14 @@ export function badgeCard(i: BadgeInput): CardModel {
   };
 }
 
+export interface ScoreInput { brand: string; nickname: string; title: string; score: string; sub: string; footer: string[] }
+export function scoreCard(i: ScoreInput): CardModel {
+  return {
+    slug: "badge", accent: "--c-primary", brand: i.brand, footer: i.footer,
+    items: [text(i.nickname, 56, 700, "muted", 12), text(i.title, 80, 800, "accent", 24), text(i.score, 300, 800, "text", 28), text(i.sub, 52, 600, "muted", 12)],
+  };
+}
+
 export const fileName = (kind: string, slug: string, format: Format) => `beyin-${kind}-${slug}-${format}.png`;
 
 /** Greedy word wrap with an injected measuring function (canvas measureText in the browser). */

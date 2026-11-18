@@ -1,5 +1,5 @@
 import { h } from "./dom";
-import { az } from "./i18n/az";
+import { az } from "./i18n";
 
 const KEY = "bd_runs";
 let deferred: (Event & { prompt: () => Promise<void> }) | null = null;

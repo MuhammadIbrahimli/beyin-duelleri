@@ -8,7 +8,7 @@ import { countRun, installOffer } from "./pwa";
 import { api, me, type FinishResult } from "./api";
 import { burst, countUp, h, mount } from "./dom";
 import { icon, mark } from "./icons";
-import { az, t } from "./i18n/az";
+import { az, t } from "./i18n";
 import { available, loaders } from "./experiments";
 import { go } from "./router";
 import { lastRun, latest, remember } from "./state";
@@ -151,7 +151,9 @@ export function result() {
   const levelName = r.level ? az.result.levels[slug]?.[r.level - 1] : "";
   const src = SOURCES[slug]?.url;
   const sec = r.secondary;
+  const rawText = formatScore(slug, r.primary);
   const facts = [
+    t("result.raw", { v: rawText }),
     sec.earlyTaps !== undefined && t("result.secondary.earlyTaps", { n: sec.earlyTaps }),
     sec.interference !== undefined && t("result.secondary.interference", { n: sec.interference }),
     slug === "reng-ve-soz" && sec.errors !== undefined && t("result.secondary.errors", { n: sec.errors }),
@@ -168,22 +170,26 @@ export function result() {
   const compare = lq ? t("result.lovberLine", { anchor: sec.anchor, answer: sec.answer, unit: lq.unit, truth: lq.truth })
     : r.percentile === null ? az.result.compareFirst : t(`result.compare.${slug}`, { pct: r.percentile });
 
-  const heroEl = h("div", { class: "hero" }, formatScore(slug, r.primary));
+  const heroEl = h("div", { class: "hero" }, String(r.points));
   const panel = h("div", { class: "panel", style: accent(slug) },
     h("div", { class: "nick" }, me()?.nickname ?? ""),
     h("div", { class: "nick", style: "display:flex;align-items:center;gap:6px;color:var(--accent)" }, icon(slug, 18), e.name),
     r.level && h("div", { class: "level" },
       h("div", { class: "pips" }, ...[1, 2, 3, 4].map((i) => h("i", { class: i <= r.level! ? "on" : "" }))),
       h("span", null, `${t("result.level", { n: r.level })} · ${levelName}`)),
-    heroEl,
+    h("div", { class: "hero-wrap" }, heroEl, h("span", { class: "unit" }, az.result.points)),
     !!lq && h("p", { class: "muted" }, az.result.lovberDiff),
     r.valid && r.percentile !== null && h("div", { class: "bar", style: `--v:${r.percentile / 100}` }, h("i")),
     r.valid ? h("p", null, compare) : h("div", { class: "notice" }, az.result.invalid),
     !!lq && collective,
     facts.length ? h("div", { class: "facts" }, ...facts.map((f) => h("span", null, f))) : null);
+  const overall = r.valid && r.overall && h("div", { class: "mini" },
+    h("div", null, h("b", null, t("result.overall", { n: r.overall.score })), h("span", { class: "muted" }, t("result.overallSub", { played: r.overall.played, total: r.overall.total }))),
+    h("div", { class: "bar", style: `--v:${r.overall.played / r.overall.total}` }, h("i")));
 
   screen(null,
     panel,
+    overall,
     h("div", { class: "actions" },
       r.valid && h("a", { class: "btn primary block", href: "/invite", "data-link": "" }, az.result.callFriend),
       !r.valid && h("a", { class: "btn primary block", href: `/play/${slug}`, "data-link": "" }, az.result.again),
@@ -193,8 +199,8 @@ export function result() {
           model: m.resultCard({
             slug, brand: az.app.name, nickname: me()?.nickname ?? "", experiment: e.name,
             level: r.level ? `${t("result.level", { n: r.level })} · ${levelName}` : null,
-            score: formatScore(slug, r.primary), compare,
-            extra: slug === "yalanci-yaddas" ? [lureNote(sec)] : slug === "eyni-rengdir" ? [t("result.fooled", { n: r.primary })] : [],
+            score: `${r.points} ${az.result.points}`, compare,
+            extra: [t("result.raw", { v: rawText }), ...(slug === "yalanci-yaddas" ? [lureNote(sec)] : slug === "eyni-rengdir" ? [t("result.fooled", { n: r.primary })] : [])],
             footer: cardFooter(),
           }),
         }), r.runId) : null,
@@ -210,8 +216,10 @@ export function result() {
     h("p", { class: "muted" }, az.common.notDiagnosis),
     slug === "refleks" && h("p", { class: "muted" }, az.duel.deviceNote));
   tint(slug);
-  countUp(heroEl, r.primary, (n) => formatScore(slug, n));
+  countUp(heroEl, r.points, (n) => String(n));
   if (r.valid && r.level === 4) setTimeout(() => burst(panel), 350);
+  // optional profile (name, city, email): offered once, right after the first finished result
+  if (r.valid && !me()?.profileDone) setTimeout(() => void import("./profile").then((m) => m.openProfileSheet(() => result())), 1500);
 }
 
 // ---- invite a friend (create duel) -------------------------------------------

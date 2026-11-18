@@ -1,5 +1,5 @@
 import { h, mount } from "../dom";
-import { t } from "../i18n/az";
+import { t } from "../i18n";
 
 export interface RefleksSchedule { delays: number[] }
 const MAX_EARLY = 3; // same limit as the server; further early taps are ignored, not punished

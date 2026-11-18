@@ -1,8 +1,9 @@
 import { Hono } from "hono";
-import { CITY_MIN_PARTICIPANTS } from "../../config/cities";
+import { CITY_CODES } from "../../config/cities";
 import { LOVBER_MIN_GROUP, LOVBER_QUESTIONS } from "../../config/lovber";
 import { SOURCES } from "../../config/sources";
-import { EXPERIMENTS, bySlug, byId, dailySlug, todayBaku } from "../../shared/experiments";
+import { EXPERIMENTS, byId, dailySlug, todayBaku } from "../../shared/experiments";
+import { pointsFor } from "../../shared/points";
 import { streakWithFreeze, weekDays } from "../../shared/streak";
 import type { AppEnv } from "../env";
 import { auth } from "../middleware/auth";
@@ -21,18 +22,42 @@ miscRoutes.get("/experiments", async (c) => {
   });
 });
 
+/** Cities ranked by the average Beyin balı of their players. A city appears as soon as it has one player. */
 miscRoutes.get("/rankings/cities", async (c) => {
-  const meta = bySlug(c.req.query("experiment") ?? "");
-  if (!meta) return c.json({ error: "unknown_experiment" }, 400);
   const { results } = await c.env.DB.prepare(
-    `SELECT city_code AS city, n, median, p25, p75 FROM city_stats
-     WHERE experiment_id = ? AND date = (SELECT MAX(date) FROM city_stats WHERE experiment_id = ?)
-     ORDER BY median ${meta.direction === "lower" ? "ASC" : "DESC"}`,
-  )
-    .bind(meta.id, meta.id)
-    .all();
-  c.header("Cache-Control", "private, max-age=300");
-  return c.json({ minParticipants: CITY_MIN_PARTICIPANTS, cities: results });
+    `SELECT u.city_code AS city, ROUND(AVG(s.score), 1) AS score, COUNT(*) AS players
+     FROM user_scores s JOIN users u ON u.id = s.user_id
+     WHERE u.city_code IS NOT NULL GROUP BY u.city_code ORDER BY score DESC, players DESC LIMIT 20`,
+  ).all();
+  c.header("Cache-Control", "private, max-age=30");
+  return c.json({ cities: results });
+});
+
+/** Top players by Beyin balı (optionally inside one city) plus the caller's own place. */
+miscRoutes.get("/rankings/players", async (c) => {
+  const q = c.req.query("city");
+  const city = q && (CITY_CODES as readonly string[]).includes(q) ? q : null;
+  const where = city ? "WHERE u.city_code = ?" : "";
+  const args = city ? [city] : [];
+  const me = c.get("userId");
+  const { results } = await c.env.DB.prepare(
+    `SELECT u.id, u.nickname, u.city_code AS city, s.score, s.played FROM user_scores s JOIN users u ON u.id = s.user_id
+     ${where} ORDER BY s.score DESC, s.played DESC, s.updated_at ASC LIMIT 20`,
+  ).bind(...args).all<any>();
+  const mine = await c.env.DB.prepare("SELECT score, played FROM user_scores WHERE user_id = ?").bind(me).first<{ score: number; played: number }>();
+  let rank: number | null = null;
+  if (mine) {
+    const r = await c.env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM user_scores s JOIN users u ON u.id = s.user_id ${city ? "WHERE u.city_code = ? AND" : "WHERE"} s.score > ?`,
+    ).bind(...args, mine.score).first<{ n: number }>();
+    rank = (r?.n ?? 0) + 1;
+  }
+  return c.json({
+    city,
+    total: EXPERIMENTS.length,
+    players: results.map((p) => ({ nickname: p.nickname, city: p.city, score: p.score, played: p.played, isMe: p.id === me })),
+    me: mine ? { rank, score: mine.score, played: mine.played } : null,
+  });
 });
 
 miscRoutes.get("/me/passport", async (c) => {
@@ -54,7 +79,7 @@ miscRoutes.get("/me/passport", async (c) => {
     return {
       slug: x.slug,
       runs: mine.length,
-      best: best && { score: best.score, level: best.level },
+      best: best && { score: best.score, level: best.level, points: pointsFor(x.slug, best.score) },
       history: mine.slice(0, 30).map((r) => ({ score: r.score, at: r.at })),
     };
   });
@@ -66,7 +91,10 @@ miscRoutes.get("/me/passport", async (c) => {
     .prepare("SELECT badge FROM user_badges WHERE user_id = ?")
     .bind(userId)
     .all<{ badge: string }>();
+  const sc = await db.prepare("SELECT score, played FROM user_scores WHERE user_id = ?").bind(userId).first<{ score: number; played: number }>();
+  const above = sc ? await db.prepare("SELECT COUNT(*) AS n FROM user_scores WHERE score > ?").bind(sc.score).first<{ n: number }>() : null;
   return c.json({
+    overall: { score: sc?.score ?? 0, played: sc?.played ?? 0, total: EXPERIMENTS.length, rank: sc ? (above?.n ?? 0) + 1 : null },
     experiments,
     streak: streakWithFreeze(days.map((d) => d.date), todayBaku()).streak,
     badges: badges.map((b) => b.badge),

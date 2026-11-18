@@ -1,5 +1,5 @@
 import { h, mount } from "../dom";
-import { az } from "../i18n/az";
+import { az } from "../i18n";
 
 export interface LovberPublic { questionId: string; anchor: number }
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

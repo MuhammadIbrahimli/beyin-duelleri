@@ -1,6 +1,6 @@
 import { DRM_DISTRACT_MS, DRM_STUDY_MS } from "../../config/wordsets";
 import { h, mount } from "../dom";
-import { az, t } from "../i18n/az";
+import { az, t } from "../i18n";
 
 export interface DrmPublic {
   study: string[];

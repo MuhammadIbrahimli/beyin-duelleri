@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { PERCENTILE_MIN_RUNS } from "../../config/cities";
 import { bySlug, byId, dailySlug, todayBaku } from "../../shared/experiments";
 import { levelFor } from "../../shared/levels";
+import { pointsFor } from "../../shared/points";
 import { hashString } from "../../shared/rng";
 import { SCORERS } from "../../shared/scoring";
 import { percentileBeaten } from "../../shared/stats";
@@ -10,6 +11,7 @@ import type { AppEnv } from "../env";
 import { auth, deviceOf } from "../middleware/auth";
 import { newSeed } from "../util";
 import { awardBadges } from "../badges";
+import { updateUserScore } from "../scores";
 import { rankDuel } from "./duels";
 
 export const runRoutes = new Hono<AppEnv>();
@@ -136,6 +138,9 @@ runRoutes.post("/runs/:id/finish", async (c) => {
   const badges = valid ? await awardBadges(db, userId, todayBaku(now), now) : [];
   for (const id of others) await awardBadges(db, id, todayBaku(now), now);
 
+  const points = pointsFor(meta.slug, res.primary);
+  const overall = valid ? await updateUserScore(db, userId, now) : null;
+
   // Percentile: own device class if it has enough data, else all devices; null below PERCENTILE_MIN_RUNS.
   let percentile: number | null = null;
   if (valid) {
@@ -161,5 +166,7 @@ runRoutes.post("/runs/:id/finish", async (c) => {
     percentile,
     duel,
     badges,
+    points,
+    overall,
   });
 });

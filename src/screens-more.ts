@@ -4,7 +4,7 @@ import { bySlug } from "../shared/experiments";
 import { api, me } from "./api";
 import { h } from "./dom";
 import { icon } from "./icons";
-import { az, t } from "./i18n/az";
+import { az, t } from "./i18n";
 import { accent, cardFooter, formatScore, openCard, screen, showError } from "./screens";
 
 const expName = (slug: string) => az.experiments[slug as keyof typeof az.experiments].name;
@@ -25,38 +25,46 @@ export async function duelsTab() {
         icon("chevron", 18))))]));
 }
 
-// ---- Şəhər reytinqi ------------------------------------------------------------------
-const fmt = (slug: string, v: number) => formatScore(slug, Number.isInteger(v) ? v : Math.round(v * 10) / 10);
+// ---- Reytinq: Beyin balı by city and by player -------------------------------------------
+type RankView = "cities" | "players";
 
-export async function ranking(slug = new URLSearchParams(location.search).get("e") ?? "refleks") {
-  if (!SLUGS.includes(slug)) slug = "refleks";
-  let data: any;
-  try { data = await api("GET", `/rankings/cities?experiment=${slug}`); } catch { return showError(); }
+export async function ranking(view: RankView = "players", cityOnly = false) {
   const myCity = me()?.city ?? null;
+  let cities: any, players: any;
+  try {
+    [cities, players] = await Promise.all([
+      api("GET", "/rankings/cities"),
+      api("GET", `/rankings/players${cityOnly && myCity ? `?city=${myCity}` : ""}`),
+    ]);
+  } catch { return showError(); }
 
-  const expChips = h("div", { class: "chips" }, ...SLUGS.map((s) =>
-    h("button", { class: "chip" + (s === slug ? " on" : ""), onclick: () => { history.replaceState({}, "", `/ranking?e=${s}`); void ranking(s); } }, expName(s))));
-  const cityChips = h("div", { class: "chips" }, ...CITY_CODES.map((c) =>
-    h("button", { class: "chip" + (c === myCity ? " on" : ""), onclick: async () => {
-      const r = await api("PATCH", "/me", { city: c === myCity ? null : c }).catch(() => null);
-      if (r && me()) (me() as any).city = r.user.city;
-      void ranking(slug);
-    } }, az.cities[c])));
-
-  const rows = data.cities.map((c: any) =>
-    h("tr", { class: c.city === myCity ? "me" : "" },
-      h("td", null, az.cities[c.city] ?? c.city, h("br"), h("small", { class: "muted" }, t("ranking.people", { n: c.n }))),
-      h("td", null, fmt(slug, c.median))));
+  const tab = (v: RankView, label: string) => h("button", { class: "chip" + (v === view ? " on" : ""), onclick: () => void ranking(v, cityOnly) }, label);
+  const cityRows = cities.cities.map((c: any, i: number) =>
+    h("li", { class: c.city === myCity ? "me" : "" },
+      h("span", { class: "rk" }, String(i + 1)),
+      h("span", { class: "who" }, az.cities[c.city] ?? c.city, h("small", { class: "muted" }, t("ranking.playersCount", { n: c.players }))),
+      h("b", null, String(c.score))));
+  const playerRows = players.players.map((p: any, i: number) =>
+    h("li", { class: p.isMe ? "me" : "" },
+      h("span", { class: "rk" }, String(i + 1)),
+      h("span", { class: "who" }, p.isMe ? `${p.nickname} (${az.ranking.you})` : p.nickname,
+        h("small", { class: "muted" }, [p.city ? az.cities[p.city] : "", t("ranking.played", { n: p.played, total: players.total })].filter(Boolean).join(" · "))),
+      h("b", null, String(p.score))));
+  const list = view === "cities" ? cityRows : playerRows;
 
   screen("rank",
-    h("h1", null, az.ranking.title), expChips,
-    rows.length ? h("table", { class: "tbl" }, ...rows) : h("p", { class: "muted" }, az.ranking.empty),
-    h("p", { class: "muted" }, az.ranking.note),
-    h("p", { class: "muted" }, az.ranking.disclaimer),
-    h("h2", null, az.ranking.pick), cityChips);
+    h("h1", null, az.ranking.title),
+    h("div", { class: "chips" }, tab("players", az.ranking.players), tab("cities", az.ranking.cities),
+      view === "players" && myCity
+        ? h("button", { class: "chip" + (cityOnly ? " on" : ""), onclick: () => void ranking(view, !cityOnly) }, az.ranking.myCity) : null),
+    players.me && view === "players" ? h("p", { class: "soft" }, t("ranking.myRank", { n: players.me.rank })) : null,
+    list.length ? h("ol", { class: "lb rank" }, ...list) : h("p", { class: "muted" }, az.ranking.empty),
+    !myCity ? h("p", { class: "muted" }, az.ranking.cityHint) : null,
+    h("details", null, h("summary", null, az.ranking.points + "?"), h("p", null, az.ranking.note), h("p", { class: "muted" }, az.ranking.notIq)));
 }
 
 // ---- Beyin pasportum -----------------------------------------------------------------
+const fmt = (slug: string, v: number) => formatScore(slug, Number.isInteger(v) ? v : Math.round(v * 10) / 10);
 const WEEK = 7 * 86400000;
 
 function bestOf(slug: string, scores: number[]): number | null {
@@ -89,7 +97,8 @@ export async function passport() {
     const a = bestOf(x.slug, lastWeek), b = bestOf(x.slug, thisWeek);
     const level = x.best?.level ? ` · ${az.result.levels[x.slug]?.[x.best.level - 1] ?? ""}` : "";
     return h("div", { class: "card", style: accent(x.slug) },
-      h("div", { style: "display:flex;align-items:center;gap:10px;color:var(--accent)" }, icon(x.slug, 24), h("b", { style: "color:var(--c-text)" }, expName(x.slug))),
+      h("div", { style: "display:flex;align-items:center;gap:10px;color:var(--accent)" }, icon(x.slug, 24), h("b", { style: "color:var(--c-text)" }, expName(x.slug)),
+        x.best ? h("span", { class: "pts" }, t("passport.pointsOf", { n: x.best.points })) : null),
       x.best
         ? h("span", null, t("passport.best", { v: fmt(x.slug, x.best.score) }) + level + " · " + t("passport.runs", { n: x.runs }))
         : h("span", { class: "muted" }, az.passport.empty),
@@ -124,11 +133,21 @@ export async function passport() {
   screen("pass",
     h("div", { class: "nick" }, me()?.nickname ?? ""),
     h("h1", null, az.passport.title),
+    h("div", { class: "panel", style: "--accent: var(--c-primary)" },
+      h("span", { class: "nick" }, az.passport.overall),
+      h("div", { class: "hero-wrap" }, h("div", { class: "hero" }, String(p.overall.score)), h("span", { class: "unit" }, az.result.points)),
+      h("div", { class: "bar", style: `--v:${p.overall.played / p.overall.total}` }, h("i")),
+      h("p", { class: "muted" }, [t("result.overallSub", { played: p.overall.played, total: p.overall.total }), p.overall.rank ? t("passport.place", { n: p.overall.rank }) : ""].filter(Boolean).join(" · ")),
+      h("button", { class: "btn", onclick: () => void openCard((m) => ({ kind: "score", model: m.scoreCard({
+        brand: az.app.name, nickname: me()?.nickname ?? "", title: az.passport.overall, score: String(p.overall.score),
+        sub: [t("result.overallSub", { played: p.overall.played, total: p.overall.total }), p.overall.rank ? t("passport.place", { n: p.overall.rank }) : ""].filter(Boolean).join(" · "),
+        footer: cardFooter() }) })) }, az.card.open)),
     h("p", null, t("passport.streak", { n: p.streak })),
     ...cards,
     h("h2", null, az.passport.badges),
     ...(badgeItems.length ? badgeItems : [h("p", { class: "muted" }, az.passport.noBadges)]),
     h("h2", null, az.passport.settings),
+    h("button", { class: "btn block", onclick: () => void import("./profile").then((m) => m.openProfileSheet(() => void passport())) }, az.profile.edit),
     h("button", { class: "btn block", onclick: async () => {
       const r = await api("PATCH", "/me", { rerollNickname: true }).catch(() => null);
       if (r && me()) (me() as any).nickname = r.user.nickname;
