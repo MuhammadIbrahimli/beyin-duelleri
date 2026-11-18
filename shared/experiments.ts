@@ -19,4 +19,5 @@ export function dailySlug(date: string): Slug {
   const wd = new Date(date + "T00:00:00Z").getUTCDay(); // 0 = Sunday
   return wd === 0 ? "refleks" : DAILY_BY_WEEKDAY[wd - 1];
 }
-export const todayUTC = (now = Date.now()) => new Date(now).toISOString().slice(0, 10);
+/** Calendar day in Azerbaijan (UTC+4, no daylight saving): the daily test and streaks roll over at local midnight. */
+export const todayBaku = (now = Date.now()) => new Date(now + 4 * 3600000).toISOString().slice(0, 10);

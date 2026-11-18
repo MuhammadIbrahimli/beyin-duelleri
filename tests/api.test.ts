@@ -297,3 +297,59 @@ describe("yalanci-yaddas + lovber over the API", () => {
     expect(st.json.high).toBeLessThanOrEqual(1600);
   });
 });
+
+import { awardBadges } from "../worker/badges";
+
+describe("daily, badges, my duels", () => {
+  it("daily day rolls over at Baku midnight (UTC+4)", async () => {
+    const t = await newUser();
+    vi.setSystemTime(Date.parse("2026-11-16T21:00:00Z")); // 01:00 on the 17th in Baku
+    const d = await call("GET", "/api/daily", t);
+    expect(d.json).toMatchObject({ date: "2026-11-17", slug: "reng-ve-soz", done: false, streak: 0, weekly: false });
+    expect(d.json.week).toHaveLength(7);
+    expect(d.json.week[0].date).toBe("2026-11-16");
+  });
+  it("sunday is the weekly duel", async () => {
+    const t = await newUser();
+    vi.setSystemTime(Date.parse("2026-11-22T08:00:00Z"));
+    expect((await call("GET", "/api/daily", t)).json.weekly).toBe(true);
+  });
+  it("first duel badge for both players once the duel is completed; /me/duels lists it", async () => {
+    const [alice, bob] = [await newUser(), await newUser()];
+    const a = await play(alice, [240, 250, 245, 260, 255]);
+    expect(a.fin.json.badges).toEqual([]); // alone: no completed duel yet
+    const { code } = (await call("POST", "/api/duels", alice, { runId: a.start.runId })).json;
+    const open = await call("GET", "/api/me/duels", alice);
+    expect(open.json.duels[0]).toMatchObject({ code, slug: "refleks", status: "open", finished: 1, myRank: null });
+    const b = await play(bob, [300, 310, 290, 320, 305], { duelCode: code });
+    expect(b.fin.json.badges).toEqual(["first_duel"]);
+    expect((await call("GET", "/api/me/passport", alice)).json.badges).toEqual(["first_duel"]);
+    const done = await call("GET", "/api/me/duels", bob);
+    expect(done.json.duels[0]).toMatchObject({ status: "closed", finished: 2, myRank: 2 });
+  });
+  it("group leader needs a group of three or more and a clear first place", async () => {
+    const [alice, bob, carol] = [await newUser(), await newUser(), await newUser()];
+    const a = await play(alice, [200, 210, 205, 220, 215]);
+    const { code } = (await call("POST", "/api/duels", alice, { runId: a.start.runId, type: "group" })).json;
+    await play(bob, [300, 310, 290, 320, 305], { duelCode: code });
+    expect((await call("GET", "/api/me/passport", alice)).json.badges).toEqual(["first_duel"]);
+    await play(carol, [330, 340, 350, 360, 370], { duelCode: code });
+    expect((await call("GET", "/api/me/passport", alice)).json.badges.sort()).toEqual(["first_duel", "group_leader"]);
+  });
+  it("streak7 and all_six rules", async () => {
+    const t = await newUser();
+    const uid = t.split(".")[0];
+    const db: D1Database = env.DB;
+    const now = Date.now();
+    const stmts: D1PreparedStatement[] = [];
+    for (let e = 1; e <= 6; e++) {
+      stmts.push(db.prepare("INSERT INTO runs (id,user_id,experiment_id,seed,status,primary_score,valid,device_class,created_at,finished_at) VALUES (?,?,?,1,'finished',1,1,'other',?,?)").bind(`rr${e}`, uid, e, now, now));
+    }
+    for (let d = 10; d <= 16; d++) {
+      stmts.push(db.prepare("INSERT INTO daily (user_id,date,run_id) VALUES (?,?,?)").bind(uid, `2026-11-${d}`, `rr${d % 6 + 1}`));
+    }
+    await db.batch(stmts);
+    expect((await awardBadges(db, uid, "2026-11-16")).sort()).toEqual(["all_six", "streak7"]);
+    expect(await awardBadges(db, uid, "2026-11-16")).toEqual([]); // already earned
+  });
+});

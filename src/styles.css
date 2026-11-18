@@ -67,3 +67,15 @@ nav.tabs a.on { color: var(--c-primary); }
 .card-preview { width: auto; max-width: 100%; max-height: 52vh; align-self: center; border-radius: var(--radius); background: var(--c-surface); }
 .chip { appearance: none; border: 2px solid var(--c-line); background: transparent; color: var(--c-text); min-height: 44px; padding: 0 var(--sp-4); border-radius: 999px; font: inherit; font-weight: 700; }
 .chip.on { background: var(--c-primary); color: var(--c-on-primary); border-color: var(--c-primary); }
+
+.wk { display: flex; gap: var(--sp-2); }
+.wk i { width: 18px; height: 18px; border-radius: 50%; background: var(--c-surface-2); display: inline-block; }
+.wk i.done { background: var(--c-good); }
+.wk i.frozen { background: var(--c-muted); }
+.wk i.today { outline: 2px solid var(--c-primary); outline-offset: 2px; }
+.spark { width: 120px; height: 32px; stroke: var(--accent, var(--c-primary)); fill: none; stroke-width: 2; }
+.chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl td { padding: var(--sp-3) var(--sp-2); border-bottom: 1px solid var(--c-line); }
+.tbl td:last-child { text-align: right; font-weight: 800; }
+.tbl tr.me td { color: var(--c-primary); }

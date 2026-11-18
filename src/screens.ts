@@ -11,31 +11,31 @@ import { available, loaders } from "./experiments";
 import { go } from "./router";
 import { lastRun, latest, remember } from "./state";
 
-const app = () => document.getElementById("app")!;
+export const app = () => document.getElementById("app")!;
 const SLUGS = Object.keys(az.experiments);
-const accent = (slug: string) => `--accent: var(--c-exp-${slug})`;
+export const accent = (slug: string) => `--accent: var(--c-exp-${slug})`;
 
 function tabs(active: string) {
   const items: [string, string, string][] = [
-    ["/", az.nav.experiments, "exp"], ["/soon", az.nav.duels, "duels"],
-    ["/soon", az.nav.ranking, "rank"], ["/soon", az.nav.passport, "pass"],
+    ["/", az.nav.experiments, "exp"], ["/duels", az.nav.duels, "duels"],
+    ["/ranking", az.nav.ranking, "rank"], ["/passport", az.nav.passport, "pass"],
   ];
   return h("nav", { class: "tabs" }, h("div", null, ...items.map(([href, label, id]) =>
     h("a", { href, "data-link": "", class: id === active ? "on" : "" }, label))));
 }
 
-function screen(active: string | null, ...kids: (Node | null | false)[]) {
+export function screen(active: string | null, ...kids: (Node | null | false)[]) {
   mount(app(), h("div", { class: "screen" }, ...(kids.filter(Boolean) as Node[])), ...(active ? [tabs(active)] : []));
 }
 
-const showError = (retry?: () => void) =>
+export const showError = (retry?: () => void) =>
   screen(null, h("h1", null, az.common.error), retry ? h("button", { class: "btn primary block", onclick: retry }, az.common.retry) : null,
     h("a", { class: "link", href: "/", "data-link": "" }, az.common.back));
 
-const cardFooter = () => [[SHORT_HOST || location.host, CHANNEL_LABEL].filter(Boolean).join("  ·  "), az.common.notDiagnosis];
+export const cardFooter = () => [[SHORT_HOST || location.host, CHANNEL_LABEL].filter(Boolean).join("  ·  "), az.common.notDiagnosis];
 
 /** The card code (canvas, fonts, sheet) is a separate chunk loaded only when someone taps the button. */
-async function openCard(build: (m: typeof import("./card/model")) => { model: CardModel; kind: string }, runId?: string) {
+export async function openCard(build: (m: typeof import("./card/model")) => { model: CardModel; kind: string }, runId?: string) {
   const [model, sheet] = await Promise.all([import("./card/model"), import("./card/sheet")]);
   const { model: m, kind } = build(model);
   sheet.openCardSheet(m, kind, `${az.app.tagline} ${location.origin}`, () => {
@@ -49,7 +49,7 @@ const lureNote = (sec: Record<string, number>) =>
   sec.fellForLure === undefined ? ""
     : sec.fellForLure ? t("result.lureFell", { word: DRM_SETS[sec.setIndex]?.lure ?? "" }) : az.result.lureNo;
 
-const formatScore = (slug: string, n: number) => {
+export const formatScore = (slug: string, n: number) => {
   if (slug === "eyni-rengdir") return `${n}/3`;
   const u = az.experiments[slug as keyof typeof az.experiments]?.unit;
   return u === "%" ? `${n}%` : u ? `${n} ${u}` : String(n);
@@ -57,12 +57,19 @@ const formatScore = (slug: string, n: number) => {
 
 // ---- home -------------------------------------------------------------------
 export async function home() {
-  const info = await api("GET", "/experiments").catch(() => null);
-  const daily: string | undefined = info?.daily?.slug;
-  const startHref = daily && available.includes(daily) ? `/play/${daily}?daily=1` : `/play/${available[0]}`;
+  const d = await api("GET", "/daily").catch(() => null);
+  const startHref = d && available.includes(d.slug) ? `/play/${d.slug}?daily=1` : `/play/${available[0]}`;
+  const dots = d && h("span", { class: "wk" }, ...d.week.map((x: any) =>
+    h("i", { class: [x.done && "done", x.frozen && "frozen", x.today && "today"].filter(Boolean).join(" ") })));
+  const dailyCard = d && h("a", { class: "card", style: accent(d.slug), href: startHref, "data-link": "" },
+    h("span", { class: "muted" }, d.weekly ? az.home.weekly : az.home.daily),
+    h("b", null, az.experiments[d.slug as keyof typeof az.experiments].name),
+    h("span", null, t("home.streak", { n: d.streak })), dots,
+    h("span", { class: d.done ? "muted" : "soft" }, d.done ? az.home.doneToday : az.home.notYet));
   screen("exp",
     h("h1", null, az.home.title),
     h("p", { class: "muted" }, az.home.sub),
+    dailyCard,
     h("a", { class: "btn primary block", href: startHref, "data-link": "" }, az.home.start),
     h("h2", null, az.home.all),
     ...SLUGS.map((slug) => {
@@ -293,6 +300,4 @@ export async function duelResult(code: string) {
     h("p", { class: "muted" }, az.common.notDiagnosis));
 }
 
-export function soon() {
-  screen("duels", h("h1", null, az.soon), h("a", { class: "link", href: "/", "data-link": "" }, az.common.back));
-}
+

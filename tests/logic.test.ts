@@ -6,7 +6,7 @@ import { hashString, rng } from "../shared/rng";
 import { refleks } from "../shared/scoring";
 import { buildCityStats, median, percentileBeaten } from "../shared/stats";
 import { hasIdenticalTimes, hasImpossibleReaction, tooManyRecentRuns } from "../shared/validity";
-import { streakOf } from "../worker/routes/misc";
+import { streakWithFreeze, weekStart } from "../shared/streak";
 
 const run = (primary: number, secondary: Record<string, number> = {}, valid = true): DuelRun => ({
   valid, primary, secondary, finishedAt: 0,
@@ -125,14 +125,6 @@ describe("percentile", () => {
   });
 });
 
-describe("streak", () => {
-  it("counts consecutive days, still alive if today is not done yet", () => {
-    expect(streakOf(["2026-11-18", "2026-11-17", "2026-11-16"], "2026-11-18")).toBe(3);
-    expect(streakOf(["2026-11-17", "2026-11-16"], "2026-11-18")).toBe(2);
-    expect(streakOf(["2026-11-15"], "2026-11-18")).toBe(0);
-    expect(streakOf(["2026-11-18", "2026-11-16"], "2026-11-18")).toBe(1);
-  });
-});
 
 import { rengVeSoz } from "../shared/scoring";
 
@@ -317,5 +309,32 @@ describe("lovber scoring", () => {
   it("duel: closer wins", () => {
     const m = bySlug("lovber")!;
     expect(compareRuns(m, run(20), run(300))).toBe(1);
+  });
+});
+
+describe("streak with a weekly free freeze", () => {
+  // 2026-11-16 is a Monday
+  const s = (dates: string[], today: string) => streakWithFreeze(dates, today).streak;
+  it("counts consecutive days; today not done yet keeps the streak alive", () => {
+    expect(s(["2026-11-18", "2026-11-17", "2026-11-16"], "2026-11-18")).toBe(3);
+    expect(s(["2026-11-17", "2026-11-16"], "2026-11-18")).toBe(2);
+    expect(s([], "2026-11-18")).toBe(0);
+  });
+  it("one missed day per week is forgiven and does not count as a day", () => {
+    const r = streakWithFreeze(["2026-11-18", "2026-11-16"], "2026-11-18");
+    expect(r.streak).toBe(2);
+    expect(r.frozen).toEqual(["2026-11-17"]);
+  });
+  it("a second miss in the same week breaks the chain", () => {
+    expect(s(["2026-11-19", "2026-11-16", "2026-11-15"], "2026-11-19")).toBe(1); // Tue+Wed missed, one freeze only
+  });
+  it("a long gap breaks it; a miss yesterday is forgiven while waiting for today", () => {
+    expect(s(["2026-11-10"], "2026-11-18")).toBe(0);
+    expect(s(["2026-11-16", "2026-11-15"], "2026-11-18")).toBe(2); // 17th missed (freeze), 18th still open
+  });
+  it("weeks run Monday to Sunday", () => {
+    expect(weekStart("2026-11-22")).toBe("2026-11-16"); // Sunday
+    expect(weekStart("2026-11-16")).toBe("2026-11-16");
+    expect(weekStart("2026-11-23")).toBe("2026-11-23");
   });
 });

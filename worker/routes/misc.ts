@@ -2,7 +2,8 @@ import { Hono } from "hono";
 import { CITY_MIN_PARTICIPANTS } from "../../config/cities";
 import { LOVBER_MIN_GROUP, LOVBER_QUESTIONS } from "../../config/lovber";
 import { SOURCES } from "../../config/sources";
-import { EXPERIMENTS, bySlug, dailySlug, todayUTC } from "../../shared/experiments";
+import { EXPERIMENTS, bySlug, byId, dailySlug, todayBaku } from "../../shared/experiments";
+import { streakWithFreeze, weekDays } from "../../shared/streak";
 import type { AppEnv } from "../env";
 import { auth } from "../middleware/auth";
 
@@ -10,7 +11,7 @@ export const miscRoutes = new Hono<AppEnv>();
 miscRoutes.use("*", auth);
 
 miscRoutes.get("/experiments", async (c) => {
-  const date = todayUTC();
+  const date = todayBaku();
   const done = await c.env.DB.prepare("SELECT 1 FROM daily WHERE user_id = ? AND date = ?")
     .bind(c.get("userId"), date)
     .first();
@@ -34,16 +35,6 @@ miscRoutes.get("/rankings/cities", async (c) => {
   return c.json({ minParticipants: CITY_MIN_PARTICIPANTS, cities: results });
 });
 
-/** Consecutive days ending today (or yesterday). Stage 6 adds the weekly free freeze. */
-export function streakOf(dates: string[], today: string): number {
-  const set = new Set(dates);
-  const day = (back: number) => new Date(Date.parse(today + "T00:00:00Z") - back * 86400000).toISOString().slice(0, 10);
-  const start = set.has(today) ? 0 : 1;
-  let n = 0;
-  while (set.has(day(start + n))) n++;
-  return n;
-}
-
 miscRoutes.get("/me/passport", async (c) => {
   const db = c.env.DB;
   const userId = c.get("userId");
@@ -64,7 +55,7 @@ miscRoutes.get("/me/passport", async (c) => {
       slug: x.slug,
       runs: mine.length,
       best: best && { score: best.score, level: best.level },
-      history: mine.slice(0, 14).map((r) => ({ score: r.score, at: r.at })),
+      history: mine.slice(0, 30).map((r) => ({ score: r.score, at: r.at })),
     };
   });
   const { results: days } = await db
@@ -77,7 +68,7 @@ miscRoutes.get("/me/passport", async (c) => {
     .all<{ badge: string }>();
   return c.json({
     experiments,
-    streak: streakOf(days.map((d) => d.date), todayUTC()),
+    streak: streakWithFreeze(days.map((d) => d.date), todayBaku()).streak,
     badges: badges.map((b) => b.badge),
   });
 });
@@ -108,4 +99,40 @@ miscRoutes.get("/lovber/stats", async (c) => {
   const ready = !!lo && !!hi && lo.n >= LOVBER_MIN_GROUP && hi.n >= LOVBER_MIN_GROUP;
   c.header("Cache-Control", "private, max-age=300");
   return c.json({ ready, minGroup: LOVBER_MIN_GROUP, low: ready ? Math.round(lo!.mean) : null, high: ready ? Math.round(hi!.mean) : null });
+});
+
+/** Daily test card for the home screen: today's experiment, streak, and the dots of the current week. */
+miscRoutes.get("/daily", async (c) => {
+  const today = todayBaku();
+  const { results } = await c.env.DB.prepare("SELECT date FROM daily WHERE user_id = ? ORDER BY date DESC LIMIT 60")
+    .bind(c.get("userId")).all<{ date: string }>();
+  const dates = results.map((r) => r.date);
+  const info = streakWithFreeze(dates, today);
+  return c.json({
+    date: today,
+    slug: dailySlug(today),
+    weekly: new Date(today + "T00:00:00Z").getUTCDay() === 0, // Sunday = "Həftənin duelu"
+    done: dates.includes(today),
+    streak: info.streak,
+    week: weekDays(today).map((d) => ({ date: d, done: dates.includes(d), frozen: info.frozen.includes(d), today: d === today })),
+  });
+});
+
+/** Duels the user created or joined, newest first. */
+miscRoutes.get("/me/duels", async (c) => {
+  const { results } = await c.env.DB.prepare(
+    `SELECT d.code, d.experiment_id AS exp, d.type, d.max_players AS maxPlayers, d.expires_at AS expiresAt, d.created_at AS createdAt,
+            (SELECT COUNT(*) FROM duel_entries x JOIN runs rx ON rx.id = x.run_id WHERE x.duel_id = d.id AND rx.status = 'finished') AS finished,
+            e.rank AS myRank
+     FROM duel_entries e JOIN runs r ON r.id = e.run_id JOIN duels d ON d.id = e.duel_id
+     WHERE r.user_id = ? ORDER BY d.created_at DESC LIMIT 30`,
+  ).bind(c.get("userId")).all<any>();
+  const now = Date.now();
+  return c.json({
+    duels: results.map((d) => ({
+      code: d.code, slug: byId(d.exp)!.slug, type: d.type, finished: d.finished, maxPlayers: d.maxPlayers,
+      status: d.expiresAt < now ? "expired" : d.finished >= d.maxPlayers ? "closed" : "open",
+      myRank: d.finished >= 2 ? d.myRank : null,
+    })),
+  });
 });

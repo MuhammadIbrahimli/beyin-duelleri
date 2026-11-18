@@ -1,7 +1,7 @@
 import "./styles.css";
 import { session } from "./api";
 import { route, startRouter } from "./router";
-import { duelResult, home, intro, invite, invitePage, play, result, soon } from "./screens";
+import { duelResult, home, intro, invite, invitePage, play, result } from "./screens";
 
 route("/", () => home());
 route("/e/:slug", (c) => intro(c.params.slug));
@@ -11,6 +11,9 @@ route("/invite", (c) => invite(c.query));
 route("/d/:code", (c) => invitePage(c.params.code));
 route("/duel/:code", (c) => duelResult(c.params.code));
 route("/qrupla", () => import("./qrupla").then((q) => q.qrupla()));
-route("/soon", () => soon());
+route("/duels", () => import("./screens-more").then((m) => m.duelsTab()));
+route("/ranking", () => import("./screens-more").then((m) => m.ranking()));
+route("/passport", () => import("./screens-more").then((m) => m.passport()));
+route("/privacy", () => import("./screens-more").then((m) => m.privacy()));
 
 session().catch(() => {}).finally(startRouter);

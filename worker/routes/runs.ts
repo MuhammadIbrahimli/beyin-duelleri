@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { PERCENTILE_MIN_RUNS } from "../../config/cities";
-import { bySlug, byId, dailySlug, todayUTC } from "../../shared/experiments";
+import { bySlug, byId, dailySlug, todayBaku } from "../../shared/experiments";
 import { levelFor } from "../../shared/levels";
 import { hashString } from "../../shared/rng";
 import { SCORERS } from "../../shared/scoring";
@@ -9,6 +9,7 @@ import { finishedTooFast, tooManyRecentRuns } from "../../shared/validity";
 import type { AppEnv } from "../env";
 import { auth, deviceOf } from "../middleware/auth";
 import { newSeed } from "../util";
+import { awardBadges } from "../badges";
 import { rankDuel } from "./duels";
 
 export const runRoutes = new Hono<AppEnv>();
@@ -40,7 +41,7 @@ runRoutes.post("/runs/start", async (c) => {
     seed = d.seed;
     duelCode = d.code;
   } else if (b.daily) {
-    dailyDate = todayUTC();
+    dailyDate = todayBaku();
     if (dailySlug(dailyDate) !== meta.slug) return c.json({ error: "not_todays_experiment" }, 400);
     seed = hashString(`${dailyDate}:${meta.slug}`);
   }
@@ -114,6 +115,7 @@ runRoutes.post("/runs/:id/finish", async (c) => {
   }
 
   let duel: { code: string } | null = null;
+  const others: string[] = [];
   if (run.duel_code) {
     const d = await db
       .prepare("SELECT id, code FROM duels WHERE code = ?")
@@ -123,8 +125,16 @@ runRoutes.post("/runs/:id/finish", async (c) => {
       await db.prepare("INSERT OR IGNORE INTO duel_entries (duel_id, run_id) VALUES (?,?)").bind(d.id, run.id).run();
       await rankDuel(db, d.id);
       duel = { code: d.code };
+      const { results: members } = await db
+        .prepare("SELECT DISTINCT r.user_id AS id FROM duel_entries e JOIN runs r ON r.id = e.run_id WHERE e.duel_id = ?")
+        .bind(d.id).all<{ id: string }>();
+      others.push(...members.map((m) => m.id).filter((id) => id !== userId));
     }
   }
+
+  // badges for the finisher; other duel members may earn one too (their duel just completed)
+  const badges = valid ? await awardBadges(db, userId, todayBaku(now), now) : [];
+  for (const id of others) await awardBadges(db, id, todayBaku(now), now);
 
   // Percentile: own device class if it has enough data, else all devices; null below PERCENTILE_MIN_RUNS.
   let percentile: number | null = null;
@@ -150,5 +160,6 @@ runRoutes.post("/runs/:id/finish", async (c) => {
     level,
     percentile,
     duel,
+    badges,
   });
 });
