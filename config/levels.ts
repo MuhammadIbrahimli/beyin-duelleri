@@ -24,4 +24,8 @@ export const LEVELS: Record<string, LevelRule | null> = {
   "card-sort": { direction: "lower", l4: 3, l3: 6, l2: 10 },
   "time-estimation": { direction: "lower", l4: 100, l3: 200, l2: 350 },
   "cognitive-reflection": { direction: "higher", l4: 5, l3: 4, l2: 3 },
+  "word-recall": { direction: "higher", l4: 9, l3: 7, l2: 5 },
+  "attentional-blink": { direction: "higher", l4: 80, l3: 65, l2: 50 },
+  syllogism: { direction: "higher", l4: 6, l3: 5, l2: 4 },
+  "mental-arithmetic": { direction: "lower", l4: 3000, l3: 4000, l2: 5000 },
 };

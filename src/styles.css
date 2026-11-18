@@ -322,3 +322,19 @@ pre.kit { white-space: pre-wrap; font: inherit; font-size: var(--fs-s); color: v
 .time-prompt { font-size: 1.1rem; text-align: center; min-height: 3rem; color: var(--c-text); }
 .refl-q { font-size: 1.25rem; line-height: 1.4; text-align: center; min-height: 120px; color: var(--c-text); }
 .refl-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* word recall, attentional blink, syllogisms, mental arithmetic */
+.wr-shown { min-height: 9rem; display: grid; place-items: center; }
+.wr-word { font-size: 2.2rem; font-weight: 800; color: var(--c-text); }
+.wr-write { display: grid; gap: var(--sp-3); }
+.wr-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 2rem; }
+.wr-chip { background: var(--c-surface); border: 1px solid var(--c-line); border-radius: 999px; padding: 4px 10px; font-size: var(--fs-s); }
+.blink-flash { font-size: 96px; font-weight: 800; min-height: 130px; display: grid; place-items: center; color: var(--c-text); font-family: ui-monospace, monospace; }
+.blink-pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: min(340px, 100%); margin: 0 auto; }
+.blink-key { min-height: 52px; font-size: 1.3rem; }
+.syl-body { display: grid; gap: 8px; justify-items: center; padding: var(--sp-4) 0; }
+.syl-line { font-size: 1.4rem; margin: 0; color: var(--c-text); }
+.syl-concl { color: var(--accent, var(--c-primary)); font-weight: 800; }
+.syl-rule { width: 60%; border: 0; border-top: 1px solid var(--c-line); margin: 4px 0; }
+.arith-problem { font-size: 3rem; font-weight: 800; text-align: center; min-height: 110px; display: grid; place-items: center; color: var(--c-text); }
+.arith-input { text-align: center; font-size: 1.6rem; }

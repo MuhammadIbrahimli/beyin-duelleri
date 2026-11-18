@@ -27,4 +27,8 @@ export const MECHANISM: Record<Slug, string> = {
   "card-sort": "rule-learning-feedback",
   "time-estimation": "time-estimation",
   "cognitive-reflection": "cognitive-reflection",
+  "word-recall": "free-recall",
+  "attentional-blink": "attentional-blink",
+  syllogism: "syllogistic-reasoning",
+  "mental-arithmetic": "mental-arithmetic",
 };

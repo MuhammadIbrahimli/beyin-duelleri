@@ -21,6 +21,10 @@ export const loaders: Record<string, () => Promise<{ default: (root: HTMLElement
   "card-sort": () => import("./card-sort"),
   "time-estimation": () => import("./time-estimation"),
   "cognitive-reflection": () => import("./cognitive-reflection"),
+  "word-recall": () => import("./word-recall"),
+  "attentional-blink": () => import("./attentional-blink"),
+  syllogism: () => import("./syllogism"),
+  "mental-arithmetic": () => import("./mental-arithmetic"),
   mot: () => import("./mot"),
 };
 export const available = Object.keys(loaders);

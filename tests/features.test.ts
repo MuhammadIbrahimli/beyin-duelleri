@@ -588,3 +588,80 @@ describe("new tests over the API (learning batch)", () => {
     }
   });
 });
+
+import { BLINK_TRIALS, SYLLOGISMS, blink, recall, syllogism, arithmetic, ARITH_PROBLEMS } from "../shared/tasks-extra";
+
+describe("word recall, attentional blink, syllogisms, mental arithmetic", () => {
+  it("word recall: the list comes from the player's language; recalled words count once; intrusions are separate; malformed input is rejected", () => {
+    const ru = recall.schedule(4, "ru");
+    expect(ru.words.every((w) => /[а-яё]/i.test(w))).toBe(true);
+    const az = recall.schedule(4, "az");
+    expect(az.words.every((w) => !/[а-яё]/i.test(w))).toBe(true);
+    expect(recall.score(ru, { words: [...ru.words, ru.words[0], "  " + ru.words[1].toUpperCase() + "  ", "несуществующее"] })).toMatchObject({ primary: 12, secondary: { intrusions: 1 } });
+    expect(recall.score(ru, { words: [] })!.primary).toBe(0);
+    expect(recall.score(ru, { words: [1 as any] })).toBeNull();
+    expect(recall.score(ru, { words: ["x".repeat(31)] })).toBeNull();
+    expect(recall.publicView!(ru)).toEqual({ words: ru.words });
+  });
+
+  it("attentional blink: short-lag and long-lag trials are balanced; a perfect report scores 100; the blink cost is long minus short", () => {
+    const s = blink.schedule(7);
+    expect(s.trials).toHaveLength(BLINK_TRIALS);
+    expect(s.trials.filter((t) => t.cond === "base")).toHaveLength(4);
+    for (const t of s.trials) {
+      expect(t.stream).toHaveLength(16);
+      expect(t.stream[t.stream.indexOf(String(t.t1))]).toBe(String(t.t1));
+      expect(t.stream.indexOf(String(t.t2))).toBe(t.stream.indexOf(String(t.t1)) + 1 + t.lag);
+    }
+    const perfect = s.trials.map((t) => [t.t1, t.t2]);
+    expect(blink.score(s, { reports: perfect })).toMatchObject({ primary: 100, valid: true });
+    const shortMiss = s.trials.map((t) => [t.t1, t.cond === "base" ? 0 : t.t2]); // misses only the short-lag second digit
+    expect(blink.score(s, { reports: shortMiss })!.primary).toBeLessThan(100);
+    expect(blink.score(s, { reports: [[1, 2]] })).toBeNull();
+  });
+
+  it("syllogisms: each item's validity is the answer; the score counts correct judgements; the conclusion is shown without the verdict", () => {
+    const s = syllogism.schedule(0);
+    expect(s.items).toBe(SYLLOGISMS.length);
+    const pub = syllogism.publicView!(s) as { items: { premises: string[]; conclusion: string }[] };
+    expect(JSON.stringify(pub)).not.toContain("valid");
+    expect(syllogism.score(s, { answers: SYLLOGISMS.map((x) => x.valid) })).toMatchObject({ primary: SYLLOGISMS.length, valid: true });
+    expect(syllogism.score(s, { answers: SYLLOGISMS.map((x) => !x.valid) })!.primary).toBe(0);
+    expect(syllogism.score(s, { answers: [true] })).toBeNull();
+  });
+
+  it("mental arithmetic: correct answers are timed; wrong answers add an error penalty; the client never gets the answers", () => {
+    const s = arithmetic.schedule(5);
+    expect(s.problems).toHaveLength(ARITH_PROBLEMS);
+    const pub = arithmetic.publicView!(s) as { problems: string[] };
+    expect(pub.problems.every((p) => typeof p === "string")).toBe(true);
+    const ok = arithmetic.score(s, { answers: s.problems.map((p) => p.answer), times: s.problems.map(() => 2000) })!;
+    expect(ok).toMatchObject({ primary: 2000, valid: true });
+    const half = s.problems.map((p, i) => (i % 2 ? p.answer : p.answer + 1));
+    const r = arithmetic.score(s, { answers: half, times: s.problems.map(() => 2000) })!;
+    expect(r.primary).toBe(2000 + Math.round(1000 * 0.5));
+    expect(arithmetic.score(s, { answers: [1.5] as any, times: [1] })).toBeNull();
+  });
+});
+
+describe("new tests over the API (memory and reasoning batch)", () => {
+  it("start and finish work for word-recall, attentional-blink, syllogism and mental-arithmetic", async () => {
+    const t = await newUser();
+    for (const slug of ["word-recall", "attentional-blink", "syllogism", "mental-arithmetic"]) {
+      const s = await call("POST", "/api/runs/start", t, { slug, lang: "ru" });
+      expect(s.status, slug).toBe(201);
+      vi.setSystemTime(Date.now() + 120000);
+      const sc = s.json.schedule;
+      const payload = slug === "word-recall"
+        ? { words: sc.words }
+        : slug === "attentional-blink"
+          ? { reports: sc.trials.map(() => [1, 2]) }
+          : slug === "syllogism"
+            ? { answers: sc.items.map(() => true) }
+            : { answers: sc.problems.map((p: string) => Function(`return ${p.replace("−", "-").replace("×", "*")}`)()), times: sc.problems.map(() => 2000) };
+      const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload });
+      expect(f.status, slug).toBe(200);
+      expect(f.json.valid, slug).toBe(true);
+    }
+  });
+});

@@ -22,4 +22,8 @@ export const SOURCES: Record<string, { url: string }> = {
   "card-sort": { url: "TODO(verify)" },      // Berg 1948
   "time-estimation": { url: "TODO(verify)" }, // interval production
   "cognitive-reflection": { url: "TODO(verify)" }, // Frederick 2005
+  "word-recall": { url: "TODO(verify)" },        // Murdock 1962
+  "attentional-blink": { url: "TODO(verify)" },  // Raymond, Shapiro & Arnell 1992
+  syllogism: { url: "TODO(verify)" },            // classic syllogistic logic
+  "mental-arithmetic": { url: "TODO(verify)" },  // simple calculation speed
 };

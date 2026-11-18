@@ -9,6 +9,7 @@ import { SCORERS_NEXT } from "./tasks-next";
 import { SCORERS_DISTINCT } from "./tasks-distinct";
 import { SCORERS_ORIENTING } from "./tasks-orienting";
 import { SCORERS_LEARNING } from "./tasks-learning";
+import { SCORERS_EXTRA } from "./tasks-extra";
 
 export interface ScoreResult {
   primary: number;
@@ -316,6 +317,7 @@ export const SCORERS: Record<string, Scorer<any>> = {
   ...SCORERS_DISTINCT,
   ...SCORERS_ORIENTING,
   ...SCORERS_LEARNING,
+  ...SCORERS_EXTRA,
   refleks,
   "reng-ve-soz": rengVeSoz,
   "yaddas-zenciri": yaddasZenciri,

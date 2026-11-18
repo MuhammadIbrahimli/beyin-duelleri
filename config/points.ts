@@ -24,5 +24,9 @@ export const POINT_CURVES: Record<string, [number, number][]> = {
   "card-sort": [[0, 100], [3, 85], [6, 65], [10, 40], [20, 0]],                   // errors, lower is better
   "time-estimation": [[0, 100], [100, 85], [200, 65], [350, 40], [700, 0]],         // mean absolute error, ms, lower is better
   "cognitive-reflection": [[0, 0], [2, 30], [3, 50], [4, 75], [5, 100]],            // correct answers, higher is better
+  "word-recall": [[0, 0], [3, 20], [5, 40], [7, 65], [9, 85], [12, 100]],         // words recalled, higher is better
+  "attentional-blink": [[30, 0], [50, 40], [65, 65], [80, 85], [95, 100]],          // percent of digits correct, higher is better
+  syllogism: [[0, 0], [3, 30], [4, 50], [5, 70], [6, 100]],                          // correct judgements of 6, higher is better
+  "mental-arithmetic": [[2000, 100], [3000, 85], [4000, 65], [5000, 40], [8000, 0]], // mean correct time + error penalty, ms
   lovber: [[0, 100], [5, 90], [15, 70], [40, 40], [100, 10], [300, 0]],        // % away from the true value (TODO(verify): starter curve)
 };

@@ -77,6 +77,10 @@ export const az = {
     "card-sort": { name: "Kart çeşidləmə", hook: "Hansı açar uyğundur? Qaydanı səhvdən öyrən. Qayda dəyişəcək.", measure: "Ölçürük: əks əlaqədən öyrənməyi və köhnə qaydaya yapışmağı.", unit: "səhv" },
     "time-estimation": { name: "Vaxt hissi", hook: "Göstərilən vaxt keçəndə dayandır. Saat yoxdur.", measure: "Ölçürük: saat olmadan vaxtı nə qədər dəqiq hiss etdiyini.", unit: "ms" },
     "cognitive-reflection": { name: "Ağıllı cavab", hook: "İlk fikir çıxan cavab səhv ola bilər. Yoxla.", measure: "Ölçürük: ilk intuisiyanı yoxlamaq bacarığını.", unit: "" },
+    "word-recall": { name: "Sözləri xatırla", hook: "12 söz göstəriləcək. Sonra onları özün yaz.", measure: "Ölçürük: siyahıya baxmadan sözləri xatırlamağı (sərbəst xatırlama).", unit: "söz" },
+    "attentional-blink": { name: "Diqqət qabığı", hook: "Hərflər arasında iki rəqəm gizlənib. Hər ikisini tap.", measure: "Ölçürük: ikinci hədəfin birincinin dərhal ardınca itməsini.", unit: "%" },
+    syllogism: { name: "Nəticə", hook: "Nəticə qaydadan çıxırmı? Söz yox, simvol.", measure: "Ölçürük: məntiqi nəticəni məzmundan asılı olmayaraq yoxlamağı.", unit: "" },
+    "mental-arithmetic": { name: "Sürətli hesab", hook: "10 məsələ. Cavabı sürətli və düzgün yaz.", measure: "Ölçürük: sadə hesablamanın sürətini və dəqiqliyini.", unit: "ms" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -122,6 +126,17 @@ export const az = {
     timeStart: "Başla",
     timeWait: "Vaxt keçəndə dayandır",
     timeStop: "Dayandır",
+    wrWatch: "Sözləri yadda saxla",
+    wrWrite: "Xatırladığın sözləri yaz",
+    wrAdd: "Əlavə et",
+    wrDone: "Hazırdır",
+    blinkAsk1: "Birinci rəqəmi seç",
+    blinkAsk2: "İkinci rəqəmi seç",
+    arAnswer: "Cavab",
+    arOk: "Göndər",
+    syllogAsk: "Nəticə mütləq doğrudurmu?",
+    syllogYes: "✓ Bəli",
+    syllogNo: "✗ Xeyr",
     motWatch: "Sarılar hədəfdir, yadda saxla",
     motTrack: "Nöqtələr hərəkət edir…",
     motPick: "Hədəfləri tap, sonra «Hazırdır»",
@@ -169,6 +184,10 @@ export const az = {
       "card-sort": "Sən qaydanı tez tapırsan, iştirakçıların {pct}%-dən",
       "time-estimation": "Sən vaxtı daha dəqiq hiss edirsən, iştirakçıların {pct}%-dən",
       "cognitive-reflection": "Sən ilk fikrinə az güvənirsən, iştirakçıların {pct}%-dən",
+      "word-recall": "Sən {pct}%-dən çox söz xatırlayırsan",
+      "attentional-blink": "Sən ikinci hədəfi {pct}%-dən çox tapırsan",
+      syllogism: "Sən nəticələri {pct}%-dən dəqiq yoxlayırsan",
+      "mental-arithmetic": "Sən {pct}%-dən sürətli hesablayırsan",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -218,6 +237,10 @@ export const az = {
       "card-sort": ["Qaydaya bağlı", "Orta", "Çevik", "Ustad"],
       "time-estimation": ["Dəqiqsiz", "Orta", "Hiss edir", "Ustad"],
       "cognitive-reflection": ["İmpulsiv", "Orta", "Düşünən", "Ustad"],
+      "word-recall": ["Qısa", "Orta", "Uzun", "Ustad"],
+      "attentional-blink": ["Yayındı", "Orta", "Diqqətli", "Ustad"],
+      syllogism: ["Səhv edir", "Orta", "Məntiqli", "Ustad"],
+      "mental-arithmetic": ["Yavaş", "Orta", "Sürətli", "Ustad"],
     } as Record<string, string[]>,
   },
   science: {
@@ -263,6 +286,14 @@ export const az = {
       "Vaxtı daxili olaraq təxmin etmək saatsız da işləyir. Ölçülən sapma insanın vaxt hissidir, reaksiya sürəti deyil.",
     "cognitive-reflection":
       "Frederick (2005) «cognitive reflection» testi: ilk cavab tez-tez səhv olur, çünki beyin hesablama əvəzinə intuisiyanı seçir. Bu oyun IQ deyil.",
+    "word-recall":
+      "Murdock (1962): sərbəst xatırlama tanımadan fərqlidir, çünki siyahı göstərilmir. Bu, yaddaşdan məlumat çıxarma bacarığını ölçür.",
+    "attentional-blink":
+      "Raymond, Shapiro və Arnell (1992): ilk hədəfdən sonra qısa müddətdə gələn ikinci hədəf tez-tez itir. Bu «blink» diqqətin müvəqqəti məhdudiyyətidir.",
+    syllogism:
+      "Klassik silogistik məntiq: nəticənin doğruluğu sözlərin mənasından yox, forma qaydalarından asılıdır. Səhv nəticə çox vaxt inandırıcı görünür.",
+    "mental-arithmetic":
+      "Sadə hesablamanın sürəti və dəqiqliyi iş yaddaşının və hesablama bacarığının göstəricisidir. Bu oyun diaqnoz deyil.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,
