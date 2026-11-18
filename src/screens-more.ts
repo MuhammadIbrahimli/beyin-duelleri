@@ -5,7 +5,7 @@ import { api, me } from "./api";
 import { h } from "./dom";
 import { icon } from "./icons";
 import { az, t } from "./i18n";
-import { accent, cardFooter, formatScore, openCard, screen, showError } from "./screens";
+import { accent, cardFooter, formatScore, langSwitch, openCard, screen, showError } from "./screens";
 
 const expName = (slug: string) => az.experiments[slug as keyof typeof az.experiments].name;
 const SLUGS = Object.keys(az.experiments);
@@ -147,6 +147,7 @@ export async function passport() {
     h("h2", null, az.passport.badges),
     ...(badgeItems.length ? badgeItems : [h("p", { class: "muted" }, az.passport.noBadges)]),
     h("h2", null, az.passport.settings),
+    h("div", { class: "kv-row" }, h("span", null, az.passport.language), langSwitch()),
     h("button", { class: "btn block", onclick: () => void import("./profile").then((m) => m.openProfileSheet(() => void passport())) }, az.profile.edit),
     h("button", { class: "btn block", onclick: async () => {
       const r = await api("PATCH", "/me", { rerollNickname: true }).catch(() => null);

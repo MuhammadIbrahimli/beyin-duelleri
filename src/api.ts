@@ -1,3 +1,5 @@
+import { getLang } from "./i18n";
+
 const KEY = "bd_token";
 
 export interface User {
@@ -14,7 +16,6 @@ function sourceTag(): string | null {
   if (s && /^[a-z0-9_-]{1,40}$/i.test(s) && !localStorage.getItem("bd_src")) localStorage.setItem("bd_src", s);
   return localStorage.getItem("bd_src");
 }
-const savedLang = () => localStorage.getItem("bd_lang") ?? (navigator.language?.toLowerCase().startsWith("ru") ? "ru" : "az");
 
 async function raw(method: string, path: string, body?: unknown, token?: string | null) {
   const res = await fetch("/api" + path, {
@@ -28,7 +29,7 @@ async function raw(method: string, path: string, body?: unknown, token?: string 
 }
 
 export function session(): Promise<User> {
-  ready ??= raw("POST", "/session", { token: localStorage.getItem(KEY), src: sourceTag(), lang: savedLang() }).then((r) => {
+  ready ??= raw("POST", "/session", { token: localStorage.getItem(KEY), src: sourceTag(), lang: getLang() }).then((r) => {
     localStorage.setItem(KEY, r.token);
     user = r.user;
     return r.user as User;

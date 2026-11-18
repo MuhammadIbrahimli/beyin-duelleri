@@ -464,3 +464,23 @@ describe("admin analytics and moderation", () => {
     expect((await call("GET", "/api/me", a.token)).json.user.nickname).not.toBe("Mehman");
   });
 });
+
+describe("Russian word sets", () => {
+  it("Yalançı yaddaş uses the word list of the player's language, and a duel keeps its creator's language", async () => {
+    const [ru, az] = [await newUser(), await newUser()];
+    const s = await call("POST", "/api/runs/start", ru, { slug: "yalanci-yaddas", lang: "ru" });
+    expect(s.json.schedule.study.every((w: string) => /[а-яё]/.test(w))).toBe(true);
+    vi.setSystemTime(Date.now() + 60000);
+    const answers = [true, false, true, false, true, false, true, false, true, false, true, false];
+    const f = await call("POST", `/api/runs/${s.json.runId}/finish`, ru, { payload: { answers, times: answers.map((_, i) => 700 + i) } });
+    expect(f.status).toBe(200);
+    expect(f.json.secondary.setIndex).toBe(1); // the Russian set
+    const { code } = (await call("POST", "/api/duels", ru, { runId: s.json.runId })).json;
+    // the friend's own language is az, but the duel is Russian: same words for both players
+    const fr = await call("POST", "/api/runs/start", az, { slug: "yalanci-yaddas", lang: "az", duelCode: code });
+    expect(fr.json.schedule).toEqual(s.json.schedule);
+    // a normal Azerbaijani run still gets Azerbaijani words
+    const z = await call("POST", "/api/runs/start", az, { slug: "yalanci-yaddas", lang: "az" });
+    expect(z.json.schedule.study.every((w: string) => /^[a-zəıöüçşğ]+$/i.test(w))).toBe(true);
+  });
+});

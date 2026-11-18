@@ -226,6 +226,7 @@ export const az = {
     deleteYes: "Bəli, sil",
     privacy: "Məxfilik",
     earlier: "əvvəl",
+    language: "Dil",
   },
   badges: {
     streak7: { name: "7 gün seriya", desc: "Yeddi gün ardıcıl keçdin" },
@@ -238,9 +239,11 @@ export const az = {
     title: "Məxfilik",
     // TODO(verify): the final text must be reviewed by a lawyer (Azerbaijani personal data law).
     body: [
-      "Qeydiyyat yoxdur. Sənə təsadüfi ad verilir və cihazında anonim nömrə saxlanılır.",
-      "Şəhər ixtiyaridir və yalnız siyahıdan seçilir. Dəqiq yeri saxlamırıq.",
+      "Qeydiyyat məcburi deyil. Sənə təsadüfi ad verilir və cihazında anonim nömrə saxlanılır.",
+      "İstəsən öz adını, şəhərini və emailini əlavə edə bilərsən. Ad və şəhər reytinqdə başqalarına görünür, email heç kimə görünmür və yalnız razılıq versən xəbərlər üçün istifadə olunur.",
+      "Dəqiq yeri saxlamırıq: şəhər yalnız siyahıdan seçilir.",
       "IP ünvanı açıq şəkildə saxlanmır.",
+      "Reklam verənlərə yalnız ümumi statistika (ziyarətçi sayı, şəhərlər, cihazlar) göstərilir, şəxsi məlumat verilmir.",
       "İstənilən vaxt Pasport səhifəsində «Məlumatlarımı sil» düyməsi ilə bütün məlumatlarını silə bilərsən.",
       "Xidmətdən istifadə üçün yaşın 16 və ya daha çox olmalıdır.",
     ],
@@ -288,12 +291,6 @@ export const az = {
   soon: "Tezliklə",
 } as const;
 
-export type Az = typeof az;
-
-/** t("result.level", { n: 3 }) -> "Səviyyə 3". Missing keys return the key itself. */
-export function t(path: string, vars?: Record<string, string | number>): string {
-  let cur: unknown = az;
-  for (const k of path.split(".")) cur = (cur as Record<string, unknown> | undefined)?.[k];
-  if (typeof cur !== "string") return path;
-  return vars ? cur.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? "")) : cur;
-}
+/** Same shape as `az` but with plain string types, so other languages can be written as `const ru: Dict`. */
+export type Widen<T> = T extends string ? string : T extends readonly (infer U)[] ? Widen<U>[] : T extends object ? { -readonly [K in keyof T]: Widen<T[K]> } : T;
+export type Dict = Widen<typeof az>;

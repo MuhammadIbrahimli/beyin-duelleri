@@ -71,9 +71,9 @@ duelRoutes.post("/duels", async (c) => {
   await db.batch([
     db
       .prepare(
-        "INSERT INTO duels (id, code, experiment_id, seed, creator_run_id, type, max_players, expires_at, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO duels (id, code, experiment_id, seed, creator_run_id, type, max_players, expires_at, created_at, lang) VALUES (?,?,?,?,?,?,?,?,?,?)",
       )
-      .bind(id, code, run.experiment_id, run.seed, run.id, type, type === "group" ? GROUP_MAX : 2, now + DUEL_TTL_MS, now),
+      .bind(id, code, run.experiment_id, run.seed, run.id, type, type === "group" ? GROUP_MAX : 2, now + DUEL_TTL_MS, now, run.lang),
     db.prepare("INSERT INTO duel_entries (duel_id, run_id, rank) VALUES (?,?,1)").bind(id, run.id),
   ]);
   return c.json({ code, url: `${c.env.SITE_ORIGIN || new URL(c.req.url).origin}/d/${code}` }, 201);

@@ -12,7 +12,8 @@ export interface ScoreResult {
 }
 
 export interface Scorer<S = unknown> {
-  schedule(seed: number): S;
+  /** `lang` only matters for experiments with language-bound content (the word lists of "Yalançı yaddaş"). */
+  schedule(seed: number, lang?: string): S;
   /** Fastest a human could physically finish, used for the "too fast" validity rule. */
   minDurationMs(schedule: S): number;
   /** What the client may see. Defaults to the whole schedule; strip anything that gives answers away. */
@@ -188,9 +189,11 @@ export interface DrmSchedule {
 export const DRM_PROBES = 12;
 
 export const yalanciYaddas: Scorer<DrmSchedule> = {
-  schedule(seed) {
+  schedule(seed, lang = "az") {
     const r = rng(seed);
-    const setIndex = randInt(r, 0, DRM_SETS.length - 1);
+    let pool = DRM_SETS.map((s, i) => i).filter((i) => DRM_SETS[i].lang === lang);
+    if (pool.length === 0) pool = DRM_SETS.map((s, i) => i).filter((i) => DRM_SETS[i].lang === "az");
+    const setIndex = pool[randInt(r, 0, pool.length - 1)]; // global index, the client maps it back to the lure word
     const set = DRM_SETS[setIndex];
     const study = shuffle(r, set.studied);
     const old = shuffle(r, set.studied).slice(0, 6);

@@ -20,7 +20,8 @@ runRoutes.use("*", auth);
 runRoutes.post("/runs/start", async (c) => {
   const userId = c.get("userId");
   const db = c.env.DB;
-  const b = await c.req.json<{ slug?: string; duelCode?: string; daily?: boolean }>().catch(() => ({}) as any);
+  const b = await c.req.json<{ slug?: string; duelCode?: string; daily?: boolean; lang?: string }>().catch(() => ({}) as any);
+  let lang = b.lang === "ru" ? "ru" : "az";
   const meta = bySlug(String(b.slug ?? ""));
   const scorer = meta && SCORERS[meta.slug];
   if (!meta || !scorer) return c.json({ error: "unknown_experiment" }, 400);
@@ -42,6 +43,7 @@ runRoutes.post("/runs/start", async (c) => {
     if (entries.results.length >= d.max_players) return c.json({ error: "duel_closed" }, 409);
     seed = d.seed;
     duelCode = d.code;
+    lang = d.lang; // a duel stays in its creator's language, so both players get the same words
   } else if (b.daily) {
     dailyDate = todayBaku();
     if (dailySlug(dailyDate) !== meta.slug) return c.json({ error: "not_todays_experiment" }, 400);
@@ -51,11 +53,11 @@ runRoutes.post("/runs/start", async (c) => {
   const id = crypto.randomUUID();
   await db
     .prepare(
-      "INSERT INTO runs (id, user_id, experiment_id, seed, duel_code, daily_date, device_class, client_version, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+      "INSERT INTO runs (id, user_id, experiment_id, seed, duel_code, daily_date, device_class, client_version, created_at, lang) VALUES (?,?,?,?,?,?,?,?,?,?)",
     )
-    .bind(id, userId, meta.id, seed, duelCode, dailyDate, deviceOf(c), c.req.header("x-client-version") ?? null, Date.now())
+    .bind(id, userId, meta.id, seed, duelCode, dailyDate, deviceOf(c), c.req.header("x-client-version") ?? null, Date.now(), lang)
     .run();
-  const full = scorer.schedule(seed);
+  const full = scorer.schedule(seed, lang);
   return c.json({ runId: id, seed, schedule: scorer.publicView ? scorer.publicView(full) : full }, 201);
 });
 
@@ -71,7 +73,7 @@ runRoutes.post("/runs/:id/finish", async (c) => {
   const meta = byId(run.experiment_id)!;
   const scorer = SCORERS[meta.slug];
   const body = await c.req.json<{ payload?: unknown }>().catch(() => ({}) as any);
-  const schedule = scorer.schedule(run.seed);
+  const schedule = scorer.schedule(run.seed, run.lang);
   const res = scorer.score(schedule, body.payload);
   if (!res) return c.json({ error: "bad_payload" }, 400);
 

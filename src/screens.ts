@@ -8,7 +8,7 @@ import { countRun, installOffer } from "./pwa";
 import { api, me, type FinishResult } from "./api";
 import { burst, countUp, h, mount } from "./dom";
 import { icon, mark } from "./icons";
-import { az, t } from "./i18n";
+import { az, getLang, setLang, t, type Lang } from "./i18n";
 import { available, loaders } from "./experiments";
 import { go } from "./router";
 import { lastRun, latest, remember } from "./state";
@@ -30,6 +30,17 @@ function tabs(active: string) {
   ];
   return h("nav", { class: "tabs" }, h("div", null, ...items.map(([href, label, id]) =>
     h("a", { href, "data-link": "", class: id === active ? "on" : "", "aria-label": label }, icon(id), h("span", null, label)))));
+}
+
+/** AZ | RU toggle. Switching rebuilds the whole app in the other language. */
+export function langSwitch(): HTMLElement {
+  const btn = (l: Lang) => h("button", { class: "lang" + (getLang() === l ? " on" : ""), "aria-label": l === "az" ? "Azərbaycanca" : "Русский", onclick: async () => {
+    if (getLang() === l) return;
+    setLang(l);
+    await api("PATCH", "/me", { lang: l }).catch(() => {});
+    location.reload();
+  } }, l.toUpperCase());
+  return h("div", { class: "langs" }, btn("az"), btn("ru"));
 }
 
 export function screen(active: string | null, ...kids: (Node | null | false)[]) {
@@ -77,7 +88,7 @@ export async function home() {
     h("a", { class: "btn primary block", href: startHref, "data-link": "" }, az.home.start),
     h("span", { class: d.done ? "muted" : "soft" }, d.done ? az.home.doneToday : az.home.notYet));
   screen("exp",
-    h("div", { class: "top" }, mark(30), az.app.name),
+    h("div", { class: "top" }, mark(30), az.app.name, langSwitch()),
     h("div", null, h("h1", null, az.home.title), h("p", { class: "muted", style: "margin-top:6px" }, az.home.sub)),
     dailyCard || h("a", { class: "btn primary block", href: startHref, "data-link": "" }, az.home.start),
     h("h2", null, az.home.all),
@@ -122,7 +133,7 @@ export async function play(slug: string, q: URLSearchParams) {
   try {
     tint(slug);
     mount(app(), h("div", { class: "screen full" }, h("div", { class: "loader", role: "status", "aria-label": az.common.loading })));
-    run = await api("POST", "/runs/start", { slug, ...(duelCode ? { duelCode } : q.get("daily") ? { daily: true } : {}) });
+    run = await api("POST", "/runs/start", { slug, lang: getLang(), ...(duelCode ? { duelCode } : q.get("daily") ? { daily: true } : {}) });
   } catch (e: any) {
     if (duelCode) return go(`/d/${duelCode}`, true);
     return showError(() => go(location.pathname + location.search, true));

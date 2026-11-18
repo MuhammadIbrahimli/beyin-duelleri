@@ -199,3 +199,10 @@ ol.lb { counter-reset: none; }
 .kv { display: flex; justify-content: space-between; gap: var(--sp-3); align-items: center; padding: 6px 0; border-bottom: 1px solid var(--c-line); font-size: var(--fs-s); }
 .kv:last-child { border-bottom: 0; }
 pre.kit { white-space: pre-wrap; font: inherit; font-size: var(--fs-s); color: var(--c-muted); margin: 0; }
+
+/* ---- language switch ---- */
+.top .langs { margin-left: auto; }
+.langs { display: inline-flex; background: var(--c-surface); border: 1px solid var(--c-line); border-radius: 999px; padding: 3px; gap: 2px; }
+.lang { appearance: none; border: 0; background: transparent; color: var(--c-muted); font: inherit; font-size: var(--fs-xs); font-weight: 800; min-width: 44px; min-height: 36px; border-radius: 999px; cursor: pointer; }
+.lang.on { background: var(--c-primary); color: var(--c-on-primary); }
+.kv-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); font-weight: 700; }
