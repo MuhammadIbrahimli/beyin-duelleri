@@ -418,3 +418,16 @@ pre.kit { white-space: pre-wrap; font: inherit; font-size: var(--fs-s); color: v
 .cx-cell.marked { background: rgba(255, 210, 63, 0.25); }
 .tr-field { position: relative; width: min(320px, 100%); height: 320px; margin: 0 auto; border-radius: var(--radius); border: 1px dashed var(--c-line); background: var(--c-surface); }
 .tr-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* batch C: verbal fluency, flicker fusion, temporal order judgment, gestalt closure, sound localization */
+.fk-light { width: 160px; height: 160px; margin: 24px auto; border-radius: 50%; background: #2a2f55; }
+.fk-light.on { background: #f4f5ff; }
+.toj-field { position: relative; height: 150px; width: min(340px, 100%); margin: 0 auto; border-radius: var(--radius); border: 1px dashed var(--c-line); }
+.toj-dot { position: absolute; top: 50%; width: 46px; height: 46px; margin-top: -23px; border-radius: 50%; background: #ffd23f; opacity: 0; transition: opacity 20ms; }
+.toj-dot.on { opacity: 1; }
+.toj-left { left: 18%; }
+.toj-right { right: 18%; }
+.cl-field { display: grid; place-items: center; min-height: 220px; }
+.cl-svg { width: min(220px, 80%); height: auto; }
+.cl-opts { display: flex; gap: 12px; justify-content: center; }
+.cl-opt { min-width: 64px; font-size: 1.6rem; }

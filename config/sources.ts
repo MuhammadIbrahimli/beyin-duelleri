@@ -50,4 +50,9 @@ export const SOURCES: Record<string, { url: string }> = {
   "motor-sequence": { url: "TODO(verify)" },
   "cancellation": { url: "TODO(verify)" },
   "tracing": { url: "TODO(verify)" },
+  "verbal-fluency": { url: "TODO(verify)" },
+  "flicker-fusion": { url: "TODO(verify)" },
+  "temporal-order-judgment": { url: "TODO(verify)" },
+  "gestalt-closure": { url: "TODO(verify)" },
+  "sound-localization": { url: "TODO(verify)" },
 };

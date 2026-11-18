@@ -55,4 +55,9 @@ export const MECHANISM: Record<Slug, string> = {
   "motor-sequence": "motor-sequence",
   "cancellation": "visual-cancellation",
   "tracing": "motor-tracing",
+  "verbal-fluency": "verbal-fluency",
+  "flicker-fusion": "flicker-fusion",
+  "temporal-order-judgment": "temporal-order-judgment",
+  "gestalt-closure": "gestalt-closure",
+  "sound-localization": "sound-localization",
 };

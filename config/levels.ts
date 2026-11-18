@@ -52,4 +52,9 @@ export const LEVELS: Record<string, LevelRule | null> = {
   "motor-sequence": { direction: "lower", l4: 2500, l3: 3500, l2: 5000 },
   "cancellation": { direction: "higher", l4: 15, l3: 10, l2: 5 },
   "tracing": { direction: "higher", l4: 85, l3: 70, l2: 50 },
+  "verbal-fluency": { direction: "higher", l4: 20, l3: 15, l2: 10 },
+  "flicker-fusion": { direction: "higher", l4: 24, l3: 18, l2: 12 },
+  "temporal-order-judgment": { direction: "higher", l4: 90, l3: 80, l2: 65 },
+  "gestalt-closure": { direction: "higher", l4: 88, l3: 75, l2: 62 },
+  "sound-localization": { direction: "higher", l4: 92, l3: 83, l2: 67 },
 };

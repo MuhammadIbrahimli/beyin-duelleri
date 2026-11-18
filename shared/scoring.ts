@@ -15,6 +15,7 @@ import { SCORERS_SENSORY } from "./tasks-sensory";
 import { SCORERS_BATCH60 } from "./tasks-batch60";
 import { SCORERS_BATCH_A } from "./tasks-batch-a";
 import { SCORERS_BATCH_B } from "./tasks-batch-b";
+import { SCORERS_BATCH_C } from "./tasks-batch-c";
 
 export interface ScoreResult {
   primary: number;
@@ -328,6 +329,7 @@ export const SCORERS: Record<string, Scorer<any>> = {
   ...SCORERS_BATCH60,
   ...SCORERS_BATCH_A,
   ...SCORERS_BATCH_B,
+  ...SCORERS_BATCH_C,
   refleks,
   "reng-ve-soz": rengVeSoz,
   "yaddas-zenciri": yaddasZenciri,
