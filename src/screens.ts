@@ -2,6 +2,8 @@ import { VIDEOS } from "../config/videos";
 import { SOURCES } from "../config/sources";
 import { LOVBER_QUESTIONS } from "../config/lovber";
 import { DRM_SETS } from "../config/wordsets";
+import { SHORT_HOST, CHANNEL_LABEL } from "../config/brand";
+import type { CardModel } from "./card/model";
 import { api, me, type FinishResult } from "./api";
 import { h, mount } from "./dom";
 import { az, t } from "./i18n/az";
@@ -29,6 +31,19 @@ function screen(active: string | null, ...kids: (Node | null | false)[]) {
 const showError = (retry?: () => void) =>
   screen(null, h("h1", null, az.common.error), retry ? h("button", { class: "btn primary block", onclick: retry }, az.common.retry) : null,
     h("a", { class: "link", href: "/", "data-link": "" }, az.common.back));
+
+const cardFooter = () => [[SHORT_HOST || location.host, CHANNEL_LABEL].filter(Boolean).join("  ·  "), az.common.notDiagnosis];
+
+/** The card code (canvas, fonts, sheet) is a separate chunk loaded only when someone taps the button. */
+async function openCard(build: (m: typeof import("./card/model")) => { model: CardModel; kind: string }, runId?: string) {
+  const [model, sheet] = await Promise.all([import("./card/model"), import("./card/sheet")]);
+  const { model: m, kind } = build(model);
+  sheet.openCardSheet(m, kind, `${az.app.tagline} ${location.origin}`, () => {
+    if (runId) void api("POST", "/shares", { runId, channel: "card" }).catch(() => {});
+  });
+}
+const cardButton = (build: Parameters<typeof openCard>[0], runId?: string) =>
+  h("button", { class: "btn block", onclick: () => void openCard(build, runId) }, az.card.open);
 
 const lureNote = (sec: Record<string, number>) =>
   sec.fellForLure === undefined ? ""
@@ -145,6 +160,18 @@ export function result() {
       : h("div", { class: "notice" }, az.result.invalid),
     r.valid && h("a", { class: "btn primary block", href: "/invite", "data-link": "" }, az.result.callFriend),
     !r.valid && h("a", { class: "btn primary block", href: `/play/${slug}`, "data-link": "" }, az.result.again),
+    r.valid && cardButton((m) => ({
+      kind: "result",
+      model: m.resultCard({
+        slug, brand: az.app.name, nickname: me()?.nickname ?? "", experiment: e.name,
+        level: r.level ? `${t("result.level", { n: r.level })} · ${levelName}` : null,
+        score: formatScore(slug, r.primary),
+        compare: lq ? t("result.lovberLine", { anchor: sec.anchor, answer: sec.answer, unit: lq.unit, truth: lq.truth })
+          : r.percentile === null ? az.result.compareFirst : t(`result.compare.${slug}`, { pct: r.percentile }),
+        extra: slug === "yalanci-yaddas" ? [lureNote(sec)] : slug === "eyni-rengdir" ? [t("result.fooled", { n: r.primary })] : [],
+        footer: cardFooter(),
+      }),
+    }), r.runId),
     slug === "yaddas-zenciri" && h("a", { class: "btn block", href: "/qrupla", "data-link": "" }, az.result.qrupla),
     h("a", { class: "btn block", href: "/", "data-link": "" }, az.common.otherExperiment),
     h("details", null,
@@ -249,6 +276,17 @@ export async function duelResult(code: string) {
     h("h1", null, head), body,
     !other && h("a", { class: "btn primary block", href: "/invite", "data-link": "" }, az.share.title),
     other && h("a", { class: "btn primary block", href: `/play/${slug}?rematch=1`, "data-link": "" }, az.duel.rematch),
+    !!other && cardButton((m) => {
+      const experiment = az.experiments[slug as keyof typeof az.experiments].name;
+      if (r.type === "group") {
+        return { kind: "group", model: m.groupCard({ slug, brand: az.app.name, experiment, title: az.duel.groupRank, footer: cardFooter(),
+          rows: r.entries.map((x: any) => ({ rank: x.rank, name: x.isMe ? az.duel.you : x.nickname, value: formatScore(slug, x.primary), me: x.isMe })) }) };
+      }
+      const win = (x: any) => x.rank === 1 && r.outcome !== "tie";
+      return { kind: "duel", model: m.duelCard({ slug, brand: az.app.name, experiment, title: head, footer: cardFooter(),
+        left: { label: az.duel.you, value: formatScore(slug, meE.primary), win: win(meE) },
+        right: { label: other.nickname, value: formatScore(slug, other.primary), win: win(other) } }) };
+    }, mine?.runId),
     canGroup && h("a", { class: "btn block", href: "/invite?type=group", "data-link": "" }, az.duel.group),
     h("a", { class: "btn block", href: "/", "data-link": "" }, az.common.otherExperiment),
     slug === "refleks" && h("p", { class: "muted" }, az.duel.deviceNote),

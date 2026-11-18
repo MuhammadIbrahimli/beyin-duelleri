@@ -168,6 +168,14 @@ export const az = {
       },
     } as Record<string, { q1: string; q2: string }>,
   },
+  card: {
+    open: "Kartı paylaş",
+    share: "Paylaş",
+    download: "Şəkli yüklə",
+    story: "Story 9:16",
+    post: "Post 1:1",
+    close: "Bağla",
+  },
   qrupla: {
     title: "Qrupla!",
     intro: "Yeddi rəqəmə 4 saniyə bax, sonra yaz. İki dəfə: əvvəl belə, sonra qruplarla.",

@@ -15,7 +15,7 @@ p { margin: 0; line-height: 1.45; }
 .btn.primary { background: var(--c-primary); color: var(--c-on-primary); }
 .btn.block { width: 100%; }
 .btn:disabled { opacity: .5; }
-.link { color: var(--c-muted); text-align: center; padding: var(--sp-3); font-size: var(--fs-s); }
+.link { appearance: none; background: none; border: 0; font: inherit; font-size: var(--fs-s); cursor: pointer; color: var(--c-muted); text-align: center; padding: var(--sp-3); font-size: var(--fs-s); }
 .card { background: var(--c-surface); border-radius: var(--radius); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); text-decoration: none; color: inherit; border-left: 6px solid var(--accent, var(--c-line)); }
 .card b { font-size: var(--fs-l); }
 .notice { font-size: var(--fs-s); color: var(--c-muted); background: var(--c-surface); padding: var(--sp-3); border-radius: var(--radius); }
@@ -61,3 +61,9 @@ nav.tabs a.on { color: var(--c-primary); }
 .slider { width: 100%; height: 44px; }
 .digits { font-size: 2.5rem; font-weight: 800; letter-spacing: 4px; text-align: center; }
 .numinput { font: inherit; font-size: 1.75rem; text-align: center; padding: var(--sp-3); border-radius: var(--radius); border: 2px solid var(--c-line); background: var(--c-surface); color: var(--c-text); width: 100%; }
+
+.sheet { position: fixed; inset: 0; background: rgba(8,10,24,.92); display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; z-index: 10; }
+.sheet-body { width: 100%; max-width: var(--maxw); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+.card-preview { width: auto; max-width: 100%; max-height: 52vh; align-self: center; border-radius: var(--radius); background: var(--c-surface); }
+.chip { appearance: none; border: 2px solid var(--c-line); background: transparent; color: var(--c-text); min-height: 44px; padding: 0 var(--sp-4); border-radius: 999px; font: inherit; font-weight: 700; }
+.chip.on { background: var(--c-primary); color: var(--c-on-primary); border-color: var(--c-primary); }
