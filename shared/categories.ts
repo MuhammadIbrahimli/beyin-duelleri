@@ -13,7 +13,7 @@ export interface Category {
 export const CATEGORIES: Category[] = [
   { id: "memory", slugs: ["yaddas-zenciri", "yalanci-yaddas", "reqem-yaddasi", "n-back", "change-detection"] },
   { id: "attention", slugs: ["reng-ve-soz", "go-no-go", "posner", "mot"] },
-  { id: "speed", slugs: ["refleks", "dsst"] },
+  { id: "speed", slugs: ["refleks", "dsst", "time-estimation"] },
   { id: "perception", slugs: ["eyni-rengdir", "mental-rotation", "visual-search"] },
-  { id: "reasoning", slugs: ["lovber", "task-switch", "hanoi", "bart", "matrix"] },
+  { id: "reasoning", slugs: ["lovber", "task-switch", "hanoi", "bart", "matrix", "card-sort", "cognitive-reflection"] },
 ];

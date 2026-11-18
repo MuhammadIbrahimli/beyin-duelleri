@@ -3,6 +3,15 @@
 export const az = {
   app: { name: "Beyin duelləri", tagline: "Beynini dostunla yoxla." },
   nav: { experiments: "Təcrübələr", duels: "Duellər", ranking: "Reytinq", passport: "Pasport" },
+  reflection: {
+    items: [
+    "Raket və top birlikdə 1.10 manatdır. Raket topdan 1 manat bahadır. Top neçə manatdır?",
+    "5 maşın 5 dəqiqədə 5 detal hazırlayır. 100 maşın 100 detal hazırlamaq üçün neçə dəqiqə lazımdır?",
+    "Göldəki nilüfərlər hər gün ikiqat artır. 48 gündə göl tamamilə örtülür. Göl neçə gündə yarısı örtülür?",
+    "3 pişik 3 siçanı 3 dəqiqədə tutur. 100 pişik 100 siçanı neçə dəqiqədə tutar?",
+    "Fermerin 17 qoyunu var. 9-dan başqa hamısı qaçıb. Neçə qoyun qalıb?",
+    ] as string[],
+  },
   categories: {
     memory: { name: "Yaddaş", hint: "Nə qədər yadda saxlaya bilirsən" },
     attention: { name: "Diqqət", hint: "Diqqəti saxla, impulsu idarə et" },
@@ -65,6 +74,9 @@ export const az = {
     "change-detection": { name: "Dəyişən rəng", hook: "Kvadratları xatırla, sonra dəyişdimi yoxla.", measure: "Ölçürük: vizual iş yaddaşının dəqiqliyini (obyektlərin sayı artdıqca).", unit: "%" },
     posner: { name: "Diqqətin istiqaməti", hook: "Hara baxırsan? İşarə göstərən tərəfə tez cavab ver.", measure: "Ölçürük: diqqətin yönəldilməsini və səhv istiqamətdə ləngiməni.", unit: "ms" },
     mot: { name: "Hərəkətli nöqtələr", hook: "Sarı nöqtələri izlə, hərəkət bitəndə onları tap.", measure: "Ölçürük: diqqəti bir neçə hərəkət edən obyektdə saxlamağı.", unit: "%" },
+    "card-sort": { name: "Kart çeşidləmə", hook: "Hansı açar uyğundur? Qaydanı səhvdən öyrən. Qayda dəyişəcək.", measure: "Ölçürük: əks əlaqədən öyrənməyi və köhnə qaydaya yapışmağı.", unit: "səhv" },
+    "time-estimation": { name: "Vaxt hissi", hook: "Göstərilən vaxt keçəndə dayandır. Saat yoxdur.", measure: "Ölçürük: saat olmadan vaxtı nə qədər dəqiq hiss etdiyini.", unit: "ms" },
+    "cognitive-reflection": { name: "Ağıllı cavab", hook: "İlk fikir çıxan cavab səhv ola bilər. Yoxla.", measure: "Ölçürük: ilk intuisiyanı yoxlamaq bacarığını.", unit: "" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -103,6 +115,13 @@ export const az = {
     posnerHint: "Hara baxırsan? Tez tap",
     posnerLeft: "Sol",
     posnerRight: "Sağ",
+    cardAsk: "Hansı açar uyğundur?",
+    cardRight: "Düzdür",
+    cardWrong: "Səhvdir",
+    timeAsk: "Hədəf: {s} san. Başla və vaxt keçəndə dayandır",
+    timeStart: "Başla",
+    timeWait: "Vaxt keçəndə dayandır",
+    timeStop: "Dayandır",
     motWatch: "Sarılar hədəfdir, yadda saxla",
     motTrack: "Nöqtələr hərəkət edir…",
     motPick: "Hədəfləri tap, sonra «Hazırdır»",
@@ -147,6 +166,9 @@ export const az = {
       "change-detection": "Sən bu təcrübədə iştirakçıların {pct}%-dən dəqiq xatırlayırsan",
       posner: "Sən diqqəti daha sürətli yönəldirsən, iştirakçıların {pct}%-dən",
       mot: "Sən daha çox hərəkət edən obyekti izləyirsən, iştirakçıların {pct}%-dən",
+      "card-sort": "Sən qaydanı tez tapırsan, iştirakçıların {pct}%-dən",
+      "time-estimation": "Sən vaxtı daha dəqiq hiss edirsən, iştirakçıların {pct}%-dən",
+      "cognitive-reflection": "Sən ilk fikrinə az güvənirsən, iştirakçıların {pct}%-dən",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -193,6 +215,9 @@ export const az = {
       "change-detection": ["Qısa", "Orta", "Dəqiq", "Ustad"],
       posner: ["Yayındı", "Orta", "Diqqətli", "Ustad"],
       mot: ["Dağınıq", "Orta", "Toplu", "Ustad"],
+      "card-sort": ["Qaydaya bağlı", "Orta", "Çevik", "Ustad"],
+      "time-estimation": ["Dəqiqsiz", "Orta", "Hiss edir", "Ustad"],
+      "cognitive-reflection": ["İmpulsiv", "Orta", "Düşünən", "Ustad"],
     } as Record<string, string[]>,
   },
   science: {
@@ -232,6 +257,12 @@ export const az = {
       "Posner (1980): işarə diqqəti oraya yönəldir. Düzgün işarə cavabı sürətləndirir, səhv işarə ləngidir. Bu fərq diqqətin yönəldilməsinin ölçüsüdür.",
     mot:
       "Pylyshyn və Storm (1988): beyin eyni vaxtda təxminən dörd hərəkət edən obyekti izləyə bilir. Bu, diqqətin paylanmasının klassik ölçüsüdür.",
+    "card-sort":
+      "Berg (1948) kart çeşidləmə testi: qaydanı əks əlaqədən tapmaq və dəyişdikdən sonra köhnə qaydaya qayıtmamaq ölçülür. Qayda dəyişəndə səhv etmək normaldır.",
+    "time-estimation":
+      "Vaxtı daxili olaraq təxmin etmək saatsız da işləyir. Ölçülən sapma insanın vaxt hissidir, reaksiya sürəti deyil.",
+    "cognitive-reflection":
+      "Frederick (2005) «cognitive reflection» testi: ilk cavab tez-tez səhv olur, çünki beyin hesablama əvəzinə intuisiyanı seçir. Bu oyun IQ deyil.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,

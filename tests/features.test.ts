@@ -518,3 +518,73 @@ describe("new tests over the API (attention batch)", () => {
     }
   });
 });
+
+import { CARD_BLOCK, CARD_KEYS, REFLECTION_ITEMS, TIME_TARGETS, cardSort, reflection, timeEstimation } from "../shared/tasks-learning";
+
+describe("card sort, time estimation, cognitive reflection", () => {
+  it("card sort: each trial's correct key matches the card on the current rule; the rule changes every block", () => {
+    const s = cardSort.schedule(15);
+    expect(s.trials).toHaveLength(4 * CARD_BLOCK);
+    for (const t of s.trials) expect(CARD_KEYS[t.correct][t.rule]).toBe(t.card[t.rule]);
+    expect(s.trials[0].prevRule).toBeNull();
+    expect(s.trials[CARD_BLOCK].prevRule).toBe(s.trials[CARD_BLOCK].rule === "shape" ? "colour" : s.trials[CARD_BLOCK].prevRule);
+    const perfect = s.trials.map((t) => t.correct);
+    expect(cardSort.score(s, { choices: perfect })).toMatchObject({ primary: 0, valid: true });
+  });
+
+  it("card sort: a perseverative error is a wrong key that matches the card on the rule that was just replaced", () => {
+    const s = cardSort.schedule(15);
+    const i = CARD_BLOCK; // first trial of block 2, the rule just changed from colour to shape
+    const t = s.trials[i];
+    expect(t.prevRule).toBe("colour");
+    const old = CARD_KEYS.findIndex((k) => k.colour === t.card.colour);
+    const choices = s.trials.map((x) => x.correct);
+    if (old !== t.correct) choices[i] = old;
+    const r = cardSort.score(s, { choices })!;
+    expect(r.primary).toBe(old !== t.correct ? 1 : 0);
+    expect(r.secondary.perseverative).toBe(old !== t.correct ? 1 : 0);
+    expect(cardSort.score(s, { choices: [0] })).toBeNull();
+  });
+
+  it("time estimation: exact estimates score zero; pressing at once is invalid; out-of-range values are rejected", () => {
+    const s = timeEstimation.schedule(3);
+    expect([...s.targets].sort((a, b) => a - b)).toEqual([...TIME_TARGETS].sort((a, b) => a - b));
+    expect(timeEstimation.score(s, { durations: s.targets })).toMatchObject({ primary: 0, valid: true });
+    const off = timeEstimation.score(s, { durations: s.targets.map((x) => x + 300) })!;
+    expect(off.primary).toBe(300);
+    expect(off.secondary.underestimates).toBe(0);
+    expect(timeEstimation.score(s, { durations: s.targets.map(() => 50) })!.invalidReason).toBe("too_fast");
+    expect(timeEstimation.score(s, { durations: [1] })).toBeNull();
+  });
+
+  it("cognitive reflection: the correct answers score; the trap answers are counted separately; the answers stay on the server", () => {
+    const s = reflection.schedule(0);
+    expect(reflection.publicView!(s)).toEqual({ items: REFLECTION_ITEMS.map((x) => x.options) });
+    const right = REFLECTION_ITEMS.map((x) => x.correct);
+    expect(reflection.score(s, { answers: right })).toMatchObject({ primary: 5, valid: true });
+    const traps = REFLECTION_ITEMS.map((x) => x.trap);
+    expect(reflection.score(s, { answers: traps })).toMatchObject({ primary: 0, secondary: { trapped: 5 } });
+    expect(reflection.score(s, { answers: right.map(() => -1) })!.primary).toBe(0);
+    expect(reflection.score(s, { answers: [0] })).toBeNull();
+  });
+});
+
+describe("new tests over the API (learning batch)", () => {
+  it("start and finish work for card-sort, time-estimation and cognitive-reflection", async () => {
+    const t = await newUser();
+    for (const slug of ["card-sort", "time-estimation", "cognitive-reflection"]) {
+      const s = await call("POST", "/api/runs/start", t, { slug });
+      expect(s.status, slug).toBe(201);
+      vi.setSystemTime(Date.now() + 120000);
+      const sc = s.json.schedule;
+      const payload = slug === "card-sort"
+        ? { choices: sc.trials.map((x: any) => x.correct) }
+        : slug === "time-estimation"
+          ? { durations: sc.targets }
+          : { answers: sc.items.map(() => 1) };
+      const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload });
+      expect(f.status, slug).toBe(200);
+      expect(f.json.valid, slug).toBe(true);
+    }
+  });
+});

@@ -19,4 +19,7 @@ export const SOURCES: Record<string, { url: string }> = {
   "change-detection": { url: "TODO(verify)" }, // Luck & Vogel 1997
   posner: { url: "TODO(verify)" },           // Posner 1980
   mot: { url: "TODO(verify)" },              // Pylyshyn & Storm 1988
+  "card-sort": { url: "TODO(verify)" },      // Berg 1948
+  "time-estimation": { url: "TODO(verify)" }, // interval production
+  "cognitive-reflection": { url: "TODO(verify)" }, // Frederick 2005
 };

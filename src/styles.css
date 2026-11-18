@@ -313,3 +313,12 @@ pre.kit { white-space: pre-wrap; font: inherit; font-size: var(--fs-s); color: v
 .mot-dot.target { background: #ffd23f; }
 .mot-dot.pickable { cursor: pointer; }
 .mot-dot.picked { outline: 4px solid #ffd23f; outline-offset: 3px; background: #ffd23f; }
+
+/* card sort, time estimation, cognitive reflection */
+.cs-card { display: grid; place-items: center; min-height: 140px; }
+.cs-keys { display: flex; gap: 14px; justify-content: center; }
+.cs-key { background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--radius); padding: 8px; cursor: pointer; }
+.cs-key:active { transform: scale(0.97); }
+.time-prompt { font-size: 1.1rem; text-align: center; min-height: 3rem; color: var(--c-text); }
+.refl-q { font-size: 1.25rem; line-height: 1.4; text-align: center; min-height: 120px; color: var(--c-text); }
+.refl-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

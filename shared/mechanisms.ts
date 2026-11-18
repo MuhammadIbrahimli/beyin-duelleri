@@ -24,4 +24,7 @@ export const MECHANISM: Record<Slug, string> = {
   "change-detection": "visual-capacity",
   posner: "attention-orienting",
   mot: "multiple-object-tracking",
+  "card-sort": "rule-learning-feedback",
+  "time-estimation": "time-estimation",
+  "cognitive-reflection": "cognitive-reflection",
 };

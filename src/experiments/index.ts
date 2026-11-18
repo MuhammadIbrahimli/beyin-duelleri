@@ -18,6 +18,9 @@ export const loaders: Record<string, () => Promise<{ default: (root: HTMLElement
   matrix: () => import("./matrix"),
   "change-detection": () => import("./change-detection"),
   posner: () => import("./posner"),
+  "card-sort": () => import("./card-sort"),
+  "time-estimation": () => import("./time-estimation"),
+  "cognitive-reflection": () => import("./cognitive-reflection"),
   mot: () => import("./mot"),
 };
 export const available = Object.keys(loaders);

@@ -18,6 +18,9 @@ export const EXPERIMENTS = [
   { id: 23, slug: "change-detection", direction: "higher", tiebreak: null },
   { id: 24, slug: "posner", direction: "lower", tiebreak: { key: "orientingCostMs", direction: "lower" } },
   { id: 25, slug: "mot", direction: "higher", tiebreak: null },
+  { id: 26, slug: "card-sort", direction: "lower", tiebreak: { key: "perseverative", direction: "lower" } },
+  { id: 27, slug: "time-estimation", direction: "lower", tiebreak: null },
+  { id: 28, slug: "cognitive-reflection", direction: "higher", tiebreak: null },
 ] as const;
 
 export type Slug = (typeof EXPERIMENTS)[number]["slug"];

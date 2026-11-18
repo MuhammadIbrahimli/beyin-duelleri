@@ -21,4 +21,7 @@ export const LEVELS: Record<string, LevelRule | null> = {
   "change-detection": { direction: "higher", l4: 95, l3: 85, l2: 70 },
   posner: { direction: "lower", l4: 350, l3: 450, l2: 600 },
   mot: { direction: "higher", l4: 90, l3: 75, l2: 60 },
+  "card-sort": { direction: "lower", l4: 3, l3: 6, l2: 10 },
+  "time-estimation": { direction: "lower", l4: 100, l3: 200, l2: 350 },
+  "cognitive-reflection": { direction: "higher", l4: 5, l3: 4, l2: 3 },
 };

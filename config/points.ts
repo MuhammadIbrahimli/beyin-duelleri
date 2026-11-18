@@ -21,5 +21,8 @@ export const POINT_CURVES: Record<string, [number, number][]> = {
   "change-detection": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],          // percent correct, higher is better
   posner: [[280, 100], [350, 85], [450, 65], [600, 40], [1200, 0]],                // mean correct RT + error penalty, ms
   mot: [[0, 0], [40, 20], [60, 40], [75, 65], [90, 85], [100, 100]],               // percent of targets found, higher is better
+  "card-sort": [[0, 100], [3, 85], [6, 65], [10, 40], [20, 0]],                   // errors, lower is better
+  "time-estimation": [[0, 100], [100, 85], [200, 65], [350, 40], [700, 0]],         // mean absolute error, ms, lower is better
+  "cognitive-reflection": [[0, 0], [2, 30], [3, 50], [4, 75], [5, 100]],            // correct answers, higher is better
   lovber: [[0, 100], [5, 90], [15, 70], [40, 40], [100, 10], [300, 0]],        // % away from the true value (TODO(verify): starter curve)
 };
