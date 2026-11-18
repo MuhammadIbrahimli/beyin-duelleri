@@ -29,6 +29,7 @@ const showError = (retry?: () => void) =>
     h("a", { class: "link", href: "/", "data-link": "" }, az.common.back));
 
 const formatScore = (slug: string, n: number) => {
+  if (slug === "eyni-rengdir") return `${n}/3`;
   const u = az.experiments[slug as keyof typeof az.experiments]?.unit;
   return u ? `${n} ${u}` : String(n);
 };
@@ -113,6 +114,7 @@ export function result() {
     sec.earlyTaps !== undefined && t("result.secondary.earlyTaps", { n: sec.earlyTaps }),
     sec.interference !== undefined && t("result.secondary.interference", { n: sec.interference }),
     slug === "reng-ve-soz" && sec.errors !== undefined && t("result.secondary.errors", { n: sec.errors }),
+    slug === "eyni-rengdir" && t("result.fooled", { n: r.primary }),
   ].filter(Boolean) as string[];
 
   screen(null,
@@ -122,10 +124,11 @@ export function result() {
     h("div", { class: "hero", style: accent(slug) }, formatScore(slug, r.primary)),
     ...secLines.map((l) => h("p", { class: "muted" }, l)),
     r.valid
-      ? h("p", null, r.percentile === null ? az.result.compareFirst : t("result.compareFaster", { pct: r.percentile }))
+      ? h("p", null, r.percentile === null ? az.result.compareFirst : t(`result.compare.${slug}`, { pct: r.percentile }))
       : h("div", { class: "notice" }, az.result.invalid),
     r.valid && h("a", { class: "btn primary block", href: "/invite", "data-link": "" }, az.result.callFriend),
     !r.valid && h("a", { class: "btn primary block", href: `/play/${slug}`, "data-link": "" }, az.result.again),
+    slug === "yaddas-zenciri" && h("a", { class: "btn block", href: "/qrupla", "data-link": "" }, az.result.qrupla),
     h("a", { class: "btn block", href: "/", "data-link": "" }, az.common.otherExperiment),
     h("details", null,
       h("summary", null, az.result.science),
@@ -149,7 +152,8 @@ export async function invite(q: URLSearchParams) {
     return showError(() => go("/result", true));
   }
   const name = az.experiments[r.slug as keyof typeof az.experiments].name;
-  const text = t("share.message", { name, score: formatScore(r.slug, r.primary) });
+  const text = group ? az.share.groupMessage
+    : az.share.custom[r.slug] ?? t("share.message", { name, score: formatScore(r.slug, r.primary) });
   const full = `${text} ${duel.url}`;
   const track = (channel: string) => void api("POST", "/shares", { runId: r.runId, channel }).catch(() => {});
   const copy = h("button", { class: "btn block" }, az.share.copy);

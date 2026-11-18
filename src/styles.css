@@ -50,3 +50,14 @@ nav.tabs a.on { color: var(--c-primary); }
 .opt.c0 { background: var(--c-stroop-0); } .opt.c1 { background: var(--c-stroop-1); } .opt.c2 { background: var(--c-stroop-2); } .opt.c3 { background: var(--c-stroop-3); }
 .shapes .opt { background: var(--c-surface-2); }
 .soft { color: var(--c-primary); min-height: 1.5em; font-weight: 700; }
+
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); width: min(100%, 340px); margin-top: var(--sp-5); }
+.cell { aspect-ratio: 1; border: 0; border-radius: var(--radius); background: var(--c-surface-2); transition: background .08s; }
+.cell.on { background: var(--c-exp-yaddas-zenciri); }
+.cell.bad { background: var(--c-bad); }
+.illusion { width: min(100%, 360px); border-radius: var(--radius); margin: var(--sp-4) 0; background: var(--c-surface); }
+.opt-wide { flex: 1; min-width: 120px; }
+.after { display: flex; flex-direction: column; gap: var(--sp-3); width: min(100%, 360px); }
+.slider { width: 100%; height: 44px; }
+.digits { font-size: 2.5rem; font-weight: 800; letter-spacing: 4px; text-align: center; }
+.numinput { font: inherit; font-size: 1.75rem; text-align: center; padding: var(--sp-3); border-radius: var(--radius); border: 2px solid var(--c-line); background: var(--c-surface); color: var(--c-text); width: 100%; }

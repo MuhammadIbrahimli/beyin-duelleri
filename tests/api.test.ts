@@ -223,3 +223,35 @@ describe("reng-ve-soz over the API", () => {
     expect(res.json.entries[0].secondary.errors).toBe(0);
   });
 });
+
+describe("memory + illusions over the API", () => {
+  it("yaddas-zenciri: server replays the attempts, duel compares chain length", async () => {
+    const [a, b] = [await newUser(), await newUser()];
+    async function run(tok: string, reach: number, code?: string) {
+      const s = await call("POST", "/api/runs/start", tok, { slug: "yaddas-zenciri", ...(code ? { duelCode: code } : {}) });
+      const seqs = s.json.schedule.seqs as number[][][];
+      const attempts: { taps: number[]; ms: number }[] = [];
+      for (let len = 3; len <= reach; len++) attempts.push({ taps: seqs[len - 3][0], ms: len * 500 });
+      const fail = (reach + 1 - 3) < seqs.length;
+      if (fail) {
+        const w = seqs[reach + 1 - 3];
+        attempts.push({ taps: [(w[0][0] + 1) % 9], ms: 500 }, { taps: [(w[1][0] + 1) % 9], ms: 500 });
+      }
+      vi.setSystemTime(Date.now() + 30000);
+      return { s: s.json, f: await call("POST", `/api/runs/${s.json.runId}/finish`, tok, { payload: { attempts } }) };
+    }
+    const ra = await run(a, 7);
+    expect(ra.f.json).toMatchObject({ primary: 7, valid: true, level: 3 });
+    const { code } = (await call("POST", "/api/duels", a, { runId: ra.s.runId })).json;
+    await run(b, 5, code);
+    const res = await call("GET", `/api/duels/${code}/result`, b);
+    expect(res.json.outcome).toBe("lose");
+  });
+  it("eyni-rengdir: errors counted server-side", async () => {
+    const t = await newUser();
+    const s = await call("POST", "/api/runs/start", t, { slug: "eyni-rengdir" });
+    vi.setSystemTime(Date.now() + 30000);
+    const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload: { answers: [false, true, false], times: [900, 800, 700] } });
+    expect(f.json).toMatchObject({ primary: 2, level: 2, valid: true });
+  });
+});

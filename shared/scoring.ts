@@ -97,8 +97,86 @@ export const rengVeSoz: Scorer<StroopSchedule> = {
   },
 };
 
+// ---- Yaddaş zənciri (working memory) -------------------------------------------
+export const MEM_MIN = 3;
+export const MEM_MAX = 12;
+export const MEM_CELLS = 9;
+export const MEM_MIN_TAP_MS = 100;
+/** seqs[len - MEM_MIN][attempt]: two different sequences per length (a second chance after one error). */
+export interface MemSchedule { seqs: number[][][] }
+
+export const yaddasZenciri: Scorer<MemSchedule> = {
+  schedule(seed) {
+    const r = rng(seed);
+    const seq = (len: number) => {
+      const s: number[] = [];
+      while (s.length < len) {
+        const c = randInt(r, 0, MEM_CELLS - 1);
+        if (c !== s[s.length - 1]) s.push(c); // no immediate repeats: easier to see on screen
+      }
+      return s;
+    };
+    return { seqs: Array.from({ length: MEM_MAX - MEM_MIN + 1 }, (_, i) => [seq(MEM_MIN + i), seq(MEM_MIN + i)]) };
+  },
+  minDurationMs: () => MEM_MIN * 700,
+  score(s, payload) {
+    const attempts = (payload as { attempts?: unknown })?.attempts;
+    if (!Array.isArray(attempts) || attempts.length === 0 || attempts.length > 2 * (MEM_MAX - MEM_MIN + 1)) return null;
+    let len = MEM_MIN, attempt = 0, best = 0, total = 0, done = false, tooFast = false;
+    for (const a of attempts as { taps?: unknown; ms?: unknown }[]) {
+      if (done || !Array.isArray(a?.taps) || !Number.isFinite(a.ms) || (a.ms as number) < 0 || (a.ms as number) > 300000) return null;
+      const taps = a.taps as number[];
+      if (taps.length < 1 || taps.length > len || !taps.every((c) => Number.isInteger(c) && c >= 0 && c < MEM_CELLS)) return null;
+      total += a.ms as number;
+      if ((a.ms as number) / taps.length < MEM_MIN_TAP_MS) tooFast = true;
+      const want = s.seqs[len - MEM_MIN][attempt];
+      if (taps.length === len && taps.every((c, i) => c === want[i])) {
+        best = len;
+        if (len === MEM_MAX) done = true; else { len++; attempt = 0; }
+      } else if (attempt === 1) done = true; // two errors in a row end the task
+      else attempt = 1;
+    }
+    if (!done) return null;
+    return { primary: best, secondary: { totalMs: Math.round(total) }, valid: !tooFast, invalidReason: tooFast ? "too_fast" : undefined };
+  },
+};
+
+// ---- Eyni rəngdir? (perception illusions) ---------------------------------------
+export type IllusionKind = "brightness" | "muller" | "ebbinghaus";
+export interface IllusionRound { kind: IllusionKind; flip: boolean; v: number } // v: 0..100 cosmetic variation
+export interface IllusionSchedule { rounds: IllusionRound[] }
+export const ILLUSION_ROUNDS = 3;
+
+/** In every round the two shapes ARE equal, so "fooled" = answering "different". */
+export const eyniRengdir: Scorer<IllusionSchedule> = {
+  schedule(seed) {
+    const r = rng(seed);
+    const kinds = shuffle(r, ["brightness", "muller", "ebbinghaus"] as IllusionKind[]);
+    return { rounds: kinds.map((kind) => ({ kind, flip: r() < 0.5, v: randInt(r, 0, 100) })) };
+  },
+  minDurationMs: () => ILLUSION_ROUNDS * 300,
+  score(_s, payload) {
+    const p = payload as { answers?: unknown; times?: unknown };
+    if (!Array.isArray(p?.answers) || !Array.isArray(p?.times)) return null;
+    const answers = p.answers as boolean[], times = p.times as number[];
+    if (answers.length !== ILLUSION_ROUNDS || times.length !== ILLUSION_ROUNDS) return null;
+    if (!answers.every((a) => typeof a === "boolean")) return null;
+    if (!times.every((x) => Number.isFinite(x) && x >= 0 && x < 300000)) return null;
+    const fooled = answers.filter((a) => !a).length;
+    const tooFast = hasImpossibleReaction(times);
+    return {
+      primary: fooled,
+      secondary: { totalMs: Math.round(times.reduce((a, b) => a + b, 0)) },
+      valid: !tooFast,
+      invalidReason: tooFast ? "too_fast" : undefined,
+    };
+  },
+};
+
 export const SCORERS: Record<string, Scorer<any>> = {
   refleks,
   "reng-ve-soz": rengVeSoz,
-  // stage 3+: yaddas-zenciri, eyni-rengdir, yalanci-yaddas, lovber
+  "yaddas-zenciri": yaddasZenciri,
+  "eyni-rengdir": eyniRengdir,
+  // stage 4: yalanci-yaddas, lovber
 };

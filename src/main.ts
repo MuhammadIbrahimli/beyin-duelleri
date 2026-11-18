@@ -10,6 +10,7 @@ route("/result", () => result());
 route("/invite", (c) => invite(c.query));
 route("/d/:code", (c) => invitePage(c.params.code));
 route("/duel/:code", (c) => duelResult(c.params.code));
+route("/qrupla", () => import("./qrupla").then((q) => q.qrupla()));
 route("/soon", () => soon());
 
 session().catch(() => {}).finally(startRouter);

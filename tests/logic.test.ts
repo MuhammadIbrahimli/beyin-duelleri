@@ -176,3 +176,73 @@ describe("reng-ve-soz scoring", () => {
     expect(rengVeSoz.score(s, { answers: s.trials.map(() => 9), times: s.trials.map(() => 400) })).toBeNull();
   });
 });
+
+import { eyniRengdir, yaddasZenciri } from "../shared/scoring";
+
+describe("yaddas-zenciri scoring", () => {
+  const s = yaddasZenciri.schedule(11);
+  const ok = (len: number, attempt = 0) => ({ taps: s.seqs[len - 3][attempt].slice(), ms: len * 400 });
+  const bad = (len: number, attempt = 0) => {
+    const taps = s.seqs[len - 3][attempt].slice();
+    taps[taps.length - 1] = (taps[taps.length - 1] + 1) % 9;
+    return { taps, ms: len * 400 };
+  };
+  it("schedule is deterministic: lengths 3..12, two sequences each, no immediate repeats", () => {
+    expect(yaddasZenciri.schedule(11)).toEqual(s);
+    expect(s.seqs).toHaveLength(10);
+    s.seqs.forEach((pair, i) => pair.forEach((q) => {
+      expect(q).toHaveLength(3 + i);
+      q.forEach((c, j) => j && expect(c).not.toBe(q[j - 1]));
+    }));
+  });
+  it("best length = longest repeated chain; two errors in a row end the task", () => {
+    const r = yaddasZenciri.score(s, { attempts: [ok(3), ok(4), ok(5), bad(6), bad(6, 1)] })!;
+    expect(r.primary).toBe(5);
+    expect(r.valid).toBe(true);
+    expect(r.secondary.totalMs).toBe((3 + 4 + 5 + 6 + 6) * 400);
+  });
+  it("one error is forgiven: a retry that succeeds continues", () => {
+    const r = yaddasZenciri.score(s, { attempts: [ok(3), bad(4), ok(4, 1), bad(5), bad(5, 1)] })!;
+    expect(r.primary).toBe(4);
+  });
+  it("failing at the first length gives 0; reaching 12 ends the task", () => {
+    expect(yaddasZenciri.score(s, { attempts: [bad(3), bad(3, 1)] })!.primary).toBe(0);
+    const all = Array.from({ length: 10 }, (_, i) => ok(3 + i));
+    expect(yaddasZenciri.score(s, { attempts: all })!.primary).toBe(12);
+  });
+  it("rejects unfinished, over-long and tampered payloads", () => {
+    expect(yaddasZenciri.score(s, { attempts: [ok(3)] })).toBeNull(); // not finished
+    expect(yaddasZenciri.score(s, { attempts: [bad(3), bad(3, 1), ok(3)] })).toBeNull(); // plays after the end
+    expect(yaddasZenciri.score(s, { attempts: [{ taps: [1, 2, 3, 4], ms: 100 }] })).toBeNull();
+    expect(yaddasZenciri.score(s, { attempts: [{ taps: [99], ms: 100 }] })).toBeNull();
+  });
+  it("flags impossibly fast tapping", () => {
+    const fast = { taps: s.seqs[0][0].slice(), ms: 30 };
+    expect(yaddasZenciri.score(s, { attempts: [fast, bad(4), bad(4, 1)] })!.valid).toBe(false);
+  });
+});
+
+describe("eyni-rengdir scoring", () => {
+  const s = eyniRengdir.schedule(3);
+  it("schedule: the three illusions in a seed-determined order", () => {
+    expect(eyniRengdir.schedule(3)).toEqual(s);
+    expect(s.rounds.map((r) => r.kind).sort()).toEqual(["brightness", "ebbinghaus", "muller"]);
+  });
+  it("counts how many times you said 'different' (all pairs are in fact equal)", () => {
+    expect(eyniRengdir.score(s, { answers: [true, true, true], times: [900, 800, 700] })!.primary).toBe(0);
+    const r = eyniRengdir.score(s, { answers: [false, true, false], times: [900, 800, 700] })!;
+    expect(r.primary).toBe(2);
+    expect(r.secondary.totalMs).toBe(2400);
+  });
+  it("invalid below 100 ms; malformed is null", () => {
+    expect(eyniRengdir.score(s, { answers: [true, true, true], times: [50, 800, 700] })!.valid).toBe(false);
+    expect(eyniRengdir.score(s, { answers: [true, true], times: [1, 2] })).toBeNull();
+    expect(eyniRengdir.score(s, { answers: ["x", true, true], times: [500, 500, 500] })).toBeNull();
+  });
+  it("duel: fewer errors wins, then the faster total", async () => {
+    const { compareRuns } = await import("../shared/duel");
+    const m = bySlug("eyni-rengdir")!;
+    expect(compareRuns(m, run(0, { totalMs: 5000 }), run(1, { totalMs: 1000 }))).toBe(1);
+    expect(compareRuns(m, run(1, { totalMs: 1000 }), run(1, { totalMs: 5000 }))).toBe(1);
+  });
+});
