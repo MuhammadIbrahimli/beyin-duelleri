@@ -6,7 +6,7 @@ compatibility_date = "2026-01-01"
 directory = "dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-run_worker_first = ["/api/*"]
+run_worker_first = ["/api/*", "/__scheduled"]
 
 [[d1_databases]]
 binding = "DB"
@@ -14,14 +14,14 @@ database_name = "beyin"
 database_id = "TODO_RUN_wrangler_d1_create_beyin"
 migrations_dir = "migrations"
 
-[[unsafe.bindings]]
+[[ratelimits]]
 name = "RATE_LIMITER"
-type = "ratelimit"
 namespace_id = "1001"
-simple = { limit = 60, period = 60 }
+simple = { limit = 120, period = 60 }
 
 [triggers]
 crons = ["15 * * * *"]
 
 [vars]
-SITE_ORIGIN = "http://localhost:8787"
+# Leave empty to build duel links from the request's own origin; set it once a custom domain is attached.
+SITE_ORIGIN = ""

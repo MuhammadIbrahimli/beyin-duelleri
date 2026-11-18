@@ -15,7 +15,7 @@ p { margin: 0; line-height: 1.45; }
 .btn.primary { background: var(--c-primary); color: var(--c-on-primary); }
 .btn.block { width: 100%; }
 .btn:disabled { opacity: .5; }
-.link { appearance: none; background: none; border: 0; font: inherit; font-size: var(--fs-s); cursor: pointer; color: var(--c-muted); text-align: center; padding: var(--sp-3); font-size: var(--fs-s); }
+.link { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; appearance: none; background: none; border: 0; font: inherit; font-size: var(--fs-s); cursor: pointer; color: var(--c-muted); text-align: center; padding: var(--sp-3); font-size: var(--fs-s); }
 .card { background: var(--c-surface); border-radius: var(--radius); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); text-decoration: none; color: inherit; border-left: 6px solid var(--accent, var(--c-line)); }
 .card b { font-size: var(--fs-l); }
 .notice { font-size: var(--fs-s); color: var(--c-muted); background: var(--c-surface); padding: var(--sp-3); border-radius: var(--radius); }

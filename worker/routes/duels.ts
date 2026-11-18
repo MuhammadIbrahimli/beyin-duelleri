@@ -76,7 +76,7 @@ duelRoutes.post("/duels", async (c) => {
       .bind(id, code, run.experiment_id, run.seed, run.id, type, type === "group" ? GROUP_MAX : 2, now + DUEL_TTL_MS, now),
     db.prepare("INSERT INTO duel_entries (duel_id, run_id, rank) VALUES (?,?,1)").bind(id, run.id),
   ]);
-  return c.json({ code, url: `${c.env.SITE_ORIGIN}/d/${code}` }, 201);
+  return c.json({ code, url: `${c.env.SITE_ORIGIN || new URL(c.req.url).origin}/d/${code}` }, 201);
 });
 
 /** Invite page data. Never contains the creator's result. */

@@ -3,14 +3,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "predev": "node scripts/dev-vars.mjs",
+    "dev": "vite build && wrangler dev --test-scheduled",
     "dev:web": "vite",
     "build": "vite build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.web.json",
     "db:migrate:local": "wrangler d1 migrations apply beyin --local",
-    "db:migrate:remote": "wrangler d1 migrations apply beyin --remote",
-    "deploy": "npm run build && wrangler deploy"
+    "db:seed": "node scripts/seed.mjs",
+    "db:unseed": "node scripts/seed.mjs --remove",
+    "db:cron": "node scripts/cron.mjs",
+    "setup": "node scripts/setup.mjs",
+    "deploy": "vite build && wrangler d1 migrations apply beyin --remote && wrangler deploy",
+    "todo": "node scripts/todo.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",

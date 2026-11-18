@@ -125,7 +125,7 @@ export const az = {
     "eyni-rengdir":
       "Görmə sistemi parlaqlığı və ölçünü mütləq deyil, ətrafa nisbətən qiymətləndirir. Müller-Lyer illüziyası 1889-cu ildə təsvir olunub, Ebbinghaus effekti isə XIX əsrin sonlarında. Aldanmaq normaldır.",
     lovber:
-      "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk. TODO(verify)",
+      "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,
   share: {
     title: "Dostunu çağır",
@@ -229,6 +229,7 @@ export const az = {
       "Xidmətdən istifadə üçün yaşın 16 və ya daha çox olmalıdır.",
     ],
   },
+  pwa: { install: "Ekrana əlavə et" },
   card: {
     open: "Kartı paylaş",
     share: "Paylaş",

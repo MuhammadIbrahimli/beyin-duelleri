@@ -4,6 +4,7 @@ import { LOVBER_QUESTIONS } from "../config/lovber";
 import { DRM_SETS } from "../config/wordsets";
 import { SHORT_HOST, CHANNEL_LABEL } from "../config/brand";
 import type { CardModel } from "./card/model";
+import { countRun, installOffer } from "./pwa";
 import { api, me, type FinishResult } from "./api";
 import { h, mount } from "./dom";
 import { az, t } from "./i18n/az";
@@ -121,6 +122,7 @@ export async function play(slug: string, q: URLSearchParams) {
   try {
     const res: FinishResult = await api("POST", `/runs/${run.runId}/finish`, { payload });
     remember(res);
+    if (res.valid) countRun();
     if (res.duel) return go(`/duel/${res.duel.code}`, true);
     if (q.get("rematch") && res.valid) return go("/invite", true);
     go("/result", true);
@@ -187,6 +189,7 @@ export function result() {
       src && src.startsWith("http")
         ? h("a", { class: "muted", href: src, target: "_blank", rel: "noopener" }, az.result.source)
         : h("p", { class: "muted" }, az.result.sourcePending)),
+    installOffer(),
     h("p", { class: "muted" }, az.common.notDiagnosis),
     slug === "refleks" && h("p", { class: "muted" }, az.duel.deviceNote));
 }

@@ -1,5 +1,6 @@
 import "./styles.css";
 import { session } from "./api";
+import { initPwa } from "./pwa";
 import { route, startRouter } from "./router";
 import { duelResult, home, intro, invite, invitePage, play, result } from "./screens";
 
@@ -16,4 +17,5 @@ route("/ranking", () => import("./screens-more").then((m) => m.ranking()));
 route("/passport", () => import("./screens-more").then((m) => m.passport()));
 route("/privacy", () => import("./screens-more").then((m) => m.privacy()));
 
+initPwa();
 session().catch(() => {}).finally(startRouter);
