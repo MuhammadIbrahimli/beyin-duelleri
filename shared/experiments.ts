@@ -7,21 +7,17 @@ export const EXPERIMENTS = [
   { id: 6, slug: "lovber", direction: "lower", tiebreak: null }, // primary = |answer - truth| / truth, in percent
   { id: 7, slug: "go-no-go", direction: "lower", tiebreak: { key: "commission", direction: "lower" } },
   { id: 8, slug: "reqem-yaddasi", direction: "higher", tiebreak: { key: "totalMs", direction: "lower" } },
-  { id: 9, slug: "flanker", direction: "lower", tiebreak: { key: "interference", direction: "lower" } },
-  { id: 10, slug: "simon", direction: "lower", tiebreak: { key: "interference", direction: "lower" } },
   { id: 11, slug: "n-back", direction: "higher", tiebreak: null },
-  { id: 12, slug: "pvt", direction: "lower", tiebreak: null },
   { id: 13, slug: "dsst", direction: "lower", tiebreak: null },
   { id: 14, slug: "mental-rotation", direction: "lower", tiebreak: null },
   { id: 15, slug: "task-switch", direction: "lower", tiebreak: { key: "switchCostMs", direction: "lower" } },
   { id: 16, slug: "hanoi", direction: "lower", tiebreak: null },
-  { id: 17, slug: "sart", direction: "lower", tiebreak: null },
-  { id: 18, slug: "navon", direction: "lower", tiebreak: { key: "interferenceMs", direction: "lower" } },
-  { id: 19, slug: "digit-backward", direction: "higher", tiebreak: null },
   { id: 20, slug: "visual-search", direction: "lower", tiebreak: { key: "searchSlopeMs", direction: "lower" } },
   { id: 21, slug: "bart", direction: "higher", tiebreak: null },
   { id: 22, slug: "matrix", direction: "higher", tiebreak: null },
   { id: 23, slug: "change-detection", direction: "higher", tiebreak: null },
+  { id: 24, slug: "posner", direction: "lower", tiebreak: { key: "orientingCostMs", direction: "lower" } },
+  { id: 25, slug: "mot", direction: "higher", tiebreak: null },
 ] as const;
 
 export type Slug = (typeof EXPERIMENTS)[number]["slug"];

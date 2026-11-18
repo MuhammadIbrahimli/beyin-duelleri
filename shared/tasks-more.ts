@@ -1,16 +1,12 @@
 // Four more tasks, written from public paradigm descriptions (no code copied):
-//  - Psychomotor vigilance (PVT, Dinges & Powell, 1985): tap as soon as a dot appears after a random wait.
 //  - Symbol-digit substitution (DSST, Wechsler): look up the symbol that belongs to each digit.
 //  - Mental rotation (Shepard & Metzler, 1971): is the right figure the left one turned, not mirrored?
 //  - Task switching (Rogers & Monsell, 1995): the cue colour says which rule to use (odd/even or below/above 5).
 // Scores, thresholds and penalties are starter values (TODO(verify)), see config/points.ts and config/levels.ts.
 import type { Scorer } from "./scoring";
-import { median } from "./stats";
 import { randInt, rng, shuffle } from "./rng";
 import { hasImpossibleReaction } from "./validity";
 
-export const PVT_TRIALS = 12;
-export const PVT_LAPSE_MS = 2000; // no tap in this time counts as a lapse (recorded as this value)
 export const DSST_TRIALS = 30;
 export const ROTATION_TRIALS = 12;
 export const SWITCH_TRIALS = 30;
@@ -48,35 +44,6 @@ export function finish(j: NonNullable<ReturnType<typeof judge>>, extra: Record<s
     invalidReason,
   };
 }
-
-// ---- PVT ------------------------------------------------------------------------------------------
-export interface PvtSchedule { foreperiods: number[] }
-
-export const pvt: Scorer<PvtSchedule> = {
-  schedule(seed) {
-    const r = rng(seed);
-    return { foreperiods: Array.from({ length: PVT_TRIALS }, () => randInt(r, 1500, 4000)) };
-  },
-  minDurationMs: (s) => s.foreperiods.reduce((a, b) => a + b, 0),
-  score(_s, payload) {
-    const p = payload as { times?: unknown; falseStarts?: unknown };
-    if (!Array.isArray(p?.times) || p.times.length !== PVT_TRIALS) return null;
-    if (!p.times.every((x) => x === null || (typeof x === "number" && Number.isFinite(x) && x >= 0 && x <= PVT_LAPSE_MS))) return null;
-    if (!Number.isInteger(p.falseStarts) || (p.falseStarts as number) < 0 || (p.falseStarts as number) > 60) return null;
-    const times = p.times as (number | null)[];
-    const hits = times.filter((x): x is number => x !== null);
-    const lapses = times.length - hits.length;
-    const falseStarts = p.falseStarts as number;
-    const withLapses = times.map((x) => (x === null ? PVT_LAPSE_MS : x));
-    const invalidReason = hasImpossibleReaction(hits) ? "too_fast" : falseStarts > PVT_TRIALS / 2 ? "false_starts" : undefined;
-    return {
-      primary: Math.round(median(withLapses)), // median with lapses counted as the lapse time: robust to one slow trial
-      secondary: { lapses, falseStarts, meanMs: Math.round(mean(hits)) },
-      valid: !invalidReason,
-      invalidReason,
-    };
-  },
-};
 
 // ---- DSST: symbol-digit substitution -----------------------------------------------------------
 export const SYMBOLS = ["▲", "●", "■", "◆", "★", "✚", "✖", "◐", "⬢"];
@@ -199,7 +166,6 @@ export const switchTask: Scorer<SwitchSchedule> = {
 };
 
 export const SCORERS_MORE: Record<string, Scorer<any>> = {
-  pvt,
   dsst,
   "mental-rotation": rotation,
   "task-switch": switchTask,

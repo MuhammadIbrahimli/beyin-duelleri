@@ -413,7 +413,7 @@ describe("daily, badges, my duels", () => {
     const db: D1Database = env.DB;
     const now = Date.now();
     const stmts: D1PreparedStatement[] = [];
-    for (let e = 1; e <= EXPERIMENTS.length; e++) { // every experiment id
+    for (const { id: e } of EXPERIMENTS) { // every experiment that exists
       stmts.push(db.prepare("INSERT INTO runs (id,user_id,experiment_id,seed,status,primary_score,valid,device_class,created_at,finished_at) VALUES (?,?,?,1,'finished',1,1,'other',?,?)").bind(`rr${e}`, uid, e, now, now));
     }
     for (let d = 10; d <= 16; d++) {

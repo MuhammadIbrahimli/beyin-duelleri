@@ -8,19 +8,15 @@ export const SOURCES: Record<string, { url: string }> = {
   lovber: { url: "TODO(verify)" },
   "go-no-go": { url: "TODO(verify)" },
   "reqem-yaddasi": { url: "TODO(verify)" },
-  flanker: { url: "TODO(verify)" }, // Eriksen & Eriksen 1974
-  simon: { url: "TODO(verify)" },   // Simon 1969
   "n-back": { url: "TODO(verify)" }, // Kirchner 1958
-  pvt: { url: "TODO(verify)" },            // Dinges & Powell 1985
   dsst: { url: "TODO(verify)" },           // Wechsler (WAIS digit-symbol)
   "mental-rotation": { url: "TODO(verify)" }, // Shepard & Metzler 1971
   "task-switch": { url: "TODO(verify)" },  // Rogers & Monsell 1995
   hanoi: { url: "TODO(verify)" },          // Simon 1975 (planning)
-  sart: { url: "TODO(verify)" },           // Robertson et al. 1997
-  navon: { url: "TODO(verify)" },          // Navon 1977
-  "digit-backward": { url: "TODO(verify)" }, // Wechsler digit span
   "visual-search": { url: "TODO(verify)" },  // Treisman & Gelade 1980
   bart: { url: "TODO(verify)" },             // Lejuez et al. 2002
   matrix: { url: "TODO(verify)" },           // Raven-style matrices
   "change-detection": { url: "TODO(verify)" }, // Luck & Vogel 1997
+  posner: { url: "TODO(verify)" },           // Posner 1980
+  mot: { url: "TODO(verify)" },              // Pylyshyn & Storm 1988
 };

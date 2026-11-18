@@ -232,53 +232,8 @@ describe("admin export", () => {
   });
 });
 
-import { flanker, nback, nbackTargets, simon } from "../shared/attention-tasks";
+import { nback, nbackTargets } from "../shared/attention-tasks";
 import { SCORERS } from "../shared/scoring";
-
-describe("flanker and simon", () => {
-  it("flanker: half the trials are congruent; the centre arrow is the answer and the flankers match or oppose it", () => {
-    const s = flanker.schedule(7);
-    expect(s.trials).toHaveLength(24);
-    expect(s.trials.filter((x) => x.congruent)).toHaveLength(12);
-    for (const tr of s.trials) {
-      const c = tr.expected === "left" ? "<" : ">";
-      expect(tr.stim[2]).toBe(c);
-      expect(tr.stim === c.repeat(5)).toBe(tr.congruent);
-    }
-  });
-  it("simon: congruent trials are those where the colour belongs to the side (red left, blue right)", () => {
-    const s = simon.schedule(7);
-    expect(s.trials.filter((x) => x.congruent)).toHaveLength(12);
-    for (const tr of s.trials) {
-      const belongsToSide = (tr.expected === "red") === (tr.stim === "left");
-      expect(belongsToSide).toBe(tr.congruent);
-    }
-  });
-  it("scores: mean correct reaction plus an error penalty; interference is incongruent minus congruent", () => {
-    const s = flanker.schedule(3);
-    const good = flanker.score(s, { choices: s.trials.map((x) => x.expected), times: s.trials.map((x) => (x.congruent ? 400 : 500)) })!;
-    expect(good.valid).toBe(true);
-    expect(good.primary).toBe(450);
-    expect(good.secondary).toMatchObject({ errors: 0, congruentMs: 400, incongruentMs: 500, interference: 100 });
-    const half = s.trials.map((x, i) => (i % 2 ? x.expected : (x.expected === "left" ? "right" : "left")));
-    const bad = flanker.score(s, { choices: half, times: half.map(() => 450) })!;
-    expect(bad.secondary.errors).toBe(12);
-    expect(bad.primary).toBe(450 + Math.round(1000 * 0.5));
-  });
-  it("invalid: impossibly fast reactions, and guessing (more than half wrong)", () => {
-    const s = simon.schedule(5);
-    const fast = simon.score(s, { choices: s.trials.map((x) => x.expected), times: s.trials.map(() => 50) })!;
-    expect(fast.invalidReason).toBe("too_fast");
-    const wrong = s.trials.map((x) => (x.expected === "red" ? "blue" : "red"));
-    expect(simon.score(s, { choices: wrong, times: s.trials.map(() => 500) })!.invalidReason).toBe("guessing");
-  });
-  it("malformed payloads are rejected", () => {
-    const s = flanker.schedule(1);
-    expect(flanker.score(s, { choices: ["left"], times: [400] })).toBeNull();
-    expect(flanker.score(s, { choices: s.trials.map(() => "up"), times: s.trials.map(() => 400) })).toBeNull();
-    expect(simon.score(s, null)).toBeNull();
-  });
-});
 
 describe("n-back", () => {
   it("targets are exactly the positions that repeat the letter two steps back, and a share of them exists", () => {
@@ -303,16 +258,14 @@ describe("n-back", () => {
 describe("registry", () => {
   it("every experiment has a scorer, and the three new ones are registered", () => {
     for (const e of EXPERIMENTS) expect(SCORERS[e.slug], e.slug).toBeDefined();
-    expect(SCORERS.flanker).toBe(flanker);
-    expect(SCORERS.simon).toBe(simon);
     expect(SCORERS["n-back"]).toBe(nback);
   });
 });
 
 describe("new experiments over the API", () => {
-  it("start and finish work for flanker, simon and n-back with plausible payloads", async () => {
+  it("start and finish work for n-back with plausible payloads", async () => {
     const t = await newUser();
-    for (const slug of ["flanker", "simon", "n-back"]) {
+    for (const slug of ["n-back"]) {
       const s = await call("POST", "/api/runs/start", t, { slug });
       expect(s.status, slug).toBe(201);
       vi.setSystemTime(Date.now() + 90000);
@@ -326,22 +279,9 @@ describe("new experiments over the API", () => {
   });
 });
 
-import { PVT_TRIALS, ROTATION_TRIALS, SWITCH_TRIALS, DSST_TRIALS, SYMBOLS, dsst, pvt, rotation, switchAnswer, switchTask, transform, type Pt } from "../shared/tasks-more";
+import { ROTATION_TRIALS, SWITCH_TRIALS, DSST_TRIALS, SYMBOLS, dsst, rotation, switchAnswer, switchTask, transform, type Pt } from "../shared/tasks-more";
 
 describe("PVT, DSST, mental rotation, task switching", () => {
-  it("PVT: waits are random within 1.5-4 s; median with lapses counted; false starts and impossible taps are flagged", () => {
-    const s = pvt.schedule(4);
-    expect(s.foreperiods).toHaveLength(PVT_TRIALS);
-    expect(s.foreperiods.every((x) => x >= 1500 && x <= 4000)).toBe(true);
-    const ok = pvt.score(s, { times: [300, 320, 310, 330, 300, 310, 320, 340, 300, 310, 320, 330], falseStarts: 0 })!;
-    expect(ok).toMatchObject({ valid: true, primary: 315 });
-    const lapse = pvt.score(s, { times: [300, null, 310, 330, 300, 310, 320, 340, 300, 310, 320, 330], falseStarts: 0 })!;
-    expect(lapse.secondary.lapses).toBe(1);
-    expect(pvt.score(s, { times: s.foreperiods.map(() => 40), falseStarts: 0 })!.invalidReason).toBe("too_fast");
-    expect(pvt.score(s, { times: s.foreperiods.map(() => 300), falseStarts: 9 })!.invalidReason).toBe("false_starts");
-    expect(pvt.score(s, { times: [1, 2], falseStarts: 0 })).toBeNull();
-  });
-
   it("DSST: the key is a permutation of the symbols and every digit maps to one; correct choices score", () => {
     const s = dsst.schedule(9);
     expect([...s.symbols].sort()).toEqual([...SYMBOLS].sort());
@@ -385,16 +325,14 @@ describe("PVT, DSST, mental rotation, task switching", () => {
 });
 
 describe("new tests over the API", () => {
-  it("start and finish work for pvt, dsst, mental-rotation and task-switch", async () => {
+  it("start and finish work for dsst, mental-rotation and task-switch", async () => {
     const t = await newUser();
-    for (const slug of ["pvt", "dsst", "mental-rotation", "task-switch"]) {
+    for (const slug of ["dsst", "mental-rotation", "task-switch"]) {
       const s = await call("POST", "/api/runs/start", t, { slug });
       expect(s.status, slug).toBe(201);
       vi.setSystemTime(Date.now() + 120000);
       const sc = s.json.schedule;
-      const payload = slug === "pvt"
-        ? { times: sc.foreperiods.map(() => 320), falseStarts: 0 }
-        : slug === "dsst"
+      const payload = slug === "dsst"
           ? { choices: sc.digits.map((d: number) => sc.symbols[d - 1]), times: sc.digits.map(() => 700) }
           : slug === "mental-rotation"
             ? { choices: sc.trials.map((x: any) => (x.same ? "yes" : "no")), times: sc.trials.map(() => 900) }
@@ -406,9 +344,9 @@ describe("new tests over the API", () => {
   });
 });
 
-import { DB_LENGTHS, NAVON_PATTERNS, SART_NOGO, SART_TRIALS, digitBackward, hanoi, navon, replayHanoi, sart } from "../shared/tasks-next";
+import { hanoi, replayHanoi } from "../shared/tasks-next";
 
-describe("Hanoi, SART, Navon, backward digit span", () => {
+describe("Tower of Hanoi", () => {
   it("Hanoi: the optimal 3-disk solution is solved with zero extra moves; illegal moves are rejected", () => {
     const optimal3: [number, number][] = [[0, 2], [0, 1], [2, 1], [0, 2], [1, 0], [1, 2], [0, 2]];
     expect(replayHanoi(3, optimal3)).toEqual({ solved: true });
@@ -421,43 +359,12 @@ describe("Hanoi, SART, Navon, backward digit span", () => {
     expect(hanoi.score(s, { puzzles: [[[0, 1]]] })).toBeNull(); // wrong number of puzzles
   });
 
-  it("SART: errors are taps on the 3 and misses on the others; all-taps and no-taps are invalid", () => {
-    const s = sart.schedule(4);
-    expect(s.digits).toHaveLength(SART_TRIALS);
-    expect(s.digits.filter((d) => d === SART_NOGO).length).toBeGreaterThan(0);
-    const perfect = s.digits.map((d) => d !== SART_NOGO);
-    expect(sart.score(s, { taps: perfect })).toMatchObject({ valid: true, primary: 0 });
-    expect(sart.score(s, { taps: s.digits.map(() => true) })!.invalidReason).toBe("tapping_everything");
-    expect(sart.score(s, { taps: s.digits.map(() => false) })!.invalidReason).toBe("no_response");
-    expect(sart.score(s, { taps: [true] })).toBeNull();
-  });
-
-  it("Navon: the large letter is drawn from its bitmap; interference is incongruent minus congruent", () => {
-    expect(NAVON_PATTERNS.H.flat().filter(Boolean).length).toBeGreaterThan(0);
-    const s = navon.schedule(8);
-    expect(s.trials).toHaveLength(24);
-    expect(s.trials.filter((t) => t.cond === "base").every((t) => t.local === t.expected)).toBe(true);
-    expect(s.trials.filter((t) => t.cond === "cost").every((t) => t.local !== t.expected)).toBe(true);
-    const r = navon.score(s, { choices: s.trials.map((t) => t.expected), times: s.trials.map((t) => (t.cond === "cost" ? 700 : 500)) })!;
-    expect(r).toMatchObject({ valid: true, secondary: { interferenceMs: 200 } });
-  });
-
-  it("backward digit span: the answer is the sequence reversed; the score is the longest correct length", () => {
-    const s = digitBackward.schedule(3);
-    expect(s.seqs.map((q) => q.length)).toEqual(DB_LENGTHS);
-    for (const q of s.seqs) for (let i = 1; i < q.length; i++) expect(q[i]).not.toBe(q[i - 1]);
-    const rev = s.seqs.map((q) => [...q].reverse());
-    expect(digitBackward.score(s, { answers: rev })).toMatchObject({ primary: 8, valid: true });
-    const partial = rev.map((a, i) => (i < 2 ? a : [...a].reverse())); // lengths 3-4 right, 5+ forward instead
-    expect(digitBackward.score(s, { answers: partial })!.primary).toBe(4);
-    expect(digitBackward.score(s, { answers: [[10]] })).toBeNull();
-  });
 });
 
 describe("new tests over the API (batch 4)", () => {
-  it("start and finish work for hanoi, sart, navon and digit-backward", async () => {
+  it("start and finish work for hanoi", async () => {
     const t = await newUser();
-    for (const slug of ["hanoi", "sart", "navon", "digit-backward"]) {
+    for (const slug of ["hanoi"]) {
       const s = await call("POST", "/api/runs/start", t, { slug });
       expect(s.status, slug).toBe(201);
       vi.setSystemTime(Date.now() + 120000);
@@ -551,6 +458,60 @@ describe("new tests over the API (distinct batch)", () => {
           : slug === "matrix"
             ? { choices: sc.puzzles.map(() => 0) }
             : { choices: sc.trials.map((x: any) => (x.probe && x.set && JSON.stringify(x.set) === JSON.stringify(x.probe) ? "yes" : "no")), times: sc.trials.map(() => 900) };
+      const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload });
+      expect(f.status, slug).toBe(200);
+      expect(f.json.valid, slug).toBe(true);
+    }
+  });
+});
+
+import { MECHANISM } from "../shared/mechanisms";
+import { EXPERIMENTS as ALL } from "../shared/experiments";
+import { posner, mot } from "../shared/tasks-orienting";
+
+describe("no duplicate mechanisms", () => {
+  it("every experiment names its mechanism, and no two experiments share one", () => {
+    const slugs = ALL.map((e) => e.slug);
+    expect(Object.keys(MECHANISM).sort()).toEqual([...slugs].sort());
+    const values = Object.values(MECHANISM);
+    expect(new Set(values).size).toBe(values.length);
+  });
+});
+
+describe("Posner cueing and multiple object tracking", () => {
+  it("Posner: two thirds of the cues are valid; an invalid cue points to the other side; the cost is the invalid minus the valid time", () => {
+    const s = posner.schedule(12);
+    expect(s.trials).toHaveLength(24);
+    expect(s.trials.filter((t) => t.cond === "base")).toHaveLength(16);
+    for (const t of s.trials) expect(t.side === t.cue).toBe(t.cond === "base");
+    const choices = s.trials.map((t) => t.side);
+    const times = s.trials.map((t) => (t.cond === "cost" ? 500 : 350));
+    expect(posner.score(s, { choices, times })).toMatchObject({ valid: true, secondary: { orientingCostMs: 150 } });
+  });
+
+  it("MOT: the picks are scored against the targets; duplicates and out-of-range dots are rejected", () => {
+    const s = mot.schedule(4);
+    expect(s.trials.map((t) => t.targets.length)).toEqual([2, 3, 4, 4]);
+    const perfect = s.trials.map((t) => t.targets);
+    expect(mot.score(s, { picks: perfect })).toMatchObject({ primary: 100, valid: true });
+    expect(mot.score(s, { picks: s.trials.map(() => []) })!.primary).toBe(0);
+    expect(mot.score(s, { picks: s.trials.map(() => [1, 1]) })).toBeNull();
+    expect(mot.score(s, { picks: s.trials.map(() => [9]) })).toBeNull();
+    expect(mot.score(s, { picks: [[0]] })).toBeNull();
+  });
+});
+
+describe("new tests over the API (attention batch)", () => {
+  it("start and finish work for posner and mot", async () => {
+    const t = await newUser();
+    for (const slug of ["posner", "mot"]) {
+      const s = await call("POST", "/api/runs/start", t, { slug });
+      expect(s.status, slug).toBe(201);
+      vi.setSystemTime(Date.now() + 120000);
+      const sc = s.json.schedule;
+      const payload = slug === "posner"
+        ? { choices: sc.trials.map((x: any) => x.side), times: sc.trials.map(() => 400) }
+        : { picks: sc.trials.map((x: any) => x.targets) };
       const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload });
       expect(f.status, slug).toBe(200);
       expect(f.json.valid, slug).toBe(true);

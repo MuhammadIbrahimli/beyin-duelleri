@@ -1,9 +1,9 @@
 import type { Slug } from "./experiments";
 
 /**
- * Home screen sections. Five skill areas, named after the classic cognitive domains
- * (memory, attention, speed, perception, reasoning). Every experiment belongs to exactly one section;
- * a section grows by adding slugs here, the screen needs no change.
+ * Home screen sections. Five skill areas, named after the classic cognitive domains.
+ * Every experiment belongs to exactly one section; a section grows by adding slugs here.
+ * Rule: one test per mechanism. Two tests that measure the same thing are not both kept.
  */
 export interface Category {
   id: "memory" | "attention" | "speed" | "perception" | "reasoning";
@@ -11,9 +11,9 @@ export interface Category {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: "memory", slugs: ["yaddas-zenciri", "yalanci-yaddas", "reqem-yaddasi", "n-back", "digit-backward", "change-detection"] },
-  { id: "attention", slugs: ["reng-ve-soz", "go-no-go", "flanker", "simon", "sart"] },
-  { id: "speed", slugs: ["refleks", "pvt", "dsst"] },
-  { id: "perception", slugs: ["eyni-rengdir", "mental-rotation", "navon", "visual-search"] },
+  { id: "memory", slugs: ["yaddas-zenciri", "yalanci-yaddas", "reqem-yaddasi", "n-back", "change-detection"] },
+  { id: "attention", slugs: ["reng-ve-soz", "go-no-go", "posner", "mot"] },
+  { id: "speed", slugs: ["refleks", "dsst"] },
+  { id: "perception", slugs: ["eyni-rengdir", "mental-rotation", "visual-search"] },
   { id: "reasoning", slugs: ["lovber", "task-switch", "hanoi", "bart", "matrix"] },
 ];

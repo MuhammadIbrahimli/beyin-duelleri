@@ -3,10 +3,11 @@ import { LOVBER_QUESTIONS } from "../config/lovber";
 import { randInt, rng, shuffle } from "./rng";
 import { median } from "./stats";
 import { hasIdenticalTimes, hasImpossibleReaction } from "./validity";
-import { flanker, nback, simon } from "./attention-tasks";
+import { nback } from "./attention-tasks";
 import { SCORERS_MORE } from "./tasks-more";
 import { SCORERS_NEXT } from "./tasks-next";
 import { SCORERS_DISTINCT } from "./tasks-distinct";
+import { SCORERS_ORIENTING } from "./tasks-orienting";
 
 export interface ScoreResult {
   primary: number;
@@ -308,12 +309,11 @@ export const lovber: Scorer<LovberSchedule> = {
 };
 
 export const SCORERS: Record<string, Scorer<any>> = {
-  flanker,
-  simon,
   "n-back": nback,
   ...SCORERS_MORE,
   ...SCORERS_NEXT,
   ...SCORERS_DISTINCT,
+  ...SCORERS_ORIENTING,
   refleks,
   "reng-ve-soz": rengVeSoz,
   "yaddas-zenciri": yaddasZenciri,
