@@ -65,6 +65,10 @@ export const az = {
     sart: { name: "Rəqəm axını", hook: "Hər rəqəmə toxun, amma 3-ə yox.", measure: "Ölçürük: diqqətin dayanıqlığını və ani toxunmanı (SART).", unit: "%" },
     navon: { name: "Böyük hərf", hook: "Böyük hərfə bax: H yoxsa S?", measure: "Ölçürük: bütövü detaldan ayırmağı, detalın bütövə təsirini.", unit: "ms" },
     "digit-backward": { name: "Əksinə yaddaş", hook: "Rəqəmləri əks ardıcıllıqla yaz.", measure: "Ölçürük: iş yaddaşında rəqəmləri çevirmək bacarığını.", unit: "" },
+    "visual-search": { name: "Axtarış", hook: "Ekranda T hərfi varmı? Hamısı L-dir, fərqli fırlanmada.", measure: "Ölçürük: diqqətin axtarış sürətini və səhnə böyüdükcə ləngiməni.", unit: "ms" },
+    bart: { name: "Balon riski", hook: "Balonu şişir, amma çox şişirsən partlayır. Vaxtında topla.", measure: "Ölçürük: risqi qiymətləndirməyi və nə qədər toplamağı bacardığını.", unit: "xal" },
+    matrix: { name: "Naxış", hook: "Cərgə və sütunların qaydasını tap, boş yeri doldur.", measure: "Ölçürük: qaydanı cədvəldə tapmağı, induktiv düşüncəni.", unit: "" },
+    "change-detection": { name: "Dəyişən rəng", hook: "Kvadratları xatırla, sonra dəyişdimi yoxla.", measure: "Ölçürük: vizual iş yaddaşının dəqiqliyini (obyektlərin sayı artdıqca).", unit: "%" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -103,6 +107,14 @@ export const az = {
     navonAsk: "Böyük hərf hansıdır?",
     dbWatch: "Yadda saxla…",
     dbYour: "İndi tərs ardıcıllıqla yaz",
+    searchAsk: "Arasında T hərfi varmı?",
+    pump: "Şiş!",
+    collect: "Topla",
+    bartBanked: "Toplanıb: {n} xal",
+    matrixAsk: "Boş yerə hansı düşür?",
+    secondsLeft: "{n} san.",
+    keepSame: "Eynidir",
+    keepChanged: "Dəyişib",
     dbDelete: "⌫",
     no: "Yox",
     check: "Yoxla",
@@ -144,6 +156,10 @@ export const az = {
       sart: "Sən bu təcrübədə iştirakçıların {pct}%-dən az səhv edirsən",
       navon: "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətlə bütövü tanıyırsan",
       "digit-backward": "Sən bu təcrübədə iştirakçıların {pct}%-dən uzun ardıcıllığı tərs yadda saxlayırsan",
+      "visual-search": "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətli axtarırsan",
+      bart: "Sən bu təcrübədə iştirakçıların {pct}%-dən çox xal toplayırsan",
+      matrix: "Sən bu təcrübədə iştirakçıların {pct}%-dən çox naxış tapırsan",
+      "change-detection": "Sən bu təcrübədə iştirakçıların {pct}%-dən dəqiq xatırlayırsan",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -190,6 +206,10 @@ export const az = {
       sart: ["Səhlənkar", "Orta", "Diqqətli", "Ustad"],
       navon: ["Detala bağlı", "Orta", "Bütövü görən", "Ustad"],
       "digit-backward": ["Qısa", "Orta", "Uzun", "Ustad"],
+      "visual-search": ["Yavaş", "Orta", "Sürətli", "Ustad"],
+      bart: ["Ehtiyatlı", "Orta", "Cəsarətli", "Ustad"],
+      matrix: ["Başlanğıc", "Orta", "Düşünən", "Ustad"],
+      "change-detection": ["Qısa", "Orta", "Dəqiq", "Ustad"],
     } as Record<string, string[]>,
   },
   science: {
@@ -229,6 +249,14 @@ export const az = {
       "Navon (1977): böyük hərf əvvəlcə görünür (bütöv), kiçik hərflər sonra. Bütövlə detal ziddiyyət təşkil edəndə cavab ləngiyir.",
     "digit-backward":
       "Əks rəqəm ardıcıllığı (Wechsler testi) yalnız yadda saxlamaq yox, onu çevirmək tələb edir. Bu, iş yaddaşının daha mürəkkəb hissəsidir.",
+    "visual-search":
+      "Treisman və Gelade (1980): xüsusiyyət fərqləri (rəng) sürətli tapılır, kombinasiya fərqləri (fırlanma) isə yavaş. Səhnə böyüdükcə axtarış vaxtı artır: bu «axtarış sürəti»dir.",
+    bart:
+      "BART (Lejuez və b., 2002) riskə qarşı qərarları ölçür: balon hər pompada partlaya bilər, toplamaq vaxtı və ehtiyatlılıq əsas qərardır. Oyun diaqnoz deyil.",
+    matrix:
+      "Raven tipli matrisalar (induktiv düşüncə): qaydanı cərgələr və sütunlar arasında tapmaq. Bu tapşırıq ümumi intellekt ölçüləri ilə əlaqəli, lakin bu oyun IQ deyil.",
+    "change-detection":
+      "Luck və Vogel (1997): vizual iş yaddaşı təxminən dörd obyekt tutur. Obyektlərin sayı artdıqca dəqiqlik düşür — bu əsas məhdudiyyətdir.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,

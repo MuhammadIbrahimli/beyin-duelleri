@@ -287,3 +287,13 @@ pre.kit { white-space: pre-wrap; font: inherit; font-size: var(--fs-s); color: v
 .db-entered { min-height: 2rem; font-size: 1.5rem; font-weight: 700; letter-spacing: 0.2em; text-align: center; color: var(--c-text); }
 .db-pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: min(360px, 100%); margin: 0 auto; }
 .db-key { min-height: 52px; font-size: 1.3rem; }
+
+/* visual search, balloon risk, matrix, change detection */
+.vs-svg, .cd-svg { width: min(320px, 100%); height: auto; }
+.vs-canvas, .cd-canvas { display: grid; place-items: center; min-height: 240px; }
+.bart-balloon { border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe08a, #ffb020); color: #1b1f3b; font-weight: 800; font-size: 1.4rem; display: grid; place-items: center; margin: 24px auto; transition: width 120ms ease, height 120ms ease; }
+.bart-balloon.popped { background: none; font-size: 64px; width: 110px !important; height: 110px !important; }
+.mx-grid { display: grid; grid-template-columns: repeat(3, 84px); gap: 8px; justify-content: center; }
+.mx-options { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.mx-opt { background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--radius); padding: 6px; cursor: pointer; }
+.mx-opt:active { transform: scale(0.97); }

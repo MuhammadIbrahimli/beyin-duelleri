@@ -19,5 +19,9 @@ export const loaders: Record<string, () => Promise<{ default: (root: HTMLElement
   sart: () => import("./sart"),
   navon: () => import("./navon"),
   "digit-backward": () => import("./digit-backward"),
+  "visual-search": () => import("./visual-search"),
+  bart: () => import("./bart"),
+  matrix: () => import("./matrix"),
+  "change-detection": () => import("./change-detection"),
 };
 export const available = Object.keys(loaders);

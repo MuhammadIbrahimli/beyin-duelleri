@@ -475,3 +475,85 @@ describe("new tests over the API (batch 4)", () => {
     }
   });
 });
+
+import { BART_BALLOONS, BART_MAX_PUMPS, CHANGE_TRIALS, MATRIX_PUZZLES, SEARCH_TRIALS, bart, changeDetection, matrix, visualSearch } from "../shared/tasks-distinct";
+
+describe("visual search, balloon risk, matrix, change detection", () => {
+  it("visual search: half the displays have a T; the search cost is the 16-item minus the 8-item time", () => {
+    const s = visualSearch.schedule(2);
+    expect(s.trials).toHaveLength(SEARCH_TRIALS);
+    expect(s.trials.filter((t) => t.items.some((x) => x.ch === "T")).length).toBe(SEARCH_TRIALS / 2);
+    const pub = visualSearch.publicView!(s) as any;
+    expect(JSON.stringify(pub)).not.toContain("present");
+    const choices = s.trials.map((t) => (t.items.some((x) => x.ch === "T") ? "yes" : "no"));
+    const times = s.trials.map((t) => (t.cond === "cost" ? 900 : 600));
+    expect(visualSearch.score(s, { choices, times })).toMatchObject({ valid: true, secondary: { searchSlopeMs: 300 } });
+  });
+
+  it("BART: points are five per pump on balloons that were collected; a pop loses the balloon; pumping past the pop is rejected", () => {
+    const s = bart.schedule(5);
+    expect(s.explode).toHaveLength(BART_BALLOONS);
+    expect(s.explode.every((x) => x >= 1 && x <= BART_MAX_PUMPS)).toBe(true);
+    const safe = s.explode.map((ex) => Math.max(0, ex - 1)); // one pump short of every pop, then collect
+    const got = bart.score(s, { pumps: safe })!;
+    expect(got.primary).toBe(safe.reduce((a, p) => a + p * 5, 0));
+    const popAll = bart.score(s, { pumps: s.explode })!;
+    expect(popAll.primary).toBe(0);
+    expect(popAll.secondary.popped).toBe(BART_BALLOONS);
+    const tooFar = s.explode.map((ex) => ex + 1);
+    expect(bart.score(s, { pumps: tooFar })).toBeNull();
+    expect(bart.score(s, { pumps: [1] })).toBeNull();
+  });
+
+  it("matrix: each puzzle's correct option completes the rule (count across rows, shape per row, colour per column)", () => {
+    const s = matrix.schedule(6);
+    expect(s.puzzles).toHaveLength(MATRIX_PUZZLES);
+    for (const p of s.puzzles) {
+      const ans = p.options[p.answer];
+      expect(ans.n).toBe(3);      // column 3 of the last row: count 3
+      expect(ans.shape).toBe(2);  // row 3 shape
+      expect(ans.colour).toBe(2); // column 3 colour
+      const others = p.options.filter((_, i) => i !== p.answer);
+      for (const o of others) expect(o.n === ans.n && o.shape === ans.shape && o.colour === ans.colour).toBe(false);
+    }
+    const perfect = s.puzzles.map((p) => p.answer);
+    expect(matrix.score(s, { choices: perfect })).toMatchObject({ primary: MATRIX_PUZZLES, valid: true });
+    expect(matrix.score(s, { choices: perfect.map(() => -1) })!.primary).toBe(0);
+    expect(matrix.score(s, { choices: [9] })).toBeNull();
+  });
+
+  it("change detection: a changed probe differs in exactly one square; the score is percent correct", () => {
+    const s = changeDetection.schedule(9);
+    expect(s.trials).toHaveLength(CHANGE_TRIALS);
+    for (const t of s.trials) {
+      const diff = t.set.filter((sq, i) => sq.colour !== t.probe[i].colour).length;
+      expect(diff).toBe(t.same ? 0 : 1);
+    }
+    const choices = s.trials.map((t) => (t.same ? "yes" : "no"));
+    expect(changeDetection.score(s, { choices, times: s.trials.map(() => 900) })).toMatchObject({ primary: 100, valid: true });
+    const wrong = choices.map((c) => (c === "yes" ? "no" : "yes"));
+    expect(changeDetection.score(s, { choices: wrong, times: s.trials.map(() => 900) })!.primary).toBe(0);
+  });
+});
+
+describe("new tests over the API (distinct batch)", () => {
+  it("start and finish work for visual-search, bart, matrix and change-detection", async () => {
+    const t = await newUser();
+    for (const slug of ["visual-search", "bart", "matrix", "change-detection"]) {
+      const s = await call("POST", "/api/runs/start", t, { slug });
+      expect(s.status, slug).toBe(201);
+      vi.setSystemTime(Date.now() + 120000);
+      const sc = s.json.schedule;
+      const payload = slug === "visual-search"
+        ? { choices: sc.trials.map((x: any) => (x.items.some((i: any) => i.ch === "T") ? "yes" : "no")), times: sc.trials.map(() => 700) }
+        : slug === "bart"
+          ? { pumps: sc.explode.map((e: number) => Math.max(0, e - 1)) }
+          : slug === "matrix"
+            ? { choices: sc.puzzles.map(() => 0) }
+            : { choices: sc.trials.map((x: any) => (x.probe && x.set && JSON.stringify(x.set) === JSON.stringify(x.probe) ? "yes" : "no")), times: sc.trials.map(() => 900) };
+      const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload });
+      expect(f.status, slug).toBe(200);
+      expect(f.json.valid, slug).toBe(true);
+    }
+  });
+});

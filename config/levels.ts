@@ -21,4 +21,8 @@ export const LEVELS: Record<string, LevelRule | null> = {
   sart: { direction: "lower", l4: 4, l3: 8, l2: 15 },
   navon: { direction: "lower", l4: 700, l3: 900, l2: 1200 },
   "digit-backward": { direction: "higher", l4: 6, l3: 5, l2: 4 },
+  "visual-search": { direction: "lower", l4: 800, l3: 1100, l2: 1500 },
+  bart: { direction: "higher", l4: 400, l3: 300, l2: 200 },
+  matrix: { direction: "higher", l4: 7, l3: 6, l2: 5 },
+  "change-detection": { direction: "higher", l4: 95, l3: 85, l2: 70 },
 };

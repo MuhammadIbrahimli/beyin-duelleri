@@ -19,4 +19,8 @@ export const SOURCES: Record<string, { url: string }> = {
   sart: { url: "TODO(verify)" },           // Robertson et al. 1997
   navon: { url: "TODO(verify)" },          // Navon 1977
   "digit-backward": { url: "TODO(verify)" }, // Wechsler digit span
+  "visual-search": { url: "TODO(verify)" },  // Treisman & Gelade 1980
+  bart: { url: "TODO(verify)" },             // Lejuez et al. 2002
+  matrix: { url: "TODO(verify)" },           // Raven-style matrices
+  "change-detection": { url: "TODO(verify)" }, // Luck & Vogel 1997
 };

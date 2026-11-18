@@ -6,6 +6,7 @@ import { hasIdenticalTimes, hasImpossibleReaction } from "./validity";
 import { flanker, nback, simon } from "./attention-tasks";
 import { SCORERS_MORE } from "./tasks-more";
 import { SCORERS_NEXT } from "./tasks-next";
+import { SCORERS_DISTINCT } from "./tasks-distinct";
 
 export interface ScoreResult {
   primary: number;
@@ -312,6 +313,7 @@ export const SCORERS: Record<string, Scorer<any>> = {
   "n-back": nback,
   ...SCORERS_MORE,
   ...SCORERS_NEXT,
+  ...SCORERS_DISTINCT,
   refleks,
   "reng-ve-soz": rengVeSoz,
   "yaddas-zenciri": yaddasZenciri,
