@@ -369,3 +369,22 @@ pre.kit { white-space: pre-wrap; font: inherit; font-size: var(--fs-s); color: v
 .ct-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: min(340px, 100%); margin: 0 auto; }
 .ct-panel { height: 200px; border-radius: var(--radius); border: 1px solid var(--c-line); cursor: pointer; background: #5a5f78; }
 .pm-result { min-height: 2rem; font-size: 1.3rem; font-weight: 700; text-align: center; color: var(--c-text); }
+
+/* batch A: serial reaction, object location, paired associates, temporal order, Wason, odd one out */
+.srt-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: min(340px, 100%); margin: 0 auto; }
+.srt-pad { height: 110px; border-radius: var(--radius); border: 1px solid var(--c-line); background: var(--c-surface); cursor: pointer; }
+.srt-pad.lit { background: var(--accent, var(--c-primary)); }
+.loc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: min(300px, 100%); margin: 0 auto; }
+.loc-cell { aspect-ratio: 1; border-radius: 10px; border: 1px solid var(--c-line); background: var(--c-surface); color: var(--c-text); font-size: 1.8rem; font-weight: 800; cursor: pointer; }
+.pa-cue { font-size: 2.6rem; font-weight: 800; text-align: center; min-height: 120px; display: grid; place-items: center; color: var(--c-text); }
+.pa-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: min(300px, 100%); margin: 0 auto; }
+.pa-shape { min-height: 64px; font-size: 2rem; border-radius: var(--radius); border: 1px solid var(--c-line); background: var(--c-surface); color: var(--c-text); cursor: pointer; }
+.to-shown { font-size: 96px; font-weight: 800; min-height: 130px; display: grid; place-items: center; color: var(--c-text); }
+.to-pick { display: flex; gap: 14px; justify-content: center; }
+.to-btn { min-width: 110px; font-size: 2.2rem; }
+.wa-rule { font-size: 1.4rem; font-weight: 700; text-align: center; color: var(--c-text); }
+.wa-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: min(320px, 100%); margin: 0 auto; }
+.wa-card { height: 96px; font-size: 2rem; border-radius: 12px; border: 1px solid var(--c-line); background: var(--c-surface); color: var(--c-text); cursor: pointer; }
+.wa-card.on { outline: 3px solid var(--c-primary); background: rgba(255, 210, 63, 0.12); }
+.odd-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.odd-item { min-width: 110px; min-height: 90px; display: flex; gap: 6px; align-items: center; justify-content: center; font-size: 1.8rem; border-radius: var(--radius); border: 1px solid var(--c-line); background: var(--c-surface); cursor: pointer; }

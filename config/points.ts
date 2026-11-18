@@ -37,5 +37,11 @@ export const POINT_CURVES: Record<string, [number, number][]> = {
   "finger-tapping": [[30, 0], [45, 40], [55, 65], [65, 85], [75, 100]],             // taps in 10 seconds, higher is better
   "contrast-detection": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],        // percent correct, higher is better
   "probability-matching": [[50, 0], [58, 40], [64, 65], [70, 90], [80, 100]],       // percent correct, higher is better
+  "serial-reaction": [[-50, 0], [0, 30], [30, 50], [60, 75], [100, 100]],           // ms saved by the hidden sequence, higher is better
+  "object-location": [[30, 0], [50, 40], [70, 65], [85, 85], [100, 100]],           // percent correct, higher is better
+  "paired-associates": [[30, 0], [50, 40], [67, 65], [83, 85], [100, 100]],         // percent correct, higher is better
+  "temporal-order-memory": [[50, 0], [65, 40], [80, 65], [90, 85], [100, 100]],     // percent correct, higher is better
+  wason: [[0, 0], [1, 40], [2, 70], [3, 100]],                                      // trials answered exactly right, higher is better
+  "odd-one-out": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],               // percent correct, higher is better
   lovber: [[0, 100], [5, 90], [15, 70], [40, 40], [100, 10], [300, 0]],        // % away from the true value (TODO(verify): starter curve)
 };

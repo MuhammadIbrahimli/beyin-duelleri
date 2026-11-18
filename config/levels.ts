@@ -37,4 +37,10 @@ export const LEVELS: Record<string, LevelRule | null> = {
   "finger-tapping": { direction: "higher", l4: 65, l3: 55, l2: 45 },
   "contrast-detection": { direction: "higher", l4: 95, l3: 85, l2: 70 },
   "probability-matching": { direction: "higher", l4: 70, l3: 64, l2: 58 },
+  "serial-reaction": { direction: "higher", l4: 60, l3: 30, l2: 0 },
+  "object-location": { direction: "higher", l4: 85, l3: 70, l2: 50 },
+  "paired-associates": { direction: "higher", l4: 83, l3: 67, l2: 50 },
+  "temporal-order-memory": { direction: "higher", l4: 90, l3: 80, l2: 65 },
+  wason: { direction: "higher", l4: 3, l3: 2, l2: 1 },
+  "odd-one-out": { direction: "higher", l4: 95, l3: 85, l2: 70 },
 };

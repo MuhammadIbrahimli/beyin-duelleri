@@ -11,9 +11,9 @@ export interface Category {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: "memory", slugs: ["yaddas-zenciri", "yalanci-yaddas", "reqem-yaddasi", "n-back", "change-detection", "word-recall"] },
+  { id: "memory", slugs: ["yaddas-zenciri", "yalanci-yaddas", "reqem-yaddasi", "n-back", "change-detection", "word-recall", "serial-reaction", "object-location", "paired-associates", "temporal-order-memory"] },
   { id: "attention", slugs: ["reng-ve-soz", "go-no-go", "posner", "mot", "attentional-blink", "inattentional-blindness"] },
   { id: "speed", slugs: ["refleks", "dsst", "time-estimation", "mental-arithmetic", "finger-tapping"] },
   { id: "perception", slugs: ["eyni-rengdir", "mental-rotation", "visual-search", "random-dot-motion", "numerosity", "line-bisection", "pitch-discrimination", "contrast-detection"] },
-  { id: "reasoning", slugs: ["lovber", "task-switch", "hanoi", "bart", "matrix", "card-sort", "cognitive-reflection", "syllogism", "iowa-gambling", "probability-matching"] },
+  { id: "reasoning", slugs: ["lovber", "task-switch", "hanoi", "bart", "matrix", "card-sort", "cognitive-reflection", "syllogism", "iowa-gambling", "probability-matching", "wason", "odd-one-out"] },
 ];

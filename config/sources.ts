@@ -35,4 +35,10 @@ export const SOURCES: Record<string, { url: string }> = {
   "finger-tapping": { url: "TODO(verify)" },          // motor speed test
   "contrast-detection": { url: "TODO(verify)" },      // psychophysics
   "probability-matching": { url: "TODO(verify)" },    // Estes 1950s
+  "serial-reaction": { url: "TODO(verify)" },         // Nissen & Bullemer 1987
+  "object-location": { url: "TODO(verify)" },         // spatial working memory
+  "paired-associates": { url: "TODO(verify)" },       // Underwood, paired-associate learning
+  "temporal-order-memory": { url: "TODO(verify)" },   // temporal order memory
+  wason: { url: "TODO(verify)" },                     // Wason 1966
+  "odd-one-out": { url: "TODO(verify)" },             // categorisation
 };

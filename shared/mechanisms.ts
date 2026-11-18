@@ -40,4 +40,10 @@ export const MECHANISM: Record<Slug, string> = {
   "finger-tapping": "motor-speed",
   "contrast-detection": "contrast-detection",
   "probability-matching": "probability-matching",
+  "serial-reaction": "implicit-sequence-learning",
+  "object-location": "object-location-memory",
+  "paired-associates": "paired-associates",
+  "temporal-order-memory": "temporal-order-memory",
+  wason: "wason-selection",
+  "odd-one-out": "odd-one-out",
 };

@@ -90,6 +90,12 @@ export const az = {
     "finger-tapping": { name: "Barmaq nöqtələri", hook: "10 saniyə ərzində mümkün qədər tez toxun.", measure: "Ölçürük: barmağın motor sürətini.", unit: "toxunma" },
     "contrast-detection": { name: "Zəif zolaq", hook: "Zolaqlar hansı paneldədir? Solda, yoxsa sağda?", measure: "Ölçürük: zəif kontrastı görmə həddini.", unit: "%" },
     "probability-matching": { name: "Ehtimal seç", hook: "Növbəti nəticəni proqnozlaşdır. Nəticələr təsadüfidir, amma biri tez-tez gəlir.", measure: "Ölçürük: təsadüfi nəticələrdə ən tez-tez çıxan variantı seçməyi.", unit: "%" },
+    "serial-reaction": { name: "Gizli ardıcıllıq", hook: "Yanan düymələri tez bas. Bəzi ardıcıllıqlar təkrarlanır, amma sən bunu bilmirsən.", measure: "Ölçürük: gizli ardıcıllığı heç bilmədən öyrənməyi.", unit: "ms" },
+    "object-location": { name: "Yerləri xatırla", hook: "Fiqurlar bir an göstərilir. Sonra yadda saxladığın yerə toxun.", measure: "Ölçürük: obyektin yerini fəza yaddaşında saxlamağı.", unit: "%" },
+    "paired-associates": { name: "Cütləri xatırla", hook: "Rəqəmlə fiquru cütləşdir, sonra rəqəmə görə fiquru tap.", measure: "Ölçürük: iki elementi bir-birinə bağlamağı və yadda saxlamağı.", unit: "%" },
+    "temporal-order-memory": { name: "Hansı əvvəl idi?", hook: "Üç fiqur ardıcıl göstərilir. Sonra ikisindən hansının əvvəl gəldiyini de.", measure: "Ölçürük: hadisələrin zaman ardıcıllığını yadda saxlamağı.", unit: "%" },
+    wason: { name: "Qayda yoxlaması", hook: "Qaydanı sına. Hansı kartları çevirməlisən?", measure: "Ölçürük: qaydanı yalnız təsdiq etməyə yox, yalanlamağa çalışmağı.", unit: "" },
+    "odd-one-out": { name: "Fərqli olan", hook: "Dörd qrupdan üçü bir yerdədir. Fərqlisini tap.", measure: "Ölçürük: əşyaları xüsusiyyətə görə qruplaşdırmağı.", unit: "%" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -171,6 +177,14 @@ export const az = {
     matchAsk: "Növbəti nəticəni proqnozlaşdır",
     matchA: "A",
     matchB: "B",
+    srtAsk: "Yanan düyməni tez bas",
+    paStudy: "Cütləri yadda saxla",
+    toAsk: "Hansı əvvəl gəldi?",
+    waDone: "Hazırdır",
+    waAsk: "Hansı kartları çevirməlisən?",
+    waRule: "Qayda: əgər {p}, onda {q}",
+    oddAsk: "Fərqli olanı tap",
+    locAsk: "Hansı yerdə idi: {s}?",
     motWatch: "Sarılar hədəfdir, yadda saxla",
     motTrack: "Nöqtələr hərəkət edir…",
     motPick: "Hədəfləri tap, sonra «Hazırdır»",
@@ -231,6 +245,12 @@ export const az = {
       "finger-tapping": "Sən {pct}%-dən sürətli toxunursan",
       "contrast-detection": "Sən zəif zolaqları {pct}%-dən dəqiq görürsən",
       "probability-matching": "Sən təsadüfi nəticələrdə {pct}%-dən ağıllı seçirsən",
+      "serial-reaction": "Sən gizli ardıcıllığı {pct}%-dən çox öyrənirsən",
+      "object-location": "Sən yerləri {pct}%-dən dəqiq xatırlayırsan",
+      "paired-associates": "Sən cütləri {pct}%-dən dəqiq yadda saxlayırsan",
+      "temporal-order-memory": "Sən hadisələrin ardıcıllığını {pct}%-dən dəqiq xatırlayırsan",
+      wason: "Sən qaydanı {pct}%-dən çox yalanlaya bilirsən",
+      "odd-one-out": "Sən fərqli əşyanı {pct}%-dən dəqiq tapırsan",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -293,6 +313,12 @@ export const az = {
       "finger-tapping": ["Yavaş", "Orta", "Sürətli", "Ustad"],
       "contrast-detection": ["Zəif", "Orta", "Kəskin", "Ustad"],
       "probability-matching": ["Təsadüfi", "Orta", "Ehtimalı görür", "Ustad"],
+      "serial-reaction": ["Öyrənmir", "Orta", "Öyrənir", "Ustad"],
+      "object-location": ["Qısa", "Orta", "Dəqiq", "Ustad"],
+      "paired-associates": ["Qarışır", "Orta", "Dəqiq", "Ustad"],
+      "temporal-order-memory": ["Qarışır", "Orta", "Dəqiq", "Ustad"],
+      wason: ["Təsdiqləyir", "Orta", "Yalanlayır", "Ustad"],
+      "odd-one-out": ["Səhv", "Orta", "Dəqiq", "Ustad"],
     } as Record<string, string[]>,
   },
   science: {
@@ -364,6 +390,18 @@ export const az = {
       "Zəif kontrastı görmək psixofizikanın klassik tapşırığıdır. Nəticə ekranın parlaqlığından asılıdır.",
     "probability-matching":
       "Estes (1950-ci illər): insanlar çox vaxt ehtimalla uyğun seçim edirlər, yəni tez-tez gələn nəticəni hər zaman seçmək əvəzinə. Ən yaxşı strategiya isə həmişə tez-tez gələn variantı seçməkdir.",
+    "serial-reaction":
+      "Nissen və Bullemer (1987): insanlar gizli təkrarlanan ardıcıllığı şüursuz öyrənir və reaksiya sürətlənir. Bu, implisit öyrənmənin klassik ölçüsüdür.",
+    "object-location":
+      "Fəza iş yaddaşı obyektlərin yerini saxlayır. Obyektlərin sayı artdıqca dəqiqlik düşür.",
+    "paired-associates":
+      "Cütlərin öyrənilməsi (Underwood) yaddaşın bağlanma qabiliyyətini ölçür: bir elementi digərinə görə tapmaq.",
+    "temporal-order-memory":
+      "Hadisələrin zaman ardıcıllığını yadda saxlamaq yaddaşın ayrıca hissəsidir: nə olduğunu bilmək və nə vaxt olduğunu bilmək fərqlidir.",
+    wason:
+      "Wason (1966): insanlar qaydanı təsdiqləyən kartları çevirməyə meyllidirlər, halbuki qaydanı yalanlamaq üçün lazım olan kartlar fərqlidir. Bu, məntiqi düşüncənin klassik tapşırığıdır.",
+    "odd-one-out":
+      "Əşyaları qruplaşdırmaq (kateqoriyalaşdırmaq) düşüncənin əsas bacarığıdır. Fərqli əşyanın tapılması xüsusiyyətlərin müqayisəsinə əsaslanır.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,
