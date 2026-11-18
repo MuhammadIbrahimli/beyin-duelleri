@@ -41,4 +41,13 @@ export const SOURCES: Record<string, { url: string }> = {
   "temporal-order-memory": { url: "TODO(verify)" },   // temporal order memory
   wason: { url: "TODO(verify)" },                     // Wason 1966
   "odd-one-out": { url: "TODO(verify)" },             // categorisation
+  "dual-task": { url: "TODO(verify)" },
+  "selective-listening": { url: "TODO(verify)" },
+  "vigilance-clock": { url: "TODO(verify)" },
+  "rhythm-sync": { url: "TODO(verify)" },
+  "name-matching": { url: "TODO(verify)" },
+  "choice-reaction": { url: "TODO(verify)" },
+  "motor-sequence": { url: "TODO(verify)" },
+  "cancellation": { url: "TODO(verify)" },
+  "tracing": { url: "TODO(verify)" },
 };

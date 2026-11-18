@@ -40,6 +40,15 @@ export const EXPERIMENTS = [
   { id: 45, slug: "temporal-order-memory", direction: "higher", tiebreak: null },
   { id: 46, slug: "wason", direction: "higher", tiebreak: null },
   { id: 47, slug: "odd-one-out", direction: "higher", tiebreak: null },
+  { id: 48, slug: "dual-task", direction: "higher", tiebreak: null },
+  { id: 49, slug: "selective-listening", direction: "higher", tiebreak: null },
+  { id: 50, slug: "vigilance-clock", direction: "higher", tiebreak: null },
+  { id: 51, slug: "rhythm-sync", direction: "lower", tiebreak: null },
+  { id: 52, slug: "name-matching", direction: "lower", tiebreak: null },
+  { id: 53, slug: "choice-reaction", direction: "lower", tiebreak: null },
+  { id: 54, slug: "motor-sequence", direction: "lower", tiebreak: null },
+  { id: 55, slug: "cancellation", direction: "higher", tiebreak: null },
+  { id: 56, slug: "tracing", direction: "higher", tiebreak: null },
 ] as const;
 
 export type Slug = (typeof EXPERIMENTS)[number]["slug"];

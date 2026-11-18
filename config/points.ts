@@ -43,5 +43,14 @@ export const POINT_CURVES: Record<string, [number, number][]> = {
   "temporal-order-memory": [[50, 0], [65, 40], [80, 65], [90, 85], [100, 100]],     // percent correct, higher is better
   wason: [[0, 0], [1, 40], [2, 70], [3, 100]],                                      // trials answered exactly right, higher is better
   "odd-one-out": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],               // percent correct, higher is better
+  "dual-task": [[30, 0], [50, 40], [70, 65], [85, 85], [100, 100]],
+  "selective-listening": [[0, 0], [34, 40], [67, 65], [84, 85], [100, 100]],
+  "vigilance-clock": [[0, 0], [40, 40], [60, 65], [80, 85], [100, 100]],
+  "rhythm-sync": [[0, 100], [20, 85], [40, 65], [70, 40], [120, 0]],
+  "name-matching": [[400, 100], [500, 85], [650, 65], [850, 40], [1500, 0]],
+  "choice-reaction": [[300, 100], [400, 85], [500, 65], [650, 40], [1200, 0]],
+  "motor-sequence": [[1500, 100], [2500, 85], [3500, 65], [5000, 40], [9000, 0]],
+  "cancellation": [[0, 0], [5, 40], [10, 65], [15, 85], [20, 100]],
+  "tracing": [[30, 0], [50, 40], [70, 65], [85, 85], [100, 100]],
   lovber: [[0, 100], [5, 90], [15, 70], [40, 40], [100, 10], [300, 0]],        // % away from the true value (TODO(verify): starter curve)
 };

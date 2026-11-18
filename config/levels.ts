@@ -43,4 +43,13 @@ export const LEVELS: Record<string, LevelRule | null> = {
   "temporal-order-memory": { direction: "higher", l4: 90, l3: 80, l2: 65 },
   wason: { direction: "higher", l4: 3, l3: 2, l2: 1 },
   "odd-one-out": { direction: "higher", l4: 95, l3: 85, l2: 70 },
+  "dual-task": { direction: "higher", l4: 85, l3: 70, l2: 50 },
+  "selective-listening": { direction: "higher", l4: 84, l3: 67, l2: 34 },
+  "vigilance-clock": { direction: "higher", l4: 80, l3: 60, l2: 40 },
+  "rhythm-sync": { direction: "lower", l4: 20, l3: 40, l2: 70 },
+  "name-matching": { direction: "lower", l4: 500, l3: 650, l2: 850 },
+  "choice-reaction": { direction: "lower", l4: 400, l3: 500, l2: 650 },
+  "motor-sequence": { direction: "lower", l4: 2500, l3: 3500, l2: 5000 },
+  "cancellation": { direction: "higher", l4: 15, l3: 10, l2: 5 },
+  "tracing": { direction: "higher", l4: 85, l3: 70, l2: 50 },
 };

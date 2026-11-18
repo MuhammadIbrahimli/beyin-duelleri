@@ -46,4 +46,13 @@ export const MECHANISM: Record<Slug, string> = {
   "temporal-order-memory": "temporal-order-memory",
   wason: "wason-selection",
   "odd-one-out": "odd-one-out",
+  "dual-task": "dual-task-performance",
+  "selective-listening": "selective-listening",
+  "vigilance-clock": "vigilance-clock",
+  "rhythm-sync": "rhythm-synchronization",
+  "name-matching": "name-matching",
+  "choice-reaction": "choice-reaction-time",
+  "motor-sequence": "motor-sequence",
+  "cancellation": "visual-cancellation",
+  "tracing": "motor-tracing",
 };
