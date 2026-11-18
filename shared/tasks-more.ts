@@ -20,7 +20,7 @@ const ERROR_PENALTY_MS = 1000; // added to the mean correct reaction for a 100% 
 interface Judged { expected: string; cond?: "base" | "cost" }
 const mean = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
 
-function judge(trials: Judged[], payload: unknown, allowed: readonly string[]) {
+export function judge(trials: Judged[], payload: unknown, allowed: readonly string[]) {
   const p = payload as { choices?: unknown; times?: unknown };
   if (!Array.isArray(p?.choices) || !Array.isArray(p?.times)) return null;
   const choices = p.choices as (string | null)[], times = p.times as number[];
@@ -39,7 +39,7 @@ function judge(trials: Judged[], payload: unknown, allowed: readonly string[]) {
   return { errors, errorRate: errors / trials.length, correct, base, cost };
 }
 
-function finish(j: NonNullable<ReturnType<typeof judge>>, extra: Record<string, number> = {}) {
+export function finish(j: NonNullable<ReturnType<typeof judge>>, extra: Record<string, number> = {}) {
   const invalidReason = hasImpossibleReaction(j.correct) ? "too_fast" : j.errorRate > 0.5 ? "guessing" : j.correct.length === 0 ? "no_hits" : undefined;
   return {
     primary: Math.round(mean(j.correct) + ERROR_PENALTY_MS * j.errorRate),

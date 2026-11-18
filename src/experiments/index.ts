@@ -15,5 +15,9 @@ export const loaders: Record<string, () => Promise<{ default: (root: HTMLElement
   dsst: () => import("./dsst"),
   "mental-rotation": () => import("./mental-rotation"),
   "task-switch": () => import("./task-switch"),
+  hanoi: () => import("./hanoi"),
+  sart: () => import("./sart"),
+  navon: () => import("./navon"),
+  "digit-backward": () => import("./digit-backward"),
 };
 export const available = Object.keys(loaders);

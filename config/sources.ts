@@ -15,4 +15,8 @@ export const SOURCES: Record<string, { url: string }> = {
   dsst: { url: "TODO(verify)" },           // Wechsler (WAIS digit-symbol)
   "mental-rotation": { url: "TODO(verify)" }, // Shepard & Metzler 1971
   "task-switch": { url: "TODO(verify)" },  // Rogers & Monsell 1995
+  hanoi: { url: "TODO(verify)" },          // Simon 1975 (planning)
+  sart: { url: "TODO(verify)" },           // Robertson et al. 1997
+  navon: { url: "TODO(verify)" },          // Navon 1977
+  "digit-backward": { url: "TODO(verify)" }, // Wechsler digit span
 };

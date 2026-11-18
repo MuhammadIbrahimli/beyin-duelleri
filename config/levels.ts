@@ -17,4 +17,8 @@ export const LEVELS: Record<string, LevelRule | null> = {
   dsst: { direction: "lower", l4: 700, l3: 900, l2: 1200 },
   "mental-rotation": { direction: "lower", l4: 900, l3: 1300, l2: 1800 },
   "task-switch": { direction: "lower", l4: 550, l3: 750, l2: 1000 },
+  hanoi: { direction: "lower", l4: 1, l3: 3, l2: 6 },
+  sart: { direction: "lower", l4: 4, l3: 8, l2: 15 },
+  navon: { direction: "lower", l4: 700, l3: 900, l2: 1200 },
+  "digit-backward": { direction: "higher", l4: 6, l3: 5, l2: 4 },
 };

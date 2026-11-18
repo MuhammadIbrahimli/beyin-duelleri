@@ -17,5 +17,9 @@ export const POINT_CURVES: Record<string, [number, number][]> = {
   dsst: [[500, 100], [700, 85], [900, 65], [1200, 40], [2500, 0]],                  // mean correct RT + error penalty, ms
   "mental-rotation": [[600, 100], [900, 85], [1300, 65], [1800, 40], [3500, 0]],    // mean correct RT + error penalty, ms
   "task-switch": [[400, 100], [550, 85], [750, 65], [1000, 40], [2000, 0]],         // mean correct RT + error penalty, ms
+  hanoi: [[0, 100], [1, 85], [3, 65], [6, 40], [15, 0]],                            // extra moves beyond the optimum, lower is better
+  sart: [[0, 100], [5, 85], [10, 65], [20, 40], [40, 0]],                           // percent of trials with an error, lower is better
+  navon: [[500, 100], [700, 85], [900, 65], [1200, 40], [2500, 0]],                 // mean correct RT + error penalty, ms
+  "digit-backward": [[0, 0], [3, 10], [4, 40], [5, 65], [6, 85], [8, 100]],         // longest correct length, higher is better
   lovber: [[0, 100], [5, 90], [15, 70], [40, 40], [100, 10], [300, 0]],        // % away from the true value (TODO(verify): starter curve)
 };

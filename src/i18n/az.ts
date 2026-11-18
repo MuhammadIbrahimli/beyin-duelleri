@@ -61,6 +61,10 @@ export const az = {
     dsst: { name: "Simvollar", hook: "Hər rəqəmin öz simvolu var. Tez tap.", measure: "Ölçürük: vizual axtarışın tempini və dəqiqliyini.", unit: "ms" },
     "mental-rotation": { name: "Fırlanma", hook: "İki fiqur eynidirmi? Fırlanma var, əks etmə yox.", measure: "Ölçürük: fiquru təsəvvürdə nə qədər tez fırlada bildiyini.", unit: "ms" },
     "task-switch": { name: "Qayda dəyişir", hook: "Rəng hansı qaydanın işlədiyini deyir. Tez uyğunlaş.", measure: "Ölçürük: qaydanı dəyişməyin gecikmə dəyərini (switch cost).", unit: "ms" },
+    hanoi: { name: "Hanoi qülləsi", hook: "Bütün diskləri ən az hərəkətlə sonuncu dirəyə köçür.", measure: "Ölçürük: planlaşdırmanı və əlavə hərəkətlərin sayını.", unit: "əlavə hərəkət" },
+    sart: { name: "Rəqəm axını", hook: "Hər rəqəmə toxun, amma 3-ə yox.", measure: "Ölçürük: diqqətin dayanıqlığını və ani toxunmanı (SART).", unit: "%" },
+    navon: { name: "Böyük hərf", hook: "Böyük hərfə bax: H yoxsa S?", measure: "Ölçürük: bütövü detaldan ayırmağı, detalın bütövə təsirini.", unit: "ms" },
+    "digit-backward": { name: "Əksinə yaddaş", hook: "Rəqəmləri əks ardıcıllıqla yaz.", measure: "Ölçürük: iş yaddaşında rəqəmləri çevirmək bacarığını.", unit: "" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -93,6 +97,13 @@ export const az = {
     big: "Böyük",
     cueBlue: "Mavi: tək / cüt",
     cueRed: "Qırmızı: kiçik / böyük",
+    hanoiReset: "Yenidən",
+    moves: "Hərəkət: {n}",
+    sartAsk: "Hər rəqəmə toxun, 3-ə toxunma",
+    navonAsk: "Böyük hərf hansıdır?",
+    dbWatch: "Yadda saxla…",
+    dbYour: "İndi tərs ardıcıllıqla yaz",
+    dbDelete: "⌫",
     no: "Yox",
     check: "Yoxla",
     next: "Növbəti",
@@ -129,6 +140,10 @@ export const az = {
       dsst: "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətli və dəqiqsən",
       "mental-rotation": "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətlə fırladırsan",
       "task-switch": "Sən bu təcrübədə iştirakçıların {pct}%-dən çevik qayda dəyişirsən",
+      hanoi: "Sən bu təcrübədə iştirakçıların {pct}%-dən səmərəli planlayırsan",
+      sart: "Sən bu təcrübədə iştirakçıların {pct}%-dən az səhv edirsən",
+      navon: "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətlə bütövü tanıyırsan",
+      "digit-backward": "Sən bu təcrübədə iştirakçıların {pct}%-dən uzun ardıcıllığı tərs yadda saxlayırsan",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -171,6 +186,10 @@ export const az = {
       dsst: ["Yavaş", "Orta", "Sürətli", "Ustad"],
       "mental-rotation": ["Başlanğıc", "Orta", "Sürətli", "Ustad"],
       "task-switch": ["Sərt", "Orta", "Çevik", "Ustad"],
+      hanoi: ["Dolama", "Orta", "Səmərəli", "Ustad"],
+      sart: ["Səhlənkar", "Orta", "Diqqətli", "Ustad"],
+      navon: ["Detala bağlı", "Orta", "Bütövü görən", "Ustad"],
+      "digit-backward": ["Qısa", "Orta", "Uzun", "Ustad"],
     } as Record<string, string[]>,
   },
   science: {
@@ -202,6 +221,14 @@ export const az = {
       "Şepard və Metzler (1971) göstərdilər ki, fiquru təsəvvürdə fırlatmaq vaxt tələb edir: fırlanma bucağı artdıqca cavab ləngiyir. Güzgü şəkli fərqli fiqurdur.",
     "task-switch":
       "Qayda dəyişmək beyin üçün əlavə iş deyir: Rogers və Monsell (1995) bunu «switch cost» adlandırdılar. Cavab fərqi bu gecikmənin ölçüsüdür.",
+    hanoi:
+      "Hanoi qülləsi (Simon, 1975) planlaşdırma və iş yaddaşını ölçür: hər hərəkət öncədən düşünülməlidir. Əlavə hərəkətlər daha az planlaşdırmanın nişanəsidir.",
+    sart:
+      "SART (Robertson və b., 1997) nadir siqnala cavab verməməyi ölçür. Adi tapşırıq avtomatik toxunmağa vadar edir, buna görə səhvlər diqqətin itməsini göstərir.",
+    navon:
+      "Navon (1977): böyük hərf əvvəlcə görünür (bütöv), kiçik hərflər sonra. Bütövlə detal ziddiyyət təşkil edəndə cavab ləngiyir.",
+    "digit-backward":
+      "Əks rəqəm ardıcıllığı (Wechsler testi) yalnız yadda saxlamaq yox, onu çevirmək tələb edir. Bu, iş yaddaşının daha mürəkkəb hissəsidir.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,

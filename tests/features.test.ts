@@ -405,3 +405,73 @@ describe("new tests over the API", () => {
     }
   });
 });
+
+import { DB_LENGTHS, NAVON_PATTERNS, SART_NOGO, SART_TRIALS, digitBackward, hanoi, navon, replayHanoi, sart } from "../shared/tasks-next";
+
+describe("Hanoi, SART, Navon, backward digit span", () => {
+  it("Hanoi: the optimal 3-disk solution is solved with zero extra moves; illegal moves are rejected", () => {
+    const optimal3: [number, number][] = [[0, 2], [0, 1], [2, 1], [0, 2], [1, 0], [1, 2], [0, 2]];
+    expect(replayHanoi(3, optimal3)).toEqual({ solved: true });
+    expect(replayHanoi(3, [[0, 1], [0, 1]])).toBeNull(); // bigger disk (2) onto a smaller one (1)
+    expect(replayHanoi(3, [[1, 2]])).toBeNull(); // empty peg
+    const s = hanoi.schedule(1);
+    const r = hanoi.score(s, { puzzles: [optimal3, [[0, 2]]] })!;
+    expect(r.primary).toBe(0 + 20); // second puzzle unsolved: penalty
+    expect(r.secondary).toMatchObject({ solved: 1 });
+    expect(hanoi.score(s, { puzzles: [[[0, 1]]] })).toBeNull(); // wrong number of puzzles
+  });
+
+  it("SART: errors are taps on the 3 and misses on the others; all-taps and no-taps are invalid", () => {
+    const s = sart.schedule(4);
+    expect(s.digits).toHaveLength(SART_TRIALS);
+    expect(s.digits.filter((d) => d === SART_NOGO).length).toBeGreaterThan(0);
+    const perfect = s.digits.map((d) => d !== SART_NOGO);
+    expect(sart.score(s, { taps: perfect })).toMatchObject({ valid: true, primary: 0 });
+    expect(sart.score(s, { taps: s.digits.map(() => true) })!.invalidReason).toBe("tapping_everything");
+    expect(sart.score(s, { taps: s.digits.map(() => false) })!.invalidReason).toBe("no_response");
+    expect(sart.score(s, { taps: [true] })).toBeNull();
+  });
+
+  it("Navon: the large letter is drawn from its bitmap; interference is incongruent minus congruent", () => {
+    expect(NAVON_PATTERNS.H.flat().filter(Boolean).length).toBeGreaterThan(0);
+    const s = navon.schedule(8);
+    expect(s.trials).toHaveLength(24);
+    expect(s.trials.filter((t) => t.cond === "base").every((t) => t.local === t.expected)).toBe(true);
+    expect(s.trials.filter((t) => t.cond === "cost").every((t) => t.local !== t.expected)).toBe(true);
+    const r = navon.score(s, { choices: s.trials.map((t) => t.expected), times: s.trials.map((t) => (t.cond === "cost" ? 700 : 500)) })!;
+    expect(r).toMatchObject({ valid: true, secondary: { interferenceMs: 200 } });
+  });
+
+  it("backward digit span: the answer is the sequence reversed; the score is the longest correct length", () => {
+    const s = digitBackward.schedule(3);
+    expect(s.seqs.map((q) => q.length)).toEqual(DB_LENGTHS);
+    for (const q of s.seqs) for (let i = 1; i < q.length; i++) expect(q[i]).not.toBe(q[i - 1]);
+    const rev = s.seqs.map((q) => [...q].reverse());
+    expect(digitBackward.score(s, { answers: rev })).toMatchObject({ primary: 8, valid: true });
+    const partial = rev.map((a, i) => (i < 2 ? a : [...a].reverse())); // lengths 3-4 right, 5+ forward instead
+    expect(digitBackward.score(s, { answers: partial })!.primary).toBe(4);
+    expect(digitBackward.score(s, { answers: [[10]] })).toBeNull();
+  });
+});
+
+describe("new tests over the API (batch 4)", () => {
+  it("start and finish work for hanoi, sart, navon and digit-backward", async () => {
+    const t = await newUser();
+    for (const slug of ["hanoi", "sart", "navon", "digit-backward"]) {
+      const s = await call("POST", "/api/runs/start", t, { slug });
+      expect(s.status, slug).toBe(201);
+      vi.setSystemTime(Date.now() + 120000);
+      const sc = s.json.schedule;
+      const payload = slug === "hanoi"
+        ? { puzzles: [[[0, 2], [0, 1], [2, 1], [0, 2], [1, 0], [1, 2], [0, 2]], []] }
+        : slug === "sart"
+          ? { taps: sc.digits.map((d: number) => d !== 3) }
+          : slug === "navon"
+            ? { choices: sc.trials.map((x: any) => x.expected), times: sc.trials.map(() => 600) }
+            : { answers: sc.seqs.map((q: number[]) => [...q].reverse()) };
+      const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload });
+      expect(f.status, slug).toBe(200);
+      expect(f.json.valid, slug).toBe(true);
+    }
+  });
+});

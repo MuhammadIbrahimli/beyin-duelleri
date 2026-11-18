@@ -272,3 +272,18 @@ pre.kit { white-space: pre-wrap; font: inherit; font-size: var(--fs-s); color: v
 .switch-cue.blue { background: rgba(74, 163, 255, 0.18); color: #4aa3ff; }
 .switch-cue.red { background: rgba(255, 90, 95, 0.18); color: #ff5a5f; }
 .switch-digit { font-size: 96px; font-weight: 800; text-align: center; min-height: 130px; line-height: 1; color: var(--c-text); }
+
+/* Hanoi, SART, Navon and backward digit span */
+.hanoi-board { display: flex; align-items: flex-end; justify-content: space-around; gap: 12px; width: 100%; height: 260px; }
+.hanoi-peg { position: relative; flex: 1; height: 100%; display: flex; flex-direction: column-reverse; align-items: center; justify-content: flex-start; cursor: pointer; border-radius: var(--radius); padding-bottom: 0; }
+.hanoi-peg.on { background: rgba(255, 210, 63, 0.08); }
+.hanoi-rod { position: absolute; bottom: 0; left: 50%; width: 6px; height: 100%; transform: translateX(-50%); background: var(--c-line); border-radius: 3px; z-index: 0; }
+.hanoi-disk { position: relative; z-index: 1; height: 22px; margin: 2px 0; border-radius: 8px; background: var(--c-exp-hanoi, var(--c-primary)); width: 40%; }
+.sart-stage { justify-content: center; }
+.sart-digit { font-size: 120px; font-weight: 800; text-align: center; min-height: 160px; line-height: 1; color: var(--c-text); }
+.navon-canvas { display: grid; place-items: center; }
+.navon-svg { width: min(300px, 100%); height: auto; }
+.db-shown { min-height: 9rem; display: grid; place-items: center; }
+.db-entered { min-height: 2rem; font-size: 1.5rem; font-weight: 700; letter-spacing: 0.2em; text-align: center; color: var(--c-text); }
+.db-pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: min(360px, 100%); margin: 0 auto; }
+.db-key { min-height: 52px; font-size: 1.3rem; }
