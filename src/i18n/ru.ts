@@ -5,6 +5,13 @@ import type { Dict } from "./az";
 export const ru: Dict = {
   app: { name: "Beyin duelləri", tagline: "Проверь мозг вместе с другом." },
   nav: { experiments: "Тесты", duels: "Дуэли", ranking: "Рейтинг", passport: "Паспорт" },
+  categories: {
+    memory: { name: "Память", hint: "Сколько ты удерживаешь в голове" },
+    attention: { name: "Внимание", hint: "Удержи внимание, управляй импульсом" },
+    speed: { name: "Скорость", hint: "Реакция и темп" },
+    perception: { name: "Восприятие", hint: "Где глаз обманывает" },
+    reasoning: { name: "Мышление", hint: "Решения и оценки" },
+  } as Record<string, { name: string; hint: string }>,
   home: {
     weekly: "Дуэль недели",
     streak: "Серия: {n} дн.",
@@ -16,6 +23,9 @@ export const ru: Dict = {
     all: "Все тесты",
     daily: "Тест дня",
     privacy: "Мы собираем анонимную статистику. Личных данных нет.",
+    catProgress: "{n}/{total} пройдено",
+    best: "Лучший результат: {n} баллов",
+    played: "Пройдено",
   },
   common: {
     start: "Начать",
@@ -76,7 +86,8 @@ export const ru: Dict = {
     more: "Больше",
     less: "Меньше",
     send: "Ответить",
-    alwaysOk: "Они были одинаковые. Обмануться нормально: мозг смотрит на контекст.",
+    rightOk: "Верно, они одинаковые. В этот раз ты не поддался обману.",
+    fooled: "Они одинаковые, но из-за фона кажутся разными. Мозг смотрит на контекст: это нормально.",
   },
   result: {
     yourResult: "Твой результат",

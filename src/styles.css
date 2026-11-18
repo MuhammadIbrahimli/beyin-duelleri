@@ -224,3 +224,11 @@ pre.kit { white-space: pre-wrap; font: inherit; font-size: var(--fs-s); color: v
 .pair-input .field { margin-top: 0; }
 
 .recovery-code { display: block; font-size: 1.5rem; letter-spacing: .08em; user-select: all; margin-bottom: var(--sp-2); }
+
+/* home: skill sections with progress and a tick on played tests */
+.cat { margin-top: var(--sp-6); }
+.cat-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); }
+.cat-head h2 { margin: 0; }
+.cat > p { margin: 4px 0 var(--sp-3); }
+.list-row .tick { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: #111; font-weight: 800; font-size: 0.9rem; }

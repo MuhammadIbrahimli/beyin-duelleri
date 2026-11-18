@@ -3,6 +3,13 @@
 export const az = {
   app: { name: "Beyin duelləri", tagline: "Beynini dostunla yoxla." },
   nav: { experiments: "Təcrübələr", duels: "Duellər", ranking: "Reytinq", passport: "Pasport" },
+  categories: {
+    memory: { name: "Yaddaş", hint: "Nə qədər yadda saxlaya bilirsən" },
+    attention: { name: "Diqqət", hint: "Diqqəti saxla, impulsu idarə et" },
+    speed: { name: "Sürət", hint: "Reaksiya və tempo" },
+    perception: { name: "Qavrayış", hint: "Gözün aldandığı yerlər" },
+    reasoning: { name: "Düşüncə", hint: "Qərar və təxmin" },
+  } as Record<string, { name: string; hint: string }>,
   home: {
     weekly: "Həftənin duelu",
     streak: "Seriya: {n} gün",
@@ -14,6 +21,9 @@ export const az = {
     all: "Bütün təcrübələr",
     daily: "Günün təcrübəsi",
     privacy: "Anonim statistika toplayırıq. Şəxsi məlumat yoxdur.",
+    catProgress: "{n}/{total} keçildi",
+    best: "Ən yaxşı: {n} bal",
+    played: "Keçilib",
   },
   common: {
     start: "Başla",
@@ -60,7 +70,7 @@ export const az = {
     yourTurn: "İndi sən",
     mistake: "Səhv. Bir şans da.",
     same: "Bu ikisi eynidir?",
-    yes: "Ənə",
+    yes: "Bəli",
     no: "Yox",
     check: "Yoxla",
     next: "Növbəti",
@@ -74,7 +84,8 @@ export const az = {
     more: "Çoxdur",
     less: "Azdır",
     send: "Cavabla",
-    alwaysOk: "İkisi də eyni idi. Aldanmaq normaldır: beyin kontekstə baxır.",
+    rightOk: "Düzdür, ikisi də eynidir. Bu dəfə aldanmadın.",
+    fooled: "İkisi də eynidir, amma fonun təsirilə fərqli görünür. Beyin kontekstə baxır: bu normaldır.",
   },
   result: {
     yourResult: "Sənin nəticən",

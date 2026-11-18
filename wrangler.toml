@@ -11,7 +11,7 @@ run_worker_first = ["/api/*", "/__scheduled"]
 [[d1_databases]]
 binding = "DB"
 database_name = "beyin"
-database_id = "TODO_RUN_wrangler_d1_create_beyin"
+database_id = "689bf0db-0d20-4be8-9923-ea0db972aa77"
 migrations_dir = "migrations"
 
 [[ratelimits]]

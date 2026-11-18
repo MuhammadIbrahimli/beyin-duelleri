@@ -11,11 +11,11 @@ import { fx } from "./fx";
 import { icon, mark } from "./icons";
 import { az, getLang, setLang, t, type Lang } from "./i18n";
 import { available, loaders } from "./experiments";
+import { CATEGORIES } from "../shared/categories";
 import { go } from "./router";
 import { lastRun, latest, remember } from "./state";
 
 export const app = () => document.getElementById("app")!;
-const SLUGS = Object.keys(az.experiments);
 export const accent = (slug: string) => `--accent: var(--c-exp-${slug})`;
 
 /** Colours the soft glow at the top of the page with the current experiment's accent. */
@@ -78,7 +78,8 @@ export const formatScore = (slug: string, n: number) => {
 
 // ---- home -------------------------------------------------------------------
 export async function home() {
-  const d = await api("GET", "/daily").catch(() => null);
+  const [d, ex] = await Promise.all([api("GET", "/daily").catch(() => null), api("GET", "/experiments").catch(() => null)]);
+  const progress: Record<string, { runs: number; points: number | null }> = ex?.progress ?? {};
   const startHref = d && available.includes(d.slug) ? `/play/${d.slug}?daily=1` : `/play/${available[0]}`;
   const dots = d && h("span", { class: "wk" }, ...d.week.map((x: any) =>
     h("i", { class: [x.done && "done", x.frozen && "frozen", x.today && "today"].filter(Boolean).join(" ") })));
@@ -88,17 +89,31 @@ export async function home() {
     h("div", { class: "streak" }, h("span", null, t("home.streak", { n: d.streak })), dots),
     h("a", { class: "btn primary block", href: startHref, "data-link": "" }, az.home.start),
     h("span", { class: d.done ? "muted" : "soft" }, d.done ? az.home.doneToday : az.home.notYet));
+
+  const row = (slug: string) => {
+    const e = az.experiments[slug as keyof typeof az.experiments];
+    const ready = available.includes(slug);
+    const p = progress[slug];
+    const played = !!p && p.runs > 0;
+    return h(ready ? "a" : "div", { class: "list-row" + (ready ? "" : " off") + (played ? " played" : ""), style: accent(slug), ...(ready ? { href: `/e/${slug}`, "data-link": "" } : {}) },
+      icon(slug, 28),
+      h("div", { class: "txt" }, h("b", null, e.name), h("span", null, !ready ? az.soon : played ? t("home.best", { n: p.points ?? 0 }) : e.hook)),
+      played ? h("span", { class: "tick", "aria-label": az.home.played }, "✓") : ready ? icon("chevron", 18) : null);
+  };
+  const section = (c: (typeof CATEGORIES)[number]) => {
+    const names = az.categories[c.id];
+    const doneN = c.slugs.filter((x) => (progress[x]?.runs ?? 0) > 0).length;
+    return h("section", { class: "cat" },
+      h("div", { class: "cat-head" }, h("h2", null, names.name), h("span", { class: "muted" }, t("home.catProgress", { n: doneN, total: c.slugs.length }))),
+      h("p", { class: "muted" }, names.hint),
+      h("div", { class: "list" }, ...c.slugs.map(row)));
+  };
+
   screen("exp",
     h("div", { class: "top" }, mark(30), az.app.name, langSwitch()),
     h("div", null, h("h1", null, az.home.title), h("p", { class: "muted", style: "margin-top:6px" }, az.home.sub)),
     dailyCard || h("a", { class: "btn primary block", href: startHref, "data-link": "" }, az.home.start),
-    h("h2", null, az.home.all),
-    h("div", { class: "list" }, ...SLUGS.map((slug) => {
-      const e = az.experiments[slug as keyof typeof az.experiments];
-      const ready = available.includes(slug);
-      return h(ready ? "a" : "div", { class: "list-row" + (ready ? "" : " off"), style: accent(slug), ...(ready ? { href: `/e/${slug}`, "data-link": "" } : {}) },
-        icon(slug, 28), h("div", { class: "txt" }, h("b", null, e.name), h("span", null, ready ? e.hook : az.soon)), ready ? icon("chevron", 18) : null);
-    })),
+    ...CATEGORIES.map(section),
     h("p", { class: "muted" }, az.home.privacy));
 }
 

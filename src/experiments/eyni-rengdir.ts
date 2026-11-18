@@ -90,7 +90,7 @@ export default async function play(root: HTMLElement, schedule: IllusionSchedule
         });
         const last = answers.length === total;
         after.append(
-          h("p", { class: "soft" }, az.play.alwaysOk),
+          h("p", { class: "soft" }, same ? az.play.rightOk : az.play.fooled),
           h("label", null, az.play.check),
           slider,
           h("button", { class: "btn primary block", onclick: () => done() }, last ? az.play.finish : az.play.next),

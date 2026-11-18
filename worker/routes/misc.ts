@@ -13,12 +13,26 @@ miscRoutes.use("*", auth);
 
 miscRoutes.get("/experiments", async (c) => {
   const date = todayBaku();
-  const done = await c.env.DB.prepare("SELECT 1 FROM daily WHERE user_id = ? AND date = ?")
-    .bind(c.get("userId"), date)
-    .first();
+  const me = c.get("userId");
+  const done = await c.env.DB.prepare("SELECT 1 FROM daily WHERE user_id = ? AND date = ?").bind(me, date).first();
+  // per-test progress for the home screen: how many valid runs, and the best Beyin balı points so far
+  const { results: runs } = await c.env.DB.prepare(
+    "SELECT experiment_id AS e, primary_score AS raw FROM runs WHERE user_id = ? AND status = 'finished' AND valid = 1 ORDER BY finished_at DESC LIMIT 1000",
+  ).bind(me).all<{ e: number; raw: number }>();
+  const progress: Record<string, { runs: number; points: number | null }> = {};
+  for (const x of EXPERIMENTS) progress[x.slug] = { runs: 0, points: null };
+  for (const r of runs) {
+    const x = EXPERIMENTS.find((q) => q.id === r.e);
+    if (!x) continue;
+    const p = progress[x.slug];
+    p.runs++;
+    const pts = pointsFor(x.slug, r.raw);
+    p.points = p.points === null ? pts : Math.max(p.points, pts);
+  }
   return c.json({
     experiments: EXPERIMENTS.map((e) => ({ slug: e.slug, direction: e.direction, sourceUrl: SOURCES[e.slug]?.url })),
     daily: { date, slug: dailySlug(date), done: !!done },
+    progress,
   });
 });
 

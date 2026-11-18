@@ -178,3 +178,26 @@ describe("recap", () => {
     expect((await call("GET", "/api/me/recap")).status).toBe(401);
   });
 });
+
+import { CATEGORIES } from "../shared/categories";
+import { EXPERIMENTS } from "../shared/experiments";
+
+describe("home categories", () => {
+  it("every experiment is in exactly one category, and categories name only real experiments", () => {
+    const all = CATEGORIES.flatMap((c) => c.slugs);
+    expect(new Set(all).size).toBe(all.length);
+    expect([...all].sort()).toEqual(EXPERIMENTS.map((e) => e.slug).sort());
+    expect(CATEGORIES.length).toBeGreaterThanOrEqual(5);
+    expect(CATEGORIES.length).toBeLessThanOrEqual(6);
+  });
+  it("/experiments reports per-test progress for the user (runs and best points)", async () => {
+    const t = await newUser();
+    const before = (await call("GET", "/api/experiments", t)).json.progress;
+    expect(before.refleks).toEqual({ runs: 0, points: null });
+    await play(t, GOOD);
+    const after = (await call("GET", "/api/experiments", t)).json.progress;
+    expect(after.refleks.runs).toBe(1);
+    expect(after.refleks.points).toBeGreaterThan(0);
+    expect(after["go-no-go"].runs).toBe(0);
+  });
+});
