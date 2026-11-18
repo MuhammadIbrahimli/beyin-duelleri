@@ -290,7 +290,10 @@ describe("yalanci-yaddas + lovber over the API", () => {
     }
     await env.DB.batch(stmts);
     const st = await call("GET", `/api/lovber/stats?question=${questionId}`, t);
-    expect(st.json).toMatchObject({ ready: true, low: 400 });
-    expect(st.json.high).toBeGreaterThan(1500);
+    // the first user's own answer (1500) lands in whichever group their random anchor put them in
+    expect(st.json.ready).toBe(true);
+    expect(st.json.low).toBeGreaterThanOrEqual(400);
+    expect(st.json.low).toBeLessThan(st.json.high);
+    expect(st.json.high).toBeLessThanOrEqual(1600);
   });
 });
