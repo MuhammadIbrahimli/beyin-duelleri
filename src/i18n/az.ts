@@ -83,6 +83,9 @@ export const az = {
     "mental-arithmetic": { name: "Sürətli hesab", hook: "10 məsələ. Cavabı sürətli və düzgün yaz.", measure: "Ölçürük: sadə hesablamanın sürətini və dəqiqliyini.", unit: "ms" },
     "random-dot-motion": { name: "Hərəkət istiqaməti", hook: "Nöqtələrin çoxu bir tərəfə hərəkət edir. Hansı?", measure: "Ölçürük: ümumi hərəkəti səs-küydən ayırmağı.", unit: "%" },
     numerosity: { name: "Nöqtələri say", hook: "Bir an göstərilən nöqtələrin sayını de.", measure: "Ölçürük: az nöqtəni dərhal, çoxunu təxminən qavramağı.", unit: "nöqtə" },
+    "line-bisection": { name: "Xəttin ortası", hook: "Xəttin orta nöqtəsinə toxun.", measure: "Ölçürük: məkan qavrayışında xətti bərabər bölmək dəqiqliyini.", unit: "%" },
+    "iowa-gambling": { name: "Kartlar", hook: "Dörd dəstədən seç. Hansı uzun müddətdə qazandırır?", measure: "Ölçürük: təcrübədən öyrənməyi: qısa qazancla uzunmüddətli itkini ayırmağı.", unit: "" },
+    "pitch-discrimination": { name: "Ton fərqi", hook: "Hansı ton yüksəkdir: birinci, yoxsa ikinci?", measure: "Ölçürük: tonun yüksəkliyini eşitmək dəqiqliyini.", unit: "%" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -143,6 +146,14 @@ export const az = {
     motionLeft: "← Sol",
     motionRight: "Sağ →",
     numAsk: "Neçə nöqtə gördün?",
+    bisectAsk: "Xəttin ortasına toxun",
+    iowaAsk: "Kart seç. Nəticə yuxarıda görünür",
+    iowaTotal: "Cəmi: {n}",
+    pitchAsk: "Hansı ton yüksəkdir?",
+    pitchStart: "Başla (səs)",
+    pitchFirst: "Birinci",
+    pitchSecond: "İkinci",
+    pitchReplay: "Yenidən dinlə",
     motWatch: "Sarılar hədəfdir, yadda saxla",
     motTrack: "Nöqtələr hərəkət edir…",
     motPick: "Hədəfləri tap, sonra «Hazırdır»",
@@ -196,6 +207,9 @@ export const az = {
       "mental-arithmetic": "Sən {pct}%-dən sürətli hesablayırsan",
       "random-dot-motion": "Sən hərəkət istiqamətini {pct}%-dən daha yaxşı seçirsən",
       numerosity: "Sən nöqtələri {pct}%-dən dəqiq sayırsan",
+      "line-bisection": "Sən xətti {pct}%-dən dəqiq bölürsən",
+      "iowa-gambling": "Sən təcrübədən {pct}%-dən yaxşı öyrənirsən",
+      "pitch-discrimination": "Sən tonu {pct}%-dən dəqiq eşidirsən",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -251,6 +265,9 @@ export const az = {
       "mental-arithmetic": ["Yavaş", "Orta", "Sürətli", "Ustad"],
       "random-dot-motion": ["Səs-küyə qapılır", "Orta", "Diqqətli", "Ustad"],
       numerosity: ["Yanılır", "Orta", "Dəqiq", "Ustad"],
+      "line-bisection": ["Sürüşür", "Orta", "Dəqiq", "Ustad"],
+      "iowa-gambling": ["Riskə qapılır", "Orta", "Öyrənir", "Ustad"],
+      "pitch-discrimination": ["Yanılır", "Orta", "Dəqiq", "Ustad"],
     } as Record<string, string[]>,
   },
   science: {
@@ -308,6 +325,12 @@ export const az = {
       "Newsome və Paré (1988): nöqtələrin bir hissəsi ümumi istiqamətdə hərəkət edir, qalanı təsadüfidir. Bu, hərəkət qavrayışının klassik ölçüsüdür.",
     numerosity:
       "Kaufman və b. (1949): az sayda obyekti dərhal, çoxunu təxminən qavrayırıq. Sərhəd təxminən dörd-beş obyektdə keçir.",
+    "line-bisection":
+      "Schenkenberg (1980): xətti ortalamaq məkan diqqətinin istiqamətindən asılıdır. Sağa və ya sola sapma diqqətin meylini göstərir.",
+    "iowa-gambling":
+      "Bechara və b. (1994): insanlar tez-tez qısa müddətli qazanca diqqət yetirir, nadir, lakin böyük itkini gözdən qaçırır. Tapşırıq bunu təcrübədən öyrənməyi tələb edir.",
+    "pitch-discrimination":
+      "Tonun yüksəkliyini ayırmaq psixofizikanın klassik tapşırığıdır. Nəticə cihazdan (qulaqlıq, səs-küy) asılı ola bilər.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,

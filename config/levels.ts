@@ -30,4 +30,7 @@ export const LEVELS: Record<string, LevelRule | null> = {
   "mental-arithmetic": { direction: "lower", l4: 3000, l3: 4000, l2: 5000 },
   "random-dot-motion": { direction: "higher", l4: 95, l3: 85, l2: 70 },
   numerosity: { direction: "lower", l4: 0.25, l3: 0.5, l2: 1 },
+  "line-bisection": { direction: "lower", l4: 1, l3: 2, l2: 4 },
+  "iowa-gambling": { direction: "higher", l4: 1500, l3: 800, l2: 0 },
+  "pitch-discrimination": { direction: "higher", l4: 95, l3: 85, l2: 70 },
 };

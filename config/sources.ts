@@ -28,4 +28,7 @@ export const SOURCES: Record<string, { url: string }> = {
   "mental-arithmetic": { url: "TODO(verify)" },  // simple calculation speed
   "random-dot-motion": { url: "TODO(verify)" },  // Newsome & Paré 1988
   numerosity: { url: "TODO(verify)" },           // Kaufman et al. 1949
+  "line-bisection": { url: "TODO(verify)" },     // Schenkenberg 1980
+  "iowa-gambling": { url: "TODO(verify)" },      // Bechara et al. 1994
+  "pitch-discrimination": { url: "TODO(verify)" }, // psychophysics
 };

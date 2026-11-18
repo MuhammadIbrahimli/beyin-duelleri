@@ -33,4 +33,7 @@ export const MECHANISM: Record<Slug, string> = {
   "mental-arithmetic": "mental-arithmetic",
   "random-dot-motion": "motion-perception",
   numerosity: "numerosity",
+  "line-bisection": "line-bisection",
+  "iowa-gambling": "reward-learning",
+  "pitch-discrimination": "pitch-discrimination",
 };

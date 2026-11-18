@@ -11,6 +11,7 @@ import { SCORERS_ORIENTING } from "./tasks-orienting";
 import { SCORERS_LEARNING } from "./tasks-learning";
 import { SCORERS_EXTRA } from "./tasks-extra";
 import { SCORERS_PERCEPTION } from "./tasks-perception";
+import { SCORERS_SENSORY } from "./tasks-sensory";
 
 export interface ScoreResult {
   primary: number;
@@ -320,6 +321,7 @@ export const SCORERS: Record<string, Scorer<any>> = {
   ...SCORERS_LEARNING,
   ...SCORERS_EXTRA,
   ...SCORERS_PERCEPTION,
+  ...SCORERS_SENSORY,
   refleks,
   "reng-ve-soz": rengVeSoz,
   "yaddas-zenciri": yaddasZenciri,

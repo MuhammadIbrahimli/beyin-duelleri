@@ -27,6 +27,9 @@ export const EXPERIMENTS = [
   { id: 32, slug: "mental-arithmetic", direction: "lower", tiebreak: null },
   { id: 33, slug: "random-dot-motion", direction: "higher", tiebreak: null },
   { id: 34, slug: "numerosity", direction: "lower", tiebreak: null },
+  { id: 35, slug: "line-bisection", direction: "lower", tiebreak: null },
+  { id: 36, slug: "iowa-gambling", direction: "higher", tiebreak: null },
+  { id: 37, slug: "pitch-discrimination", direction: "higher", tiebreak: null },
 ] as const;
 
 export type Slug = (typeof EXPERIMENTS)[number]["slug"];

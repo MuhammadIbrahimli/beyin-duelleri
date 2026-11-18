@@ -30,5 +30,8 @@ export const POINT_CURVES: Record<string, [number, number][]> = {
   "mental-arithmetic": [[2000, 100], [3000, 85], [4000, 65], [5000, 40], [8000, 0]], // mean correct time + error penalty, ms
   "random-dot-motion": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],        // percent correct, higher is better
   numerosity: [[0, 100], [0.25, 85], [0.5, 65], [1, 40], [3, 0]],                   // mean absolute error in dots, lower is better
+  "line-bisection": [[0, 100], [1, 85], [2, 65], [4, 40], [10, 0]],                 // mean absolute error in % of the line, lower is better
+  "iowa-gambling": [[-1500, 0], [0, 40], [800, 65], [1500, 85], [2500, 100]],       // net gain, higher is better
+  "pitch-discrimination": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],      // percent correct, higher is better
   lovber: [[0, 100], [5, 90], [15, 70], [40, 40], [100, 10], [300, 0]],        // % away from the true value (TODO(verify): starter curve)
 };
