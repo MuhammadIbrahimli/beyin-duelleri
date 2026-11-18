@@ -57,6 +57,10 @@ export const az = {
     flanker: { name: "Oxlar", hook: "Ortadakı oxa bax, yanındakılara yox.", measure: "Ölçürük: ziddiyyət olanda diqqətin nə qədər itdiyini (Flanker effekti).", unit: "ms" },
     simon: { name: "Simon", hook: "Nöqtənin rəngini seç, yerini yox.", measure: "Ölçürük: yer və rəng toqquşanda beynin nə qədər gecikdiyini.", unit: "ms" },
     "n-back": { name: "İki addım geri", hook: "Hərf iki addım əvvəlki ilə eynidirsə, «Bəli» de.", measure: "Ölçürük: iş yaddaşının yenilənmə dəqiqliyini.", unit: "%" },
+    pvt: { name: "Gözləmə", hook: "Nöqtə çıxan kimi dərhal toxun.", measure: "Ölçürük: diqqətin dayanıqlığını və reaksiyanın sabitliyini.", unit: "ms" },
+    dsst: { name: "Simvollar", hook: "Hər rəqəmin öz simvolu var. Tez tap.", measure: "Ölçürük: vizual axtarışın tempini və dəqiqliyini.", unit: "ms" },
+    "mental-rotation": { name: "Fırlanma", hook: "İki fiqur eynidirmi? Fırlanma var, əks etmə yox.", measure: "Ölçürük: fiquru təsəvvürdə nə qədər tez fırlada bildiyini.", unit: "ms" },
+    "task-switch": { name: "Qayda dəyişir", hook: "Rəng hansı qaydanın işlədiyini deyir. Tez uyğunlaş.", measure: "Ölçürük: qaydanı dəyişməyin gecikmə dəyərini (switch cost).", unit: "ms" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -79,6 +83,16 @@ export const az = {
     red: "Qırmızı",
     blue: "Mavi",
     nbackAsk: "Bu hərf iki addım əvvəlki ilə eynidir?",
+    pvtWait: "Gözlə…",
+    pvtGo: "Toxun!",
+    pvtFalse: "Tez oldu. Gözlə…",
+    dsstAsk: "Hər rəqəmin simvolunu tap",
+    odd: "Tək",
+    even: "Cüt",
+    small: "Kiçik",
+    big: "Böyük",
+    cueBlue: "Mavi: tək / cüt",
+    cueRed: "Qırmızı: kiçik / böyük",
     no: "Yox",
     check: "Yoxla",
     next: "Növbəti",
@@ -111,6 +125,10 @@ export const az = {
       flanker: "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətli və diqqətlisən",
       simon: "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətli və diqqətlisən",
       "n-back": "Sən bu təcrübədə iştirakçıların {pct}%-dən dəqiq işləyirsən",
+      pvt: "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətli və sabitsən",
+      dsst: "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətli və dəqiqsən",
+      "mental-rotation": "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətlə fırladırsan",
+      "task-switch": "Sən bu təcrübədə iştirakçıların {pct}%-dən çevik qayda dəyişirsən",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -149,6 +167,10 @@ export const az = {
       flanker: ["Diqqəti itirən", "Orta", "Diqqətli", "Ustad"],
       simon: ["Gecikən", "Orta", "Tez", "Ustad"],
       "n-back": ["Qısa", "Orta", "Dəqiq", "Ustad"],
+      pvt: ["Yayındı", "Orta", "Toplu", "Ustad"],
+      dsst: ["Yavaş", "Orta", "Sürətli", "Ustad"],
+      "mental-rotation": ["Başlanğıc", "Orta", "Sürətli", "Ustad"],
+      "task-switch": ["Sərt", "Orta", "Çevik", "Ustad"],
     } as Record<string, string[]>,
   },
   science: {
@@ -172,6 +194,14 @@ export const az = {
       "Simon effekti (1969): cavabın yeri və stimulun yeri üst-üstə düşəndə cavab sürətlənir, düşməyəndə yavaşlayır. Beyin yeri, yəni lazımsız məlumatı, basdırmağı öyrənməlidir.",
     "n-back":
       "N-back tapşırığı iş yaddaşını ölçür: hal-hazırkı hərfi əvvəlki hərflərlə müqayisə etmək lazımdır. Bu qabiliyyət öyrənmə və qərar qəbulu ilə bağlıdır. Oyun nəticəsi diaqnoz deyil.",
+    pvt:
+      "PVT (Dinges və Powell, 1985) yorğunluq və diqqətin dayanıqlığını ölçür. Gözləmə müddəti təsadüfi olduğu üçün ləngimək və ya tələsmək mümkün deyil: beyin hər anda hazır olmalıdır.",
+    dsst:
+      "Simvol-rəqəm əvəzləməsi (Wechsler testlərinin hissəsi) vizual axtarışı, yaddaşı və tempi birlikdə ölçür. Xəritə hər oyunda dəyişir, ona görə əzbər işləmir.",
+    "mental-rotation":
+      "Şepard və Metzler (1971) göstərdilər ki, fiquru təsəvvürdə fırlatmaq vaxt tələb edir: fırlanma bucağı artdıqca cavab ləngiyir. Güzgü şəkli fərqli fiqurdur.",
+    "task-switch":
+      "Qayda dəyişmək beyin üçün əlavə iş deyir: Rogers və Monsell (1995) bunu «switch cost» adlandırdılar. Cavab fərqi bu gecikmənin ölçüsüdür.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,

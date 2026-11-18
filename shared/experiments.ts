@@ -10,6 +10,10 @@ export const EXPERIMENTS = [
   { id: 9, slug: "flanker", direction: "lower", tiebreak: { key: "interference", direction: "lower" } },
   { id: 10, slug: "simon", direction: "lower", tiebreak: { key: "interference", direction: "lower" } },
   { id: 11, slug: "n-back", direction: "higher", tiebreak: null },
+  { id: 12, slug: "pvt", direction: "lower", tiebreak: null },
+  { id: 13, slug: "dsst", direction: "lower", tiebreak: null },
+  { id: 14, slug: "mental-rotation", direction: "lower", tiebreak: null },
+  { id: 15, slug: "task-switch", direction: "lower", tiebreak: { key: "switchCostMs", direction: "lower" } },
 ] as const;
 
 export type Slug = (typeof EXPERIMENTS)[number]["slug"];

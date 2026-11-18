@@ -4,6 +4,7 @@ import { randInt, rng, shuffle } from "./rng";
 import { median } from "./stats";
 import { hasIdenticalTimes, hasImpossibleReaction } from "./validity";
 import { flanker, nback, simon } from "./attention-tasks";
+import { SCORERS_MORE } from "./tasks-more";
 
 export interface ScoreResult {
   primary: number;
@@ -308,6 +309,7 @@ export const SCORERS: Record<string, Scorer<any>> = {
   flanker,
   simon,
   "n-back": nback,
+  ...SCORERS_MORE,
   refleks,
   "reng-ve-soz": rengVeSoz,
   "yaddas-zenciri": yaddasZenciri,

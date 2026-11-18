@@ -13,5 +13,9 @@ export const POINT_CURVES: Record<string, [number, number][]> = {
   flanker: [[350, 100], [450, 85], [600, 65], [800, 40], [1500, 0]],               // mean correct RT + error penalty, ms
   simon: [[350, 100], [450, 85], [600, 65], [800, 40], [1500, 0]],                  // mean correct RT + error penalty, ms
   "n-back": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],                    // accuracy %, higher is better
+  pvt: [[200, 100], [260, 85], [350, 65], [500, 40], [1000, 0]],                   // median reaction, ms (lapses = 2000)
+  dsst: [[500, 100], [700, 85], [900, 65], [1200, 40], [2500, 0]],                  // mean correct RT + error penalty, ms
+  "mental-rotation": [[600, 100], [900, 85], [1300, 65], [1800, 40], [3500, 0]],    // mean correct RT + error penalty, ms
+  "task-switch": [[400, 100], [550, 85], [750, 65], [1000, 40], [2000, 0]],         // mean correct RT + error penalty, ms
   lovber: [[0, 100], [5, 90], [15, 70], [40, 40], [100, 10], [300, 0]],        // % away from the true value (TODO(verify): starter curve)
 };

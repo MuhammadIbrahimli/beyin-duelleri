@@ -325,3 +325,83 @@ describe("new experiments over the API", () => {
     }
   });
 });
+
+import { PVT_TRIALS, ROTATION_TRIALS, SWITCH_TRIALS, DSST_TRIALS, SYMBOLS, dsst, pvt, rotation, switchAnswer, switchTask, transform, type Pt } from "../shared/tasks-more";
+
+describe("PVT, DSST, mental rotation, task switching", () => {
+  it("PVT: waits are random within 1.5-4 s; median with lapses counted; false starts and impossible taps are flagged", () => {
+    const s = pvt.schedule(4);
+    expect(s.foreperiods).toHaveLength(PVT_TRIALS);
+    expect(s.foreperiods.every((x) => x >= 1500 && x <= 4000)).toBe(true);
+    const ok = pvt.score(s, { times: [300, 320, 310, 330, 300, 310, 320, 340, 300, 310, 320, 330], falseStarts: 0 })!;
+    expect(ok).toMatchObject({ valid: true, primary: 315 });
+    const lapse = pvt.score(s, { times: [300, null, 310, 330, 300, 310, 320, 340, 300, 310, 320, 330], falseStarts: 0 })!;
+    expect(lapse.secondary.lapses).toBe(1);
+    expect(pvt.score(s, { times: s.foreperiods.map(() => 40), falseStarts: 0 })!.invalidReason).toBe("too_fast");
+    expect(pvt.score(s, { times: s.foreperiods.map(() => 300), falseStarts: 9 })!.invalidReason).toBe("false_starts");
+    expect(pvt.score(s, { times: [1, 2], falseStarts: 0 })).toBeNull();
+  });
+
+  it("DSST: the key is a permutation of the symbols and every digit maps to one; correct choices score", () => {
+    const s = dsst.schedule(9);
+    expect([...s.symbols].sort()).toEqual([...SYMBOLS].sort());
+    expect(s.digits).toHaveLength(DSST_TRIALS);
+    const choices = s.digits.map((d) => s.symbols[d - 1]);
+    expect(dsst.score(s, { choices, times: s.digits.map(() => 600) })).toMatchObject({ valid: true, primary: 600 });
+    const wrong = choices.map((c) => (c === s.symbols[0] ? s.symbols[1] : s.symbols[0]));
+    expect(dsst.score(s, { choices: wrong, times: s.digits.map(() => 600) })!.secondary.errors).toBeGreaterThan(0);
+    expect(dsst.score(s, { choices: ["x"], times: [1] })).toBeNull();
+  });
+
+  it("mental rotation: the same shape turned is 'same'; a mirror image that is not a turn is 'different'", () => {
+    const s = rotation.schedule(12);
+    expect(s.trials).toHaveLength(ROTATION_TRIALS);
+    const eq = (a: Pt[], b: Pt[]) => a.every((p, i) => Math.abs(p[0] - b[i][0]) < 0.02 && Math.abs(p[1] - b[i][1]) < 0.02);
+    for (const tr of s.trials) {
+      const turned = [0, 1, 2, 3, 4, 5].some((k) => eq(transform(tr.left, k * 60, false), tr.right));
+      expect(turned).toBe(tr.same);
+    }
+    const choices = s.trials.map((t) => (t.same ? "yes" : "no"));
+    expect(rotation.score(s, { choices, times: s.trials.map(() => 900) })).toMatchObject({ valid: true, primary: 900 });
+  });
+
+  it("task switching: parity or size by cue; switch trials are marked; the switch cost is reported", () => {
+    const s = switchTask.schedule(21);
+    expect(s.trials).toHaveLength(SWITCH_TRIALS);
+    expect(s.trials[0].cond).toBeUndefined();
+    for (const tr of s.trials) expect(tr.expected).toBe(switchAnswer(tr.digit, tr.cue));
+    expect(switchAnswer(3, "parity")).toBe("left");
+    expect(switchAnswer(8, "parity")).toBe("right");
+    expect(switchAnswer(3, "magnitude")).toBe("left");
+    expect(switchAnswer(7, "magnitude")).toBe("right");
+    const switches = s.trials.filter((t, i) => i > 0 && t.cond === "cost").length;
+    expect(switches).toBeGreaterThan(3);
+    const choices = s.trials.map((t) => t.expected);
+    const times = s.trials.map((t) => (t.cond === "cost" ? 800 : 600));
+    const r = switchTask.score(s, { choices, times })!;
+    expect(r.valid).toBe(true);
+    expect(r.secondary.switchCostMs).toBe(200);
+  });
+});
+
+describe("new tests over the API", () => {
+  it("start and finish work for pvt, dsst, mental-rotation and task-switch", async () => {
+    const t = await newUser();
+    for (const slug of ["pvt", "dsst", "mental-rotation", "task-switch"]) {
+      const s = await call("POST", "/api/runs/start", t, { slug });
+      expect(s.status, slug).toBe(201);
+      vi.setSystemTime(Date.now() + 120000);
+      const sc = s.json.schedule;
+      const payload = slug === "pvt"
+        ? { times: sc.foreperiods.map(() => 320), falseStarts: 0 }
+        : slug === "dsst"
+          ? { choices: sc.digits.map((d: number) => sc.symbols[d - 1]), times: sc.digits.map(() => 700) }
+          : slug === "mental-rotation"
+            ? { choices: sc.trials.map((x: any) => (x.same ? "yes" : "no")), times: sc.trials.map(() => 900) }
+            : { choices: sc.trials.map((x: any) => x.expected), times: sc.trials.map(() => 600) };
+      const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload });
+      expect(f.status, slug).toBe(200);
+      expect(f.json.valid, slug).toBe(true);
+    }
+  });
+});

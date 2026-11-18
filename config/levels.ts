@@ -13,4 +13,8 @@ export const LEVELS: Record<string, LevelRule | null> = {
   flanker: { direction: "lower", l4: 420, l3: 520, l2: 700 },
   simon: { direction: "lower", l4: 430, l3: 530, l2: 720 },
   "n-back": { direction: "higher", l4: 95, l3: 85, l2: 70 },
+  pvt: { direction: "lower", l4: 240, l3: 300, l2: 420 },
+  dsst: { direction: "lower", l4: 700, l3: 900, l2: 1200 },
+  "mental-rotation": { direction: "lower", l4: 900, l3: 1300, l2: 1800 },
+  "task-switch": { direction: "lower", l4: 550, l3: 750, l2: 1000 },
 };

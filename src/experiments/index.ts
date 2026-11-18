@@ -11,5 +11,9 @@ export const loaders: Record<string, () => Promise<{ default: (root: HTMLElement
   flanker: () => import("./flanker"),
   simon: () => import("./simon"),
   "n-back": () => import("./n-back"),
+  pvt: () => import("./pvt"),
+  dsst: () => import("./dsst"),
+  "mental-rotation": () => import("./mental-rotation"),
+  "task-switch": () => import("./task-switch"),
 };
 export const available = Object.keys(loaders);

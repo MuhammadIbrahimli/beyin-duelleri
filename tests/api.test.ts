@@ -216,8 +216,8 @@ describe("profile, Beyin balı and rankings", () => {
     const t = await newUser();
     const r = await play(t, [230, 230, 231, 232, 233]); // ~85 points on Refleks
     expect(r.fin.json.points).toBeGreaterThanOrEqual(84);
-    expect(r.fin.json.overall).toMatchObject({ played: 1, total: 11 });
-    expect(r.fin.json.overall.score).toBe(Math.round((r.fin.json.points / 11) * 10) / 10);
+    expect(r.fin.json.overall).toMatchObject({ played: 1, total: 15 });
+    expect(r.fin.json.overall.score).toBe(Math.round((r.fin.json.points / 15) * 10) / 10);
     const p = await call("GET", "/api/me/passport", t);
     expect(p.json.overall).toMatchObject({ played: 1, rank: 1 });
     expect(p.json.experiments[0].best.points).toBe(r.fin.json.points);
@@ -412,7 +412,7 @@ describe("daily, badges, my duels", () => {
     const db: D1Database = env.DB;
     const now = Date.now();
     const stmts: D1PreparedStatement[] = [];
-    for (let e = 1; e <= 11; e++) { // every experiment id
+    for (let e = 1; e <= 15; e++) { // every experiment id
       stmts.push(db.prepare("INSERT INTO runs (id,user_id,experiment_id,seed,status,primary_score,valid,device_class,created_at,finished_at) VALUES (?,?,?,1,'finished',1,1,'other',?,?)").bind(`rr${e}`, uid, e, now, now));
     }
     for (let d = 10; d <= 16; d++) {
