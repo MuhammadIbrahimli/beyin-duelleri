@@ -25,6 +25,8 @@ export const EXPERIMENTS = [
   { id: 30, slug: "attentional-blink", direction: "higher", tiebreak: { key: "blinkCostPct", direction: "higher" } },
   { id: 31, slug: "syllogism", direction: "higher", tiebreak: null },
   { id: 32, slug: "mental-arithmetic", direction: "lower", tiebreak: null },
+  { id: 33, slug: "random-dot-motion", direction: "higher", tiebreak: null },
+  { id: 34, slug: "numerosity", direction: "lower", tiebreak: null },
 ] as const;
 
 export type Slug = (typeof EXPERIMENTS)[number]["slug"];

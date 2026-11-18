@@ -28,5 +28,7 @@ export const POINT_CURVES: Record<string, [number, number][]> = {
   "attentional-blink": [[30, 0], [50, 40], [65, 65], [80, 85], [95, 100]],          // percent of digits correct, higher is better
   syllogism: [[0, 0], [3, 30], [4, 50], [5, 70], [6, 100]],                          // correct judgements of 6, higher is better
   "mental-arithmetic": [[2000, 100], [3000, 85], [4000, 65], [5000, 40], [8000, 0]], // mean correct time + error penalty, ms
+  "random-dot-motion": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],        // percent correct, higher is better
+  numerosity: [[0, 100], [0.25, 85], [0.5, 65], [1, 40], [3, 0]],                   // mean absolute error in dots, lower is better
   lovber: [[0, 100], [5, 90], [15, 70], [40, 40], [100, 10], [300, 0]],        // % away from the true value (TODO(verify): starter curve)
 };

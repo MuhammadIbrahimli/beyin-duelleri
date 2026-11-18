@@ -81,6 +81,8 @@ export const az = {
     "attentional-blink": { name: "Diqqət qabığı", hook: "Hərflər arasında iki rəqəm gizlənib. Hər ikisini tap.", measure: "Ölçürük: ikinci hədəfin birincinin dərhal ardınca itməsini.", unit: "%" },
     syllogism: { name: "Nəticə", hook: "Nəticə qaydadan çıxırmı? Söz yox, simvol.", measure: "Ölçürük: məntiqi nəticəni məzmundan asılı olmayaraq yoxlamağı.", unit: "" },
     "mental-arithmetic": { name: "Sürətli hesab", hook: "10 məsələ. Cavabı sürətli və düzgün yaz.", measure: "Ölçürük: sadə hesablamanın sürətini və dəqiqliyini.", unit: "ms" },
+    "random-dot-motion": { name: "Hərəkət istiqaməti", hook: "Nöqtələrin çoxu bir tərəfə hərəkət edir. Hansı?", measure: "Ölçürük: ümumi hərəkəti səs-küydən ayırmağı.", unit: "%" },
+    numerosity: { name: "Nöqtələri say", hook: "Bir an göstərilən nöqtələrin sayını de.", measure: "Ölçürük: az nöqtəni dərhal, çoxunu təxminən qavramağı.", unit: "nöqtə" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -137,6 +139,10 @@ export const az = {
     syllogAsk: "Nəticə mütləq doğrudurmu?",
     syllogYes: "✓ Bəli",
     syllogNo: "✗ Xeyr",
+    motionAsk: "Nöqtələr hansı tərəfə hərəkət edir?",
+    motionLeft: "← Sol",
+    motionRight: "Sağ →",
+    numAsk: "Neçə nöqtə gördün?",
     motWatch: "Sarılar hədəfdir, yadda saxla",
     motTrack: "Nöqtələr hərəkət edir…",
     motPick: "Hədəfləri tap, sonra «Hazırdır»",
@@ -188,6 +194,8 @@ export const az = {
       "attentional-blink": "Sən ikinci hədəfi {pct}%-dən çox tapırsan",
       syllogism: "Sən nəticələri {pct}%-dən dəqiq yoxlayırsan",
       "mental-arithmetic": "Sən {pct}%-dən sürətli hesablayırsan",
+      "random-dot-motion": "Sən hərəkət istiqamətini {pct}%-dən daha yaxşı seçirsən",
+      numerosity: "Sən nöqtələri {pct}%-dən dəqiq sayırsan",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -241,6 +249,8 @@ export const az = {
       "attentional-blink": ["Yayındı", "Orta", "Diqqətli", "Ustad"],
       syllogism: ["Səhv edir", "Orta", "Məntiqli", "Ustad"],
       "mental-arithmetic": ["Yavaş", "Orta", "Sürətli", "Ustad"],
+      "random-dot-motion": ["Səs-küyə qapılır", "Orta", "Diqqətli", "Ustad"],
+      numerosity: ["Yanılır", "Orta", "Dəqiq", "Ustad"],
     } as Record<string, string[]>,
   },
   science: {
@@ -294,6 +304,10 @@ export const az = {
       "Klassik silogistik məntiq: nəticənin doğruluğu sözlərin mənasından yox, forma qaydalarından asılıdır. Səhv nəticə çox vaxt inandırıcı görünür.",
     "mental-arithmetic":
       "Sadə hesablamanın sürəti və dəqiqliyi iş yaddaşının və hesablama bacarığının göstəricisidir. Bu oyun diaqnoz deyil.",
+    "random-dot-motion":
+      "Newsome və Paré (1988): nöqtələrin bir hissəsi ümumi istiqamətdə hərəkət edir, qalanı təsadüfidir. Bu, hərəkət qavrayışının klassik ölçüsüdür.",
+    numerosity:
+      "Kaufman və b. (1949): az sayda obyekti dərhal, çoxunu təxminən qavrayırıq. Sərhəd təxminən dörd-beş obyektdə keçir.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,

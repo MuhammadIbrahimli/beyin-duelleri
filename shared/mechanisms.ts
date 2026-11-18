@@ -31,4 +31,6 @@ export const MECHANISM: Record<Slug, string> = {
   "attentional-blink": "attentional-blink",
   syllogism: "syllogistic-reasoning",
   "mental-arithmetic": "mental-arithmetic",
+  "random-dot-motion": "motion-perception",
+  numerosity: "numerosity",
 };

@@ -26,4 +26,6 @@ export const SOURCES: Record<string, { url: string }> = {
   "attentional-blink": { url: "TODO(verify)" },  // Raymond, Shapiro & Arnell 1992
   syllogism: { url: "TODO(verify)" },            // classic syllogistic logic
   "mental-arithmetic": { url: "TODO(verify)" },  // simple calculation speed
+  "random-dot-motion": { url: "TODO(verify)" },  // Newsome & Paré 1988
+  numerosity: { url: "TODO(verify)" },           // Kaufman et al. 1949
 };

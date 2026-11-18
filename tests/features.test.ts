@@ -665,3 +665,45 @@ describe("new tests over the API (memory and reasoning batch)", () => {
     }
   });
 });
+
+import { MOTION_TRIALS, NUMEROSITY_TRIALS, motion, numerosity } from "../shared/tasks-perception";
+
+describe("random-dot motion and numerosity", () => {
+  it("motion: directions are balanced; the easy level is the base condition; percent correct is the score", () => {
+    const s = motion.schedule(9);
+    expect(s.trials).toHaveLength(MOTION_TRIALS);
+    expect(s.trials.filter((t) => t.dir === "left")).toHaveLength(MOTION_TRIALS / 2);
+    expect(s.trials.filter((t) => t.cond === "base").every((t) => t.coherence === 0.8)).toBe(true);
+    const right = s.trials.map((t) => t.dir);
+    expect(motion.score(s, { choices: right })).toMatchObject({ primary: 100, valid: true });
+    expect(motion.score(s, { choices: right.map((d) => (d === "left" ? "right" : "left")) })!.primary).toBe(0);
+    expect(motion.score(s, { choices: [] })).toBeNull();
+  });
+
+  it("numerosity: counts are 1-12; the mean absolute error is the score; the answer must be a whole number", () => {
+    const s = numerosity.schedule(6);
+    expect(s.trials).toHaveLength(NUMEROSITY_TRIALS);
+    expect(s.trials.every((t) => t.n >= 1 && t.n <= 12)).toBe(true);
+    expect(numerosity.score(s, { answers: s.trials.map((t) => t.n) })).toMatchObject({ primary: 0, secondary: { exact: NUMEROSITY_TRIALS } });
+    expect(numerosity.score(s, { answers: s.trials.map((t) => t.n + 2) })!.primary).toBe(2);
+    expect(numerosity.score(s, { answers: s.trials.map(() => 1.5) as any })).toBeNull();
+  });
+});
+
+describe("new tests over the API (perception batch)", () => {
+  it("start and finish work for random-dot-motion and numerosity", async () => {
+    const t = await newUser();
+    for (const slug of ["random-dot-motion", "numerosity"]) {
+      const s = await call("POST", "/api/runs/start", t, { slug });
+      expect(s.status, slug).toBe(201);
+      vi.setSystemTime(Date.now() + 120000);
+      const sc = s.json.schedule;
+      const payload = slug === "random-dot-motion"
+        ? { choices: sc.trials.map((x: any) => x.dir) }
+        : { answers: sc.trials.map((x: any) => x.n) };
+      const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload });
+      expect(f.status, slug).toBe(200);
+      expect(f.json.valid, slug).toBe(true);
+    }
+  });
+});
