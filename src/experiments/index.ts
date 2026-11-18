@@ -8,5 +8,8 @@ export const loaders: Record<string, () => Promise<{ default: (root: HTMLElement
   lovber: () => import("./lovber"),
   "go-no-go": () => import("./go-no-go"),
   "reqem-yaddasi": () => import("./reqem-yaddasi"),
+  flanker: () => import("./flanker"),
+  simon: () => import("./simon"),
+  "n-back": () => import("./n-back"),
 };
 export const available = Object.keys(loaders);

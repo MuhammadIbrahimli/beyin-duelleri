@@ -2,7 +2,8 @@
 export const adm = {
   title: "Админ-панель",
   tokenLabel: "Токен администратора",
-  tokenHint: "Токен задаётся секретом ADMIN_TOKEN (локально лежит в .dev.vars, на сервере его печатает npm run setup).",
+  tokenHint: "Только для владельца.",
+  export: { csv: "Экспорт CSV", json: "Экспорт JSON" },
   enter: "Войти",
   wrong: "Неверный токен или админка выключена",
   refresh: "Обновить",

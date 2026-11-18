@@ -77,6 +77,19 @@ export const formatScore = (slug: string, n: number) => {
 };
 
 // ---- home -------------------------------------------------------------------
+/** One test row: name, hook or best points, and a tick once it has been played. */
+function testRow(slug: string, progress: Record<string, { runs: number; points: number | null }>) {
+  const e = az.experiments[slug as keyof typeof az.experiments];
+  const ready = available.includes(slug);
+  const p = progress[slug];
+  const played = !!p && p.runs > 0;
+  return h(ready ? "a" : "div", { class: "list-row" + (ready ? "" : " off"), style: accent(slug), ...(ready ? { href: `/e/${slug}`, "data-link": "" } : {}) },
+    icon(slug, 28),
+    h("div", { class: "txt" }, h("b", null, e.name), h("span", null, !ready ? az.soon : played ? t("home.best", { n: p.points ?? 0 }) : e.hook)),
+    played ? h("span", { class: "tick", "aria-label": az.home.played }, "✓") : ready ? icon("chevron", 18) : null);
+}
+
+/** Home: today's test, then one tile per skill area with its progress. Tapping a tile opens the area's tests. */
 export async function home() {
   const [d, ex] = await Promise.all([api("GET", "/daily").catch(() => null), api("GET", "/experiments").catch(() => null)]);
   const progress: Record<string, { runs: number; points: number | null }> = ex?.progress ?? {};
@@ -90,31 +103,39 @@ export async function home() {
     h("a", { class: "btn primary block", href: startHref, "data-link": "" }, az.home.start),
     h("span", { class: d.done ? "muted" : "soft" }, d.done ? az.home.doneToday : az.home.notYet));
 
-  const row = (slug: string) => {
-    const e = az.experiments[slug as keyof typeof az.experiments];
-    const ready = available.includes(slug);
-    const p = progress[slug];
-    const played = !!p && p.runs > 0;
-    return h(ready ? "a" : "div", { class: "list-row" + (ready ? "" : " off") + (played ? " played" : ""), style: accent(slug), ...(ready ? { href: `/e/${slug}`, "data-link": "" } : {}) },
-      icon(slug, 28),
-      h("div", { class: "txt" }, h("b", null, e.name), h("span", null, !ready ? az.soon : played ? t("home.best", { n: p.points ?? 0 }) : e.hook)),
-      played ? h("span", { class: "tick", "aria-label": az.home.played }, "✓") : ready ? icon("chevron", 18) : null);
-  };
-  const section = (c: (typeof CATEGORIES)[number]) => {
+  const tile = (c: (typeof CATEGORIES)[number]) => {
     const names = az.categories[c.id];
     const doneN = c.slugs.filter((x) => (progress[x]?.runs ?? 0) > 0).length;
-    return h("section", { class: "cat" },
-      h("div", { class: "cat-head" }, h("h2", null, names.name), h("span", { class: "muted" }, t("home.catProgress", { n: doneN, total: c.slugs.length }))),
-      h("p", { class: "muted" }, names.hint),
-      h("div", { class: "list" }, ...c.slugs.map(row)));
+    return h("a", { class: "tile", href: `/c/${c.id}`, "data-link": "", style: `--accent: var(--c-exp-${c.slugs[0]})` },
+      h("span", { class: "tile-ico" }, icon(c.slugs[0], 26)),
+      h("b", null, names.name),
+      h("span", { class: "muted" }, names.hint),
+      h("span", { class: "tile-prog" }, t("home.catProgress", { n: doneN, total: c.slugs.length }),
+        h("i", { class: "bar", style: `--v:${doneN / c.slugs.length}` }, h("i"))));
   };
 
   screen("exp",
     h("div", { class: "top" }, mark(30), az.app.name, langSwitch()),
     h("div", null, h("h1", null, az.home.title), h("p", { class: "muted", style: "margin-top:6px" }, az.home.sub)),
     dailyCard || h("a", { class: "btn primary block", href: startHref, "data-link": "" }, az.home.start),
-    ...CATEGORIES.map(section),
+    h("h2", null, az.home.all),
+    h("div", { class: "tiles" }, ...CATEGORIES.map(tile)),
     h("p", { class: "muted" }, az.home.privacy));
+}
+
+/** One skill area: its tests with progress. */
+export async function category(id: string) {
+  const c = CATEGORIES.find((x) => x.id === id);
+  if (!c) return go("/", true);
+  const ex = await api("GET", "/experiments").catch(() => null);
+  const progress: Record<string, { runs: number; points: number | null }> = ex?.progress ?? {};
+  const names = az.categories[c.id];
+  const doneN = c.slugs.filter((x) => (progress[x]?.runs ?? 0) > 0).length;
+  screen("exp",
+    h("a", { class: "link", href: "/", "data-link": "" }, az.common.back),
+    h("h1", null, names.name),
+    h("p", { class: "muted" }, names.hint + " · " + t("home.catProgress", { n: doneN, total: c.slugs.length })),
+    h("div", { class: "list" }, ...c.slugs.map((slug) => testRow(slug, progress))));
 }
 
 // ---- intro ------------------------------------------------------------------

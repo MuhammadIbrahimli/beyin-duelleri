@@ -201,3 +201,127 @@ describe("home categories", () => {
     expect(after["go-no-go"].runs).toBe(0);
   });
 });
+
+import { toCsv } from "../worker/routes/admin";
+
+describe("admin export", () => {
+  it("needs the admin token, and the export has analytics but no names or emails", async () => {
+    const t = await newUser();
+    await play(t, GOOD);
+    const noAuth = await app.request("/api/admin/export?format=json", {}, env);
+    expect(noAuth.status).toBe(401);
+    const res = await app.request("/api/admin/export?format=json", { headers: { "x-admin-token": "admin-secret-token" } }, env);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-disposition")).toContain("beyin-analytics-");
+    const text = await res.text();
+    const json = JSON.parse(text);
+    expect(json.totals.users).toBeGreaterThan(0);
+    expect(json.experiments.length).toBe(EXPERIMENTS.length);
+    expect(text).not.toMatch(/"nickname"|"email"/);
+  });
+  it("CSV export is one file with labelled tables", async () => {
+    const res = await app.request("/api/admin/export?format=csv", { headers: { "x-admin-token": "admin-secret-token" } }, env);
+    expect(res.headers.get("content-type")).toContain("text/csv");
+    const csv = await res.text();
+    expect(csv.split("\n")[0]).toBe("# analytics");
+    expect(csv).toContain("# analytics.totals");
+    expect(csv).toContain("# analytics.experiments");
+  });
+  it("CSV cells with commas, quotes and newlines are quoted", () => {
+    expect(toCsv({ a: { t: 'x,"y"\nz' } })).toContain('"x,""y""\nz"');
+  });
+});
+
+import { flanker, nback, nbackTargets, simon } from "../shared/attention-tasks";
+import { SCORERS } from "../shared/scoring";
+
+describe("flanker and simon", () => {
+  it("flanker: half the trials are congruent; the centre arrow is the answer and the flankers match or oppose it", () => {
+    const s = flanker.schedule(7);
+    expect(s.trials).toHaveLength(24);
+    expect(s.trials.filter((x) => x.congruent)).toHaveLength(12);
+    for (const tr of s.trials) {
+      const c = tr.expected === "left" ? "<" : ">";
+      expect(tr.stim[2]).toBe(c);
+      expect(tr.stim === c.repeat(5)).toBe(tr.congruent);
+    }
+  });
+  it("simon: congruent trials are those where the colour belongs to the side (red left, blue right)", () => {
+    const s = simon.schedule(7);
+    expect(s.trials.filter((x) => x.congruent)).toHaveLength(12);
+    for (const tr of s.trials) {
+      const belongsToSide = (tr.expected === "red") === (tr.stim === "left");
+      expect(belongsToSide).toBe(tr.congruent);
+    }
+  });
+  it("scores: mean correct reaction plus an error penalty; interference is incongruent minus congruent", () => {
+    const s = flanker.schedule(3);
+    const good = flanker.score(s, { choices: s.trials.map((x) => x.expected), times: s.trials.map((x) => (x.congruent ? 400 : 500)) })!;
+    expect(good.valid).toBe(true);
+    expect(good.primary).toBe(450);
+    expect(good.secondary).toMatchObject({ errors: 0, congruentMs: 400, incongruentMs: 500, interference: 100 });
+    const half = s.trials.map((x, i) => (i % 2 ? x.expected : (x.expected === "left" ? "right" : "left")));
+    const bad = flanker.score(s, { choices: half, times: half.map(() => 450) })!;
+    expect(bad.secondary.errors).toBe(12);
+    expect(bad.primary).toBe(450 + Math.round(1000 * 0.5));
+  });
+  it("invalid: impossibly fast reactions, and guessing (more than half wrong)", () => {
+    const s = simon.schedule(5);
+    const fast = simon.score(s, { choices: s.trials.map((x) => x.expected), times: s.trials.map(() => 50) })!;
+    expect(fast.invalidReason).toBe("too_fast");
+    const wrong = s.trials.map((x) => (x.expected === "red" ? "blue" : "red"));
+    expect(simon.score(s, { choices: wrong, times: s.trials.map(() => 500) })!.invalidReason).toBe("guessing");
+  });
+  it("malformed payloads are rejected", () => {
+    const s = flanker.schedule(1);
+    expect(flanker.score(s, { choices: ["left"], times: [400] })).toBeNull();
+    expect(flanker.score(s, { choices: s.trials.map(() => "up"), times: s.trials.map(() => 400) })).toBeNull();
+    expect(simon.score(s, null)).toBeNull();
+  });
+});
+
+describe("n-back", () => {
+  it("targets are exactly the positions that repeat the letter two steps back, and a share of them exists", () => {
+    const s = nback.schedule(11);
+    expect(s.letters).toHaveLength(26);
+    const t = nbackTargets(s.letters);
+    expect(t.slice(0, 2)).toEqual([false, false]);
+    expect(t.filter(Boolean).length).toBeGreaterThan(3);
+    t.forEach((isT, i) => { if (i >= 2 && !isT) expect(s.letters[i]).not.toBe(s.letters[i - 2]); });
+  });
+  it("accuracy in percent; perfect answers score 100 and are valid; all-yes is invalid", () => {
+    const s = nback.schedule(11);
+    const targets = nbackTargets(s.letters);
+    const perfect = nback.score(s, { responses: targets })!;
+    expect(perfect).toMatchObject({ primary: 100, valid: true });
+    const yes = nback.score(s, { responses: s.letters.map(() => true) })!;
+    expect(yes.invalidReason).toBe("tapping_everything");
+    expect(nback.score(s, { responses: [true] })).toBeNull();
+  });
+});
+
+describe("registry", () => {
+  it("every experiment has a scorer, and the three new ones are registered", () => {
+    for (const e of EXPERIMENTS) expect(SCORERS[e.slug], e.slug).toBeDefined();
+    expect(SCORERS.flanker).toBe(flanker);
+    expect(SCORERS.simon).toBe(simon);
+    expect(SCORERS["n-back"]).toBe(nback);
+  });
+});
+
+describe("new experiments over the API", () => {
+  it("start and finish work for flanker, simon and n-back with plausible payloads", async () => {
+    const t = await newUser();
+    for (const slug of ["flanker", "simon", "n-back"]) {
+      const s = await call("POST", "/api/runs/start", t, { slug });
+      expect(s.status, slug).toBe(201);
+      vi.setSystemTime(Date.now() + 90000);
+      const payload = slug === "n-back"
+        ? { responses: nbackTargets(s.json.schedule.letters) }
+        : { choices: s.json.schedule.trials.map((x: any) => x.expected), times: s.json.schedule.trials.map(() => 500) };
+      const f = await call("POST", `/api/runs/${s.json.runId}/finish`, t, { payload });
+      expect(f.status, slug).toBe(200);
+      expect(f.json.valid, slug).toBe(true);
+    }
+  });
+});

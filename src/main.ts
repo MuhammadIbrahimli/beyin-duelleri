@@ -2,11 +2,12 @@ import "./styles.css";
 import { session } from "./api";
 import { initPwa } from "./pwa";
 import { route, startRouter } from "./router";
-import { duelResult, home, intro, invite, invitePage, play, result } from "./screens";
+import { category, duelResult, home, intro, invite, invitePage, play, result } from "./screens";
 
 route("/", () => home());
 route("/e/:slug", (c) => intro(c.params.slug));
 route("/play/:slug", (c) => play(c.params.slug, c.query));
+route("/c/:id", (c) => category(c.params.id));
 route("/result", () => result());
 route("/invite", (c) => invite(c.query));
 route("/d/:code", (c) => invitePage(c.params.code));

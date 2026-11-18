@@ -7,6 +7,9 @@ export const EXPERIMENTS = [
   { id: 6, slug: "lovber", direction: "lower", tiebreak: null }, // primary = |answer - truth| / truth, in percent
   { id: 7, slug: "go-no-go", direction: "lower", tiebreak: { key: "commission", direction: "lower" } },
   { id: 8, slug: "reqem-yaddasi", direction: "higher", tiebreak: { key: "totalMs", direction: "lower" } },
+  { id: 9, slug: "flanker", direction: "lower", tiebreak: { key: "interference", direction: "lower" } },
+  { id: 10, slug: "simon", direction: "lower", tiebreak: { key: "interference", direction: "lower" } },
+  { id: 11, slug: "n-back", direction: "higher", tiebreak: null },
 ] as const;
 
 export type Slug = (typeof EXPERIMENTS)[number]["slug"];

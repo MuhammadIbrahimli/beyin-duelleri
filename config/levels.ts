@@ -10,4 +10,7 @@ export const LEVELS: Record<string, LevelRule | null> = {
   lovber: null,
   "go-no-go": { direction: "lower", l4: 380, l3: 480, l2: 650 },
   "reqem-yaddasi": { direction: "higher", l4: 9, l3: 7, l2: 5 },
+  flanker: { direction: "lower", l4: 420, l3: 520, l2: 700 },
+  simon: { direction: "lower", l4: 430, l3: 530, l2: 720 },
+  "n-back": { direction: "higher", l4: 95, l3: 85, l2: 70 },
 };

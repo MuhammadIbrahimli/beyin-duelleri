@@ -20,8 +20,8 @@ const one = async (db: D1Database, sql: string, ...a: unknown[]) => (await db.pr
 const rows = async <T = any>(db: D1Database, sql: string, ...a: unknown[]) => (await db.prepare(sql).bind(...a).all<T>()).results;
 const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
 
-adminRoutes.get("/admin/stats", async (c) => {
-  const db = c.env.DB;
+/** All owner analytics as one object. Used by the dashboard and by the export; contains no names or emails. */
+async function statsOf(db: D1Database) {
   const today = todayBaku();
   const since30 = dayAdd(today, -29);
   const since7 = dayAdd(today, -6);
@@ -74,7 +74,7 @@ adminRoutes.get("/admin/stats", async (c) => {
     one(db, "SELECT COUNT(*) AS n FROM runs WHERE status = 'finished' AND finished_at >= ?", sinceMs),
   ]);
 
-  return c.json({
+  return {
     generatedAt: Date.now(),
     today,
     totals: { users: totalUsers, dau, wau, mau, playsLast30: plays, playsPerActiveUser: mau ? Math.round((plays / mau) * 10) / 10 : 0 },
@@ -84,8 +84,45 @@ adminRoutes.get("/admin/stats", async (c) => {
     retention: { d1: await cohort(1), d7: await cohort(7) },
     audience: { cities, devices, langs, sources, withCityPct: pct(withCity, totalUsers), profilePct: pct(profiles, totalUsers), consentedEmails: emails },
     experiments: EXPERIMENTS.map((e) => ({ slug: e.slug, plays: expRuns.find((r: any) => r.e === e.id)?.n ?? 0 })),
-  });
+  };
+}
+
+adminRoutes.get("/admin/stats", async (c) => c.json(await statsOf(c.env.DB)));
+
+/**
+ * Whole analytics export. format=json (default) or format=csv. The CSV is one file with a block per table
+ * ("# monthly", "# daily.plays", ...), so it opens in any spreadsheet program.
+ */
+adminRoutes.get("/admin/export", async (c) => {
+  const s = await statsOf(c.env.DB);
+  const stamp = s.today;
+  if (c.req.query("format") === "csv") {
+    return new Response(toCsv(s), { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="beyin-analytics-${stamp}.csv"` } });
+  }
+  return new Response(JSON.stringify(s, null, 2), { headers: { "content-type": "application/json; charset=utf-8", "content-disposition": `attachment; filename="beyin-analytics-${stamp}.json"` } });
 });
+
+/** Flattens the stats object into labelled CSV blocks. Arrays of rows become tables, nested objects become key/value blocks. */
+export function toCsv(root: unknown): string {
+  const out: string[] = [];
+  const esc = (v: unknown) => { const str = v === null || v === undefined ? "" : String(v); return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str; };
+  const walk = (name: string, v: any) => {
+    if (Array.isArray(v)) {
+      if (!v.length) return;
+      const cols = [...new Set(v.flatMap((o) => Object.keys(o ?? {})))];
+      out.push(`# ${name}`, cols.join(","), ...v.map((o) => cols.map((c) => esc(o?.[c])).join(",")), "");
+      return;
+    }
+    if (v && typeof v === "object") {
+      const entries = Object.entries(v);
+      const scalars = entries.filter(([, x]) => x === null || typeof x !== "object");
+      if (scalars.length) out.push(`# ${name}`, "key,value", ...scalars.map(([k, x]) => `${esc(k)},${esc(x)}`), "");
+      for (const [k, x] of entries) if (x && typeof x === "object") walk(`${name}.${k}`, x);
+    }
+  };
+  walk("analytics", root);
+  return out.join("\n");
+}
 
 /** Recently renamed or created profiles, for moderation. */
 adminRoutes.get("/admin/names", async (c) => {

@@ -10,5 +10,8 @@ export const POINT_CURVES: Record<string, [number, number][]> = {
   "eyni-rengdir": [[0, 100], [1, 65], [2, 40], [3, 10]],                            // times fooled, lower is better
   "go-no-go": [[300, 100], [380, 85], [480, 65], [650, 40], [1500, 0]],            // mean reaction + penalties, ms, lower is better
   "reqem-yaddasi": [[0, 0], [3, 10], [5, 40], [7, 65], [9, 85], [12, 100]],       // longest digit sequence, higher is better
+  flanker: [[350, 100], [450, 85], [600, 65], [800, 40], [1500, 0]],               // mean correct RT + error penalty, ms
+  simon: [[350, 100], [450, 85], [600, 65], [800, 40], [1500, 0]],                  // mean correct RT + error penalty, ms
+  "n-back": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],                    // accuracy %, higher is better
   lovber: [[0, 100], [5, 90], [15, 70], [40, 40], [100, 10], [300, 0]],        // % away from the true value (TODO(verify): starter curve)
 };

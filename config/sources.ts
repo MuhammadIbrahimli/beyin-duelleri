@@ -8,4 +8,7 @@ export const SOURCES: Record<string, { url: string }> = {
   lovber: { url: "TODO(verify)" },
   "go-no-go": { url: "TODO(verify)" },
   "reqem-yaddasi": { url: "TODO(verify)" },
+  flanker: { url: "TODO(verify)" }, // Eriksen & Eriksen 1974
+  simon: { url: "TODO(verify)" },   // Simon 1969
+  "n-back": { url: "TODO(verify)" }, // Kirchner 1958
 };

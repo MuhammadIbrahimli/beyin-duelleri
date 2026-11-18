@@ -64,8 +64,20 @@ async function dashboard() {
     document.body.append(a); a.click(); a.remove();
   });
 
+  const exportFile = (format: "json" | "csv") => async () => {
+    const res = await fetch(`/api/admin/export?format=${format}`, { headers: { "x-admin-token": sessionStorage.getItem(KEY) ?? "" } });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const a = h("a", { href: URL.createObjectURL(blob), download: `beyin-analytics-${s.today}.${format}` });
+    document.body.append(a); a.click(); a.remove();
+  };
+  const exportBtns = h("div", { class: "row" },
+    h("button", { class: "btn", onclick: exportFile("csv") }, adm.export.csv),
+    h("button", { class: "btn", onclick: exportFile("json") }, adm.export.json));
+
   mount(app(), h("div", { class: "screen admin" },
     h("div", { class: "top" }, h("h1", null, adm.title), h("button", { class: "chip", onclick: () => void dashboard() }, adm.refresh)),
+    exportBtns,
     h("div", { class: "kpis" }, kpi(adm.kpi.mau, t.mau), kpi(adm.kpi.wau, t.wau), kpi(adm.kpi.dau, t.dau), kpi(adm.kpi.users, t.users), kpi(adm.kpi.plays, t.playsLast30), kpi(adm.kpi.perUser, t.playsPerActiveUser)),
     bars(adm.charts.active, s.daily.active.map((d: any) => ({ label: d.day.slice(5), n: d.n }))),
     bars(adm.charts.newUsers, s.daily.newUsers.map((d: any) => ({ label: d.day.slice(5), n: d.n }))),

@@ -54,6 +54,9 @@ export const az = {
     lovber: { name: "Lövbər", hook: "Təsadüfi rəqəm cavabını dəyişir?", measure: "Ölçürük: ilk görülən rəqəmin təxmin üzərində təsirini.", unit: "%" },
     "go-no-go": { name: "Toxun, ya yox", hook: "Yaşıl dairəyə toxun. Qırmızı kvadrata toxunma.", measure: "Ölçürük: reaksiya sürətini və lazım olanda özünü saxlamağı.", unit: "ms" },
     "reqem-yaddasi": { name: "Rəqəm yaddaşı", hook: "Rəqəmləri ardıcıllıqla yadda saxla və yaz.", measure: "Ölçürük: rəqəmlərin nə qədər uzun ardıcıllığını xatırlaya bildiyini.", unit: "" },
+    flanker: { name: "Oxlar", hook: "Ortadakı oxa bax, yanındakılara yox.", measure: "Ölçürük: ziddiyyət olanda diqqətin nə qədər itdiyini (Flanker effekti).", unit: "ms" },
+    simon: { name: "Simon", hook: "Nöqtənin rəngini seç, yerini yox.", measure: "Ölçürük: yer və rəng toqquşanda beynin nə qədər gecikdiyini.", unit: "ms" },
+    "n-back": { name: "İki addım geri", hook: "Hərf iki addım əvvəlki ilə eynidirsə, «Bəli» de.", measure: "Ölçürük: iş yaddaşının yenilənmə dəqiqliyini.", unit: "%" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -71,6 +74,11 @@ export const az = {
     mistake: "Səhv. Bir şans da.",
     same: "Bu ikisi eynidir?",
     yes: "Bəli",
+    left: "Sol",
+    right: "Sağ",
+    red: "Qırmızı",
+    blue: "Mavi",
+    nbackAsk: "Bu hərf iki addım əvvəlki ilə eynidir?",
     no: "Yox",
     check: "Yoxla",
     next: "Növbəti",
@@ -100,6 +108,9 @@ export const az = {
       lovber: "",
       "go-no-go": "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətli və təmkinlisən",
       "reqem-yaddasi": "Sən bu təcrübədə iştirakçıların {pct}%-dən çox rəqəm yadda saxlayırsan",
+      flanker: "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətli və diqqətlisən",
+      simon: "Sən bu təcrübədə iştirakçıların {pct}%-dən sürətli və diqqətlisən",
+      "n-back": "Sən bu təcrübədə iştirakçıların {pct}%-dən dəqiq işləyirsən",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -135,6 +146,9 @@ export const az = {
       lovber: ["", "", "", ""],
       "go-no-go": ["Həyəcanlı", "Diqqətli", "Soyuqqanlı", "Ustad"],
       "reqem-yaddasi": ["Qısa", "Orta", "Uzun", "Rəqəm ustası"],
+      flanker: ["Diqqəti itirən", "Orta", "Diqqətli", "Ustad"],
+      simon: ["Gecikən", "Orta", "Tez", "Ustad"],
+      "n-back": ["Qısa", "Orta", "Dəqiq", "Ustad"],
     } as Record<string, string[]>,
   },
   science: {
@@ -152,6 +166,12 @@ export const az = {
       "Go/No-Go klassik tapşırıqdır: tez toxunmaq lazımdır, amma bəzən toxunmamaq lazımdır. Beyin cavabı vaxtında dayandırmağı (inhibisiya) məşq edir. Bu rəqəm diaqnoz deyil, yalnız bu oyunun nəticəsidir.",
     "reqem-yaddasi":
       "Rəqəm ardıcıllığını xatırlamaq işçi yaddaşın klassik ölçüsüdür. Əksər insanlar təxminən yeddi rəqəm xatırlayır, qruplama isə kömək edir.",
+    flanker:
+      "Eriksen və Eriksen (1974) göstərdi ki, yanındakı oxlar cavabı ləngidir: beyin hər iki istiqaməti eyni anda emal edir. Bu fərq diqqətə nəzarətin klassik ölçüsüdür.",
+    simon:
+      "Simon effekti (1969): cavabın yeri və stimulun yeri üst-üstə düşəndə cavab sürətlənir, düşməyəndə yavaşlayır. Beyin yeri, yəni lazımsız məlumatı, basdırmağı öyrənməlidir.",
+    "n-back":
+      "N-back tapşırığı iş yaddaşını ölçür: hal-hazırkı hərfi əvvəlki hərflərlə müqayisə etmək lazımdır. Bu qabiliyyət öyrənmə və qərar qəbulu ilə bağlıdır. Oyun nəticəsi diaqnoz deyil.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,
@@ -285,7 +305,7 @@ export const az = {
     streak7: { name: "7 gün seriya", desc: "Yeddi gün ardıcıl keçdin" },
     first_duel: { name: "İlk duel", desc: "İlk duelini tamamladın" },
     ten_duels: { name: "10 duel", desc: "On duel tamamladın" },
-    all_six: { name: "Hər 6 təcrübə", desc: "Hər altı təcrübəni keçdin" },
+    all_six: { name: "Hər təcrübə", desc: "Bütün təcrübələri ən azı bir dəfə keçdin" },
     group_leader: { name: "Qrup lideri", desc: "Qrup duelində birinci oldun" },
   } as Record<string, { name: string; desc: string }>,
   privacy: {
