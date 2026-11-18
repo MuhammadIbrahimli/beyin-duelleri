@@ -285,21 +285,40 @@ describe("yalanci-yaddas scoring", () => {
 });
 
 describe("lovber scoring", () => {
-  const q = LOVBER_QUESTIONS[0];
-  it("anchor is derived from the seed and is either the low or the high value; both occur", () => {
-    const anchors = new Set(Array.from({ length: 40 }, (_, i) => lovber.schedule(i).anchor));
-    expect(anchors).toEqual(new Set([q.low, q.high]));
+  const qOf = (s: { questionId: string }) => LOVBER_QUESTIONS.find((x) => x.id === s.questionId)!;
+  it("every seed gives a known question and its low or high anchor; all questions and both anchors occur", () => {
+    const seen = new Set<string>(), anchors = new Set<number>();
+    for (let i = 0; i < 400; i++) {
+      const s = lovber.schedule(i);
+      const q = qOf(s);
+      expect([q.low, q.high]).toContain(s.anchor);
+      seen.add(q.id); anchors.add(s.anchor);
+    }
+    expect(seen.size).toBe(LOVBER_QUESTIONS.length);
     expect(lovber.schedule(9)).toEqual(lovber.schedule(9));
   });
-  it("score = absolute distance from the true value", () => {
+  it("question list is well formed", () => {
+    expect(LOVBER_QUESTIONS.length).toBeGreaterThanOrEqual(10);
+    expect(new Set(LOVBER_QUESTIONS.map((q) => q.id)).size).toBe(LOVBER_QUESTIONS.length);
+    for (const q of LOVBER_QUESTIONS) {
+      expect(q.low).toBeLessThan(q.truth);
+      expect(q.high).toBeGreaterThan(q.truth);
+      expect(q.max).toBeGreaterThan(q.high);
+      expect(q.max).toBeLessThanOrEqual(999999); // the answer box takes at most 6 digits
+    }
+  });
+  it("score = distance from the true value in percent of the true value (comparable across questions)", () => {
     const s = lovber.schedule(1);
-    expect(lovber.score(s, { answer: q.truth + 75, higher: true })!.primary).toBe(75);
-    expect(lovber.score(s, { answer: q.truth - 75, higher: false })!.primary).toBe(75);
-    const r = lovber.score(s, { answer: 1500, higher: true })!;
-    expect(r.secondary).toMatchObject({ answer: 1500, anchor: s.anchor, saidHigher: 1 });
+    const q = qOf(s);
+    expect(lovber.score(s, { answer: q.truth * 1.1, higher: true })!.primary).toBe(10);
+    expect(lovber.score(s, { answer: q.truth * 0.5, higher: false })!.primary).toBe(50);
+    const r = lovber.score(s, { answer: q.truth, higher: true })!;
+    expect(r.primary).toBe(0);
+    expect(r.secondary).toMatchObject({ answer: Math.round(q.truth), anchor: s.anchor, saidHigher: 1 });
   });
   it("rejects nonsense answers", () => {
     const s = lovber.schedule(1);
+    const q = qOf(s);
     expect(lovber.score(s, { answer: -5, higher: true })).toBeNull();
     expect(lovber.score(s, { answer: q.max + 1, higher: true })).toBeNull();
     expect(lovber.score(s, { answer: NaN, higher: true })).toBeNull();
@@ -461,5 +480,62 @@ describe("new experiments are wired into points, levels and daily rotation", () 
     const sundays = Array.from({ length: 8 }, (_, i) => dailySlug(new Date(Date.parse("2026-11-22T00:00:00Z") + i * 7 * 86400000).toISOString().slice(0, 10)));
     expect(new Set(sundays).size).toBe(8);
     expect(dailySlug("2026-11-16")).toBe("refleks");
+  });
+});
+
+import { DRM_SETS } from "../config/wordsets";
+import { isBlockedName, nameSkeleton } from "../shared/profile";
+import { az as azDict } from "../src/i18n/az";
+import { ru as ruDict } from "../src/i18n/ru";
+
+describe("word sets", () => {
+  for (const lang of ["az", "ru"] as const) {
+    const sets = DRM_SETS.filter((s) => s.lang === lang);
+    it(`${lang}: at least 10 sets, each with 12 distinct studied words, 5 unrelated, and a lure that is never studied`, () => {
+      expect(sets.length).toBeGreaterThanOrEqual(10);
+      expect(new Set(sets.map((s) => s.lure)).size).toBe(sets.length);
+      for (const s of sets) {
+        expect(s.studied).toHaveLength(12);
+        expect(new Set(s.studied).size).toBe(12);
+        expect(s.unrelated).toHaveLength(5);
+        expect(s.studied).not.toContain(s.lure);
+        expect(s.unrelated).not.toContain(s.lure);
+        for (const w of s.unrelated) expect(s.studied).not.toContain(w);
+      }
+    });
+  }
+  it("ids are unique and the Azerbaijani sets come first (the first set is the one the older tests rely on)", () => {
+    expect(new Set(DRM_SETS.map((s) => s.id)).size).toBe(DRM_SETS.length);
+    expect(DRM_SETS[0].lang).toBe("az");
+  });
+});
+
+describe("lovber texts", () => {
+  it("every question has a text and a unit in both languages", () => {
+    for (const q of LOVBER_QUESTIONS) {
+      for (const d of [azDict, ruDict] as any[]) {
+        expect(d.lovber.questions[q.id]?.q1).toBeTruthy();
+        expect(d.lovber.questions[q.id]?.q2).toBeTruthy();
+        expect(d.lovber.units[q.unit]).toBeDefined();
+      }
+    }
+  });
+});
+
+describe("display name filter", () => {
+  it("folds case, separators, look-alike letters and repeats", () => {
+    expect(nameSkeleton("S.1_k-T1R")).toBe(nameSkeleton("siktir"));
+    expect(nameSkeleton("fuuuck")).toBe(nameSkeleton("fuck"));
+  });
+  it("blocks listed words however they are dressed up", () => {
+    for (const bad of ["Siktir", "S1kt1r", "fu.ck you", "СУКА", "cyka", "Hitler", "Qəhbə", "пизда", "Fuuuuck"]) {
+      expect(isBlockedName(bad), bad).toBe(true);
+      expect(validateName(bad), bad).toEqual({ ok: false, reason: "blocked" });
+    }
+  });
+  it("leaves ordinary names alone", () => {
+    for (const ok of ["Aysel", "Nigar 07", "Rəşad", "Elnur_99", "Мария", "Ruslan", "Leyla K.", "Vüsal", "Fidan"]) {
+      expect(validateName(ok), ok).toMatchObject({ ok: true });
+    }
   });
 });

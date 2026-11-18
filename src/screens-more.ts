@@ -3,6 +3,7 @@ import { CITY_CODES } from "../config/cities";
 import { bySlug } from "../shared/experiments";
 import { api, me } from "./api";
 import { go } from "./router";
+import { recapSection, recoverySection, remindersRow, vibrationRow } from "./account";
 import { h } from "./dom";
 import { setSound, soundOn } from "./fx";
 import { icon } from "./icons";
@@ -129,6 +130,7 @@ export async function ranking(view: RankView = "players", cityOnly = false) {
     players.me && view === "players" ? h("p", { class: "soft" }, t("ranking.myRank", { n: players.me.rank })) : null,
     list.length ? h("ol", { class: "lb rank" }, ...list) : h("p", { class: "muted" }, az.ranking.empty),
     !myCity ? h("p", { class: "muted" }, az.ranking.cityHint) : null,
+    view === "cities" && cities.cities.some((c: any) => c.players < 5) ? h("p", { class: "muted" }, az.ranking.fewPlayers) : null,
     h("details", null, h("summary", null, az.ranking.points + "?"), h("p", null, az.ranking.note), h("p", { class: "muted" }, az.ranking.notIq)));
 }
 
@@ -211,19 +213,24 @@ export async function passport() {
         brand: az.app.name, nickname: me()?.nickname ?? "", title: az.passport.overall, score: String(p.overall.score),
         sub: [t("result.overallSub", { played: p.overall.played, total: p.overall.total }), p.overall.rank ? t("passport.place", { n: p.overall.rank }) : ""].filter(Boolean).join(" · "),
         footer: cardFooter() }) })) }, az.card.open)),
+    h("small", { class: "muted" }, az.ranking.notIq),
     h("p", null, t("passport.streak", { n: p.streak })),
     ...cards,
+    recapSection(),
     h("h2", null, az.passport.badges),
     ...(badgeItems.length ? badgeItems : [h("p", { class: "muted" }, az.passport.noBadges)]),
     h("h2", null, az.passport.settings),
     h("div", { class: "kv-row" }, h("span", null, az.passport.language), langSwitch()),
     h("div", { class: "kv-row" }, h("span", null, az.passport.sound), soundSwitch()),
+    vibrationRow(),
+    remindersRow(),
     h("button", { class: "btn block", onclick: () => void import("./profile").then((m) => m.openProfileSheet(() => void passport())) }, az.profile.edit),
     h("button", { class: "btn block", onclick: async () => {
       const r = await api("PATCH", "/me", { rerollNickname: true }).catch(() => null);
       if (r && me()) (me() as any).nickname = r.user.nickname;
       void passport();
     } }, az.passport.reroll),
+    recoverySection(),
     del,
     h("a", { class: "link", href: "/privacy", "data-link": "" }, az.passport.privacy));
 }

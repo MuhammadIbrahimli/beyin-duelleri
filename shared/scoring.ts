@@ -296,7 +296,7 @@ export const lovber: Scorer<LovberSchedule> = {
     if (typeof p?.answer !== "number" || !Number.isFinite(p.answer) || p.answer < 0 || p.answer > q.max) return null;
     if (typeof p.higher !== "boolean") return null;
     return {
-      primary: Math.round(Math.abs(p.answer - q.truth)),
+      primary: Math.round((Math.abs(p.answer - q.truth) / q.truth) * 100), // error in % of the true value, so every question is comparable
       secondary: { answer: Math.round(p.answer), anchor: s.anchor, saidHigher: p.higher ? 1 : 0, qIndex: LOVBER_QUESTIONS.indexOf(q) },
       valid: true,
     };

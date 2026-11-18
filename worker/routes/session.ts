@@ -4,7 +4,7 @@ import { todayBaku } from "../../shared/experiments";
 import { validateEmail, validateName } from "../../shared/profile";
 import type { AppEnv } from "../env";
 import { auth, deviceOf } from "../middleware/auth";
-import { randomNickname, signToken, verifyToken } from "../util";
+import { hashRecovery, newRecoveryCode, normalizeRecovery, randomNickname, signToken, verifyToken } from "../util";
 
 export const LANGS = ["az", "ru"] as const;
 const lang = (v: unknown) => ((LANGS as readonly string[]).includes(v as string) ? (v as string) : "az");
@@ -46,6 +46,29 @@ sessionRoutes.post("/session", async (c) => {
   return c.json({ user: publicUser(u), token: await signToken(c.env.SESSION_SECRET, id) }, 201);
 });
 
+/**
+ * Sign in on another device (or after clearing the browser) with the recovery code from the Passport.
+ * An empty anonymous account that was just created on this device is dropped so it does not count twice.
+ */
+sessionRoutes.post("/session/restore", async (c) => {
+  const b = await c.req.json<{ code?: string; token?: string }>().catch(() => ({}) as any);
+  if (normalizeRecovery(b.code).length !== 12) return c.json({ error: "bad_code" }, 400);
+  const db = c.env.DB;
+  const hash = await hashRecovery(c.env.SESSION_SECRET, b.code);
+  const u = await db.prepare(`SELECT ${USER_COLS} FROM users WHERE recovery_hash = ?`).bind(hash).first<any>();
+  if (!u) return c.json({ error: "bad_code" }, 404);
+  const old = await verifyToken(c.env.SESSION_SECRET, b.token);
+  if (old && old !== u.id) {
+    const runs = await db.prepare("SELECT COUNT(*) AS n FROM runs WHERE user_id = ?").bind(old).first<{ n: number }>();
+    if (!runs?.n) await db.prepare("DELETE FROM users WHERE id = ?").bind(old).run();
+  }
+  await db.batch([
+    db.prepare("UPDATE users SET last_seen_at = ?, device_class = ? WHERE id = ?").bind(Date.now(), deviceOf(c), u.id),
+    db.prepare("INSERT OR IGNORE INTO activity (user_id, day) VALUES (?,?)").bind(u.id, todayBaku()),
+  ]);
+  return c.json({ user: publicUser(u), token: await signToken(c.env.SESSION_SECRET, u.id) });
+});
+
 export const meRoutes = new Hono<AppEnv>();
 meRoutes.use("*", auth);
 
@@ -85,6 +108,13 @@ meRoutes.patch("/me", async (c) => {
   if (sets.length) await db.prepare(`UPDATE users SET ${sets.join(", ")} WHERE id = ?`).bind(...args, id).run();
   const u = await db.prepare(`SELECT ${USER_COLS} FROM users WHERE id = ?`).bind(id).first<any>();
   return c.json({ user: publicUser(u) });
+});
+
+/** Creates (or replaces) the recovery code. It is shown once; the previous code stops working. */
+meRoutes.post("/me/recovery", async (c) => {
+  const code = newRecoveryCode();
+  await c.env.DB.prepare("UPDATE users SET recovery_hash = ? WHERE id = ?").bind(await hashRecovery(c.env.SESSION_SECRET, code), c.get("userId")).run();
+  return c.json({ code });
 });
 
 /** "Məlumatlarımı sil": ON DELETE CASCADE removes runs, scores, activity, duel entries, daily, badges, anchors, shares. */

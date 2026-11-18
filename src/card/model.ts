@@ -79,6 +79,15 @@ export function scoreCard(i: ScoreInput): CardModel {
   };
 }
 
+export interface RecapInput { brand: string; nickname: string; title: string; score: string; lines: string[]; footer: string[] }
+/** Weekly / monthly recap: the current Beyin balı plus a few plain facts about the period. */
+export function recapCard(i: RecapInput): CardModel {
+  return {
+    slug: "badge", accent: "--c-primary", brand: i.brand, footer: i.footer,
+    items: [text(i.nickname, 56, 700, "muted", 12), text(i.title, 80, 800, "accent", 24), text(i.score, 300, 800, "text", 28), ...i.lines.map((l) => text(l, 52, 600, "muted", 14))],
+  };
+}
+
 export const fileName = (kind: string, slug: string, format: Format) => `beyin-${kind}-${slug}-${format}.png`;
 
 /** Greedy word wrap with an injected measuring function (canvas measureText in the browser). */

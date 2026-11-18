@@ -176,10 +176,10 @@ export function result() {
   const collective = h("p", { class: "muted" });
   if (lq) {
     void api("GET", `/lovber/stats?question=${lq.id}`).then((st) => {
-      if (st.ready) collective.textContent = t("result.lovberCollective", { low: st.low, high: st.high });
+      if (st.ready) collective.textContent = t("result.lovberCollective", { low: st.low, high: st.high, unit: az.lovber.units[lq.unit] ?? "" }).trim();
     }).catch(() => {});
   }
-  const compare = lq ? t("result.lovberLine", { anchor: sec.anchor, answer: sec.answer, unit: lq.unit, truth: lq.truth })
+  const compare = lq ? t("result.lovberLine", { anchor: sec.anchor, answer: sec.answer, unit: az.lovber.units[lq.unit] ?? "", truth: lq.truth })
     : r.percentile === null ? az.result.compareFirst : t(`result.compare.${slug}`, { pct: r.percentile });
 
   const heroEl = h("div", { class: "hero" }, String(r.points));
@@ -197,7 +197,8 @@ export function result() {
     facts.length ? h("div", { class: "facts" }, ...facts.map((f) => h("span", null, f))) : null);
   const overall = r.valid && r.overall && h("div", { class: "mini" },
     h("div", null, h("b", null, t("result.overall", { n: r.overall.score })), h("span", { class: "muted" }, t("result.overallSub", { played: r.overall.played, total: r.overall.total }))),
-    h("div", { class: "bar", style: `--v:${r.overall.played / r.overall.total}` }, h("i")));
+    h("div", { class: "bar", style: `--v:${r.overall.played / r.overall.total}` }, h("i")),
+    h("small", { class: "muted" }, az.ranking.notIq));
 
   screen(null,
     panel,

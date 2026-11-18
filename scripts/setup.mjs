@@ -1,6 +1,7 @@
 // One-time Cloudflare setup + first deploy:  npm run setup
 // Needs `npx wrangler login` first. Later deploys: npm run deploy.
 import { readFileSync, writeFileSync } from "node:fs";
+import { newVapidKeys } from "./vapid.mjs";
 import { randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
 
@@ -43,6 +44,16 @@ if (!/ADMIN_TOKEN/.test(list.stdout ?? "")) {
   const r = run(["secret", "put", "ADMIN_TOKEN"], { input: adminToken + "\n" });
   show(r);
   if (r.status) { adminToken = null; console.error("could not set ADMIN_TOKEN: run `npx wrangler secret put ADMIN_TOKEN` by hand"); }
+}
+// 5. web push keys (streak reminders). The contact in VAPID_SUBJECT must be a mailto: or https: address you control.
+if (!/VAPID_PRIVATE/.test(list.stdout ?? "")) {
+  const k = newVapidKeys();
+  for (const [name, value] of Object.entries(k)) {
+    const r = run(["secret", "put", name], { input: value + "\n" });
+    show(r);
+    if (r.status) console.error(`could not set ${name}: push reminders stay off until you set it`);
+  }
+  console.log("Push keys created. Set VAPID_SUBJECT (mailto:you@example.com or your https site) with: npx wrangler secret put VAPID_SUBJECT");
 }
 const url = /https:\/\/[^\s]+\.workers\.dev/.exec(dep.stdout + dep.stderr)?.[0];
 console.log(`\nDone.${url ? " Live at " + url : ""}`);

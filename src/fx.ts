@@ -22,7 +22,12 @@ function tone(freq: number, ms: number, type: OscillatorType = "sine", gain = 0.
     o.stop(ctx.currentTime + ms / 1000);
   } catch { /* audio is a nicety, never an error */ }
 }
-const vibrate = (p: number | number[]) => { try { navigator.vibrate?.(p); } catch { /* ignore */ } };
+/** iPhone Safari has no vibration API, so the toggle is only offered where it can work. */
+export const canVibrate = () => typeof navigator !== "undefined" && "vibrate" in navigator;
+const VIB_KEY = "bd_vibrate";
+export const vibrationOn = () => localStorage.getItem(VIB_KEY) !== "0";
+export const setVibration = (on: boolean) => localStorage.setItem(VIB_KEY, on ? "1" : "0");
+const vibrate = (p: number | number[]) => { try { if (vibrationOn()) navigator.vibrate?.(p); } catch { /* ignore */ } };
 
 export const fx = {
   tap() { vibrate(8); },

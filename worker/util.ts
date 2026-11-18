@@ -9,6 +9,16 @@ async function hmac(secret: string, msg: string): Promise<string> {
   return b64url(await crypto.subtle.sign("HMAC", key, enc.encode(msg)));
 }
 
+export { b64url };
+
+/** Recovery codes look like ABCD-EFGH-JKMN; only a keyed hash of the normalised code is stored. */
+export const normalizeRecovery = (raw: unknown) => String(raw ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+export const hashRecovery = (secret: string, raw: unknown) => hmac(secret, "rc:" + normalizeRecovery(raw));
+export function newRecoveryCode(): string {
+  const c = newDuelCode(12).toUpperCase();
+  return `${c.slice(0, 4)}-${c.slice(4, 8)}-${c.slice(8)}`;
+}
+
 export const signToken = async (secret: string, userId: string) => `${userId}.${await hmac(secret, "t:" + userId)}`;
 
 export async function verifyToken(secret: string, token: string | undefined | null): Promise<string | null> {

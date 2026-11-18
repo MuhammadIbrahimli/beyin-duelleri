@@ -1,10 +1,12 @@
 import { h } from "./dom";
 import { az } from "./i18n";
+import { syncSwLang } from "./push";
 
 const KEY = "bd_runs";
 let deferred: (Event & { prompt: () => Promise<void> }) | null = null;
 
 export function initPwa() {
+  syncSwLang();
   addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferred = e as typeof deferred; });
   if ("serviceWorker" in navigator && location.hostname !== "localhost") {
     addEventListener("load", () => void navigator.serviceWorker.register("/sw.js").catch(() => {}));

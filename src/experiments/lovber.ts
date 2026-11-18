@@ -14,7 +14,7 @@ export default async function play(root: HTMLElement, s: LovberPublic): Promise<
   body.replaceChildren(h("div", { class: "soft" }, az.play.wheel), num);
   const end = performance.now() + 2000;
   while (performance.now() < end) {
-    num.textContent = String(100 + Math.floor(Math.random() * 2400));
+    num.textContent = String(Math.max(1, Math.round(s.anchor * (0.3 + Math.random() * 2.7))));
     await sleep(60);
   }
   num.textContent = String(s.anchor);

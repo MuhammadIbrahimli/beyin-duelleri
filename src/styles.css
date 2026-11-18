@@ -222,3 +222,5 @@ pre.kit { white-space: pre-wrap; font: inherit; font-size: var(--fs-s); color: v
 
 .pair-input { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-3); align-items: end; }
 .pair-input .field { margin-top: 0; }
+
+.recovery-code { display: block; font-size: 1.5rem; letter-spacing: .08em; user-select: all; margin-bottom: var(--sp-2); }

@@ -4,7 +4,7 @@ export const EXPERIMENTS = [
   { id: 3, slug: "yaddas-zenciri", direction: "higher", tiebreak: { key: "totalMs", direction: "lower" } },
   { id: 4, slug: "yalanci-yaddas", direction: "higher", tiebreak: null },
   { id: 5, slug: "eyni-rengdir", direction: "lower", tiebreak: { key: "totalMs", direction: "lower" } },
-  { id: 6, slug: "lovber", direction: "lower", tiebreak: null }, // primary = |answer - truth|
+  { id: 6, slug: "lovber", direction: "lower", tiebreak: null }, // primary = |answer - truth| / truth, in percent
   { id: 7, slug: "go-no-go", direction: "lower", tiebreak: { key: "commission", direction: "lower" } },
   { id: 8, slug: "reqem-yaddasi", direction: "higher", tiebreak: { key: "totalMs", direction: "lower" } },
 ] as const;
