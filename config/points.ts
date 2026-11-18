@@ -33,5 +33,9 @@ export const POINT_CURVES: Record<string, [number, number][]> = {
   "line-bisection": [[0, 100], [1, 85], [2, 65], [4, 40], [10, 0]],                 // mean absolute error in % of the line, lower is better
   "iowa-gambling": [[-1500, 0], [0, 40], [800, 65], [1500, 85], [2500, 100]],       // net gain, higher is better
   "pitch-discrimination": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],      // percent correct, higher is better
+  "inattentional-blindness": [[33, 0], [50, 40], [67, 65], [84, 85], [100, 100]],  // percent correct, higher is better
+  "finger-tapping": [[30, 0], [45, 40], [55, 65], [65, 85], [75, 100]],             // taps in 10 seconds, higher is better
+  "contrast-detection": [[50, 0], [70, 40], [85, 65], [95, 85], [100, 100]],        // percent correct, higher is better
+  "probability-matching": [[50, 0], [58, 40], [64, 65], [70, 90], [80, 100]],       // percent correct, higher is better
   lovber: [[0, 100], [5, 90], [15, 70], [40, 40], [100, 10], [300, 0]],        // % away from the true value (TODO(verify): starter curve)
 };

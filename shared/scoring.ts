@@ -12,6 +12,7 @@ import { SCORERS_LEARNING } from "./tasks-learning";
 import { SCORERS_EXTRA } from "./tasks-extra";
 import { SCORERS_PERCEPTION } from "./tasks-perception";
 import { SCORERS_SENSORY } from "./tasks-sensory";
+import { SCORERS_BATCH60 } from "./tasks-batch60";
 
 export interface ScoreResult {
   primary: number;
@@ -322,6 +323,7 @@ export const SCORERS: Record<string, Scorer<any>> = {
   ...SCORERS_EXTRA,
   ...SCORERS_PERCEPTION,
   ...SCORERS_SENSORY,
+  ...SCORERS_BATCH60,
   refleks,
   "reng-ve-soz": rengVeSoz,
   "yaddas-zenciri": yaddasZenciri,

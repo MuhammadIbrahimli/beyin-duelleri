@@ -31,4 +31,8 @@ export const SOURCES: Record<string, { url: string }> = {
   "line-bisection": { url: "TODO(verify)" },     // Schenkenberg 1980
   "iowa-gambling": { url: "TODO(verify)" },      // Bechara et al. 1994
   "pitch-discrimination": { url: "TODO(verify)" }, // psychophysics
+  "inattentional-blindness": { url: "TODO(verify)" }, // Mack & Rock 1998
+  "finger-tapping": { url: "TODO(verify)" },          // motor speed test
+  "contrast-detection": { url: "TODO(verify)" },      // psychophysics
+  "probability-matching": { url: "TODO(verify)" },    // Estes 1950s
 };

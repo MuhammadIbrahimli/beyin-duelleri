@@ -36,4 +36,8 @@ export const MECHANISM: Record<Slug, string> = {
   "line-bisection": "line-bisection",
   "iowa-gambling": "reward-learning",
   "pitch-discrimination": "pitch-discrimination",
+  "inattentional-blindness": "inattentional-blindness",
+  "finger-tapping": "motor-speed",
+  "contrast-detection": "contrast-detection",
+  "probability-matching": "probability-matching",
 };

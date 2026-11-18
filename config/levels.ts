@@ -33,4 +33,8 @@ export const LEVELS: Record<string, LevelRule | null> = {
   "line-bisection": { direction: "lower", l4: 1, l3: 2, l2: 4 },
   "iowa-gambling": { direction: "higher", l4: 1500, l3: 800, l2: 0 },
   "pitch-discrimination": { direction: "higher", l4: 95, l3: 85, l2: 70 },
+  "inattentional-blindness": { direction: "higher", l4: 84, l3: 67, l2: 50 },
+  "finger-tapping": { direction: "higher", l4: 65, l3: 55, l2: 45 },
+  "contrast-detection": { direction: "higher", l4: 95, l3: 85, l2: 70 },
+  "probability-matching": { direction: "higher", l4: 70, l3: 64, l2: 58 },
 };

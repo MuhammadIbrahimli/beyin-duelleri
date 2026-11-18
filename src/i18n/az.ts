@@ -86,6 +86,10 @@ export const az = {
     "line-bisection": { name: "Xəttin ortası", hook: "Xəttin orta nöqtəsinə toxun.", measure: "Ölçürük: məkan qavrayışında xətti bərabər bölmək dəqiqliyini.", unit: "%" },
     "iowa-gambling": { name: "Kartlar", hook: "Dörd dəstədən seç. Hansı uzun müddətdə qazandırır?", measure: "Ölçürük: təcrübədən öyrənməyi: qısa qazancla uzunmüddətli itkini ayırmağı.", unit: "" },
     "pitch-discrimination": { name: "Ton fərqi", hook: "Hansı ton yüksəkdir: birinci, yoxsa ikinci?", measure: "Ölçürük: tonun yüksəkliyini eşitmək dəqiqliyini.", unit: "%" },
+    "inattentional-blindness": { name: "Gözlənilməz obyekt", hook: "Dairələrə bax. Qeyri-adi bir şey gördünmü?", measure: "Ölçürük: diqqət başqa işə yönələndə gözlənilməz obyekti görmə ehtimalını.", unit: "%" },
+    "finger-tapping": { name: "Barmaq nöqtələri", hook: "10 saniyə ərzində mümkün qədər tez toxun.", measure: "Ölçürük: barmağın motor sürətini.", unit: "toxunma" },
+    "contrast-detection": { name: "Zəif zolaq", hook: "Zolaqlar hansı paneldədir? Solda, yoxsa sağda?", measure: "Ölçürük: zəif kontrastı görmə həddini.", unit: "%" },
+    "probability-matching": { name: "Ehtimal seç", hook: "Növbəti nəticəni proqnozlaşdır. Nəticələr təsadüfidir, amma biri tez-tez gəlir.", measure: "Ölçürük: təsadüfi nəticələrdə ən tez-tez çıxan variantı seçməyi.", unit: "%" },
   },
   intro: { watch: "Videonu izlə" },
   play: {
@@ -154,6 +158,19 @@ export const az = {
     pitchFirst: "Birinci",
     pitchSecond: "İkinci",
     pitchReplay: "Yenidən dinlə",
+    incWatch: "Dairələri izlə",
+    incAsk: "Qeyri-adi bir şey gördünmü?",
+    incYes: "Bəli",
+    incNo: "Xeyr",
+    incShape: "Hansı fiqur idi?",
+    tapGo: "Toxun!",
+    tapRest: "Dincəl…",
+    contrastAsk: "Zolaqlar hansı paneldədir?",
+    contrastLeft: "Sol panel",
+    contrastRight: "Sağ panel",
+    matchAsk: "Növbəti nəticəni proqnozlaşdır",
+    matchA: "A",
+    matchB: "B",
     motWatch: "Sarılar hədəfdir, yadda saxla",
     motTrack: "Nöqtələr hərəkət edir…",
     motPick: "Hədəfləri tap, sonra «Hazırdır»",
@@ -210,6 +227,10 @@ export const az = {
       "line-bisection": "Sən xətti {pct}%-dən dəqiq bölürsən",
       "iowa-gambling": "Sən təcrübədən {pct}%-dən yaxşı öyrənirsən",
       "pitch-discrimination": "Sən tonu {pct}%-dən dəqiq eşidirsən",
+      "inattentional-blindness": "Sən gözlənilməz obyekti {pct}%-dən çox görürsən",
+      "finger-tapping": "Sən {pct}%-dən sürətli toxunursan",
+      "contrast-detection": "Sən zəif zolaqları {pct}%-dən dəqiq görürsən",
+      "probability-matching": "Sən təsadüfi nəticələrdə {pct}%-dən ağıllı seçirsən",
     } as Record<string, string>,
     fooled: "Sən 3 təsvirdən {n} dəfə aldandın",
     lureFell: "Beynin «{word}» sözünü özü əlavə etdi",
@@ -268,6 +289,10 @@ export const az = {
       "line-bisection": ["Sürüşür", "Orta", "Dəqiq", "Ustad"],
       "iowa-gambling": ["Riskə qapılır", "Orta", "Öyrənir", "Ustad"],
       "pitch-discrimination": ["Yanılır", "Orta", "Dəqiq", "Ustad"],
+      "inattentional-blindness": ["Yayındı", "Orta", "Diqqətli", "Ustad"],
+      "finger-tapping": ["Yavaş", "Orta", "Sürətli", "Ustad"],
+      "contrast-detection": ["Zəif", "Orta", "Kəskin", "Ustad"],
+      "probability-matching": ["Təsadüfi", "Orta", "Ehtimalı görür", "Ustad"],
     } as Record<string, string[]>,
   },
   science: {
@@ -331,6 +356,14 @@ export const az = {
       "Bechara və b. (1994): insanlar tez-tez qısa müddətli qazanca diqqət yetirir, nadir, lakin böyük itkini gözdən qaçırır. Tapşırıq bunu təcrübədən öyrənməyi tələb edir.",
     "pitch-discrimination":
       "Tonun yüksəkliyini ayırmaq psixofizikanın klassik tapşırığıdır. Nəticə cihazdan (qulaqlıq, səs-küy) asılı ola bilər.",
+    "inattentional-blindness":
+      "Mack və Rock (1998): diqqət bir işə yönələndə gözlənilməz obyekt görünməyə bilər. Bu, diqqətin məhdudiyyətinin göstəricisidir.",
+    "finger-tapping":
+      "Barmaq toxunması motor sisteminin sürətini ölçür. Nəticə yaş, yorğunluq və cihazdan asılıdır.",
+    "contrast-detection":
+      "Zəif kontrastı görmək psixofizikanın klassik tapşırığıdır. Nəticə ekranın parlaqlığından asılıdır.",
+    "probability-matching":
+      "Estes (1950-ci illər): insanlar çox vaxt ehtimalla uyğun seçim edirlər, yəni tez-tez gələn nəticəni hər zaman seçmək əvəzinə. Ən yaxşı strategiya isə həmişə tez-tez gələn variantı seçməkdir.",
     lovber:
       "Lövbər effekti Tversky və Kahneman tərəfindən 1974-cü ildə təsvir olunub: ilk görülən rəqəm, hətta təsadüfi olsa da, təxminimizi öz tərəfinə çəkir. Effektin gücü tədqiqatlara görə dəyişir, ona görə rəqəmi əvvəlcədən vəd etmirik: iştirakçılarımızın nəticəsini göstəririk.",
   } as Record<string, string>,
