@@ -8,7 +8,7 @@ export interface Out<R> { room: R; events: Ev[]; timers: Timer[]; error?: string
 
 export const none = <R>(room: R): Out<R> => ({ room, events: [], timers: [] });
 
-export const GAME_IDS = ["first", "grid", "memory", "reaction"] as const;
+export const GAME_IDS = ["first", "grid", "memory", "reaction", "riddle"] as const;
 export type GameId = (typeof GAME_IDS)[number];
 
 /** Messages that start a timed phase. The host remembers when it ends, so a player who comes back can be told the time left. */

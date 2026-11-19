@@ -4,6 +4,7 @@ import { GAME_IDS, TIMED_MESSAGES, type Engine, type Ev, type GameId, type Out, 
 import type { Env } from "./env";
 import { memoryEngine } from "./memory-core";
 import { reactionEngine } from "./reaction-core";
+import { riddleEngine } from "./riddle-core";
 import { raceEngine } from "./race-core";
 import { firstEngine } from "./rooms-core";
 import { verifyToken } from "./util";
@@ -13,6 +14,7 @@ export const GAMES: Record<GameId, Engine<unknown>> = {
   grid: raceEngine as unknown as Engine<unknown>,
   memory: memoryEngine as unknown as Engine<unknown>,
   reaction: reactionEngine as unknown as Engine<unknown>,
+  riddle: riddleEngine as unknown as Engine<unknown>,
 };
 const isGame = (g: unknown): g is GameId => (GAME_IDS as readonly unknown[]).includes(g);
 
