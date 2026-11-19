@@ -18,3 +18,18 @@
 .room-code { font-size: 2rem; font-weight: 800; letter-spacing: 0.18em; font-variant-numeric: tabular-nums; margin: 0; }
 .room .opts .btn.good { background: var(--c-good); color: #04241a; }
 .room button[hidden] { display: none; }
+.room-body { display: flex; flex-direction: column; align-items: center; gap: var(--sp-4); width: 100%; }
+.room-desc { margin: 0; font-size: var(--fs-s, 0.9rem); }
+
+/* "Sürətli sıra": the 5×5 table and the two progress lanes */
+.race-lanes { display: grid; gap: 8px; width: 100%; max-width: 360px; }
+.race-lane { display: grid; grid-template-columns: minmax(7.5rem, auto) 1fr; align-items: center; gap: 10px; font-size: 0.9rem; }
+.race-label { font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.race-lane .room-track { height: 8px; }
+.race-fill { display: block; height: 100%; width: 0; background: var(--c-primary); transition: width 180ms linear; }
+.race-fill.opp { opacity: 0.45; }
+.race-board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 360px; }
+.race-board.miss { animation: shake 300ms var(--ease); }
+.race-cell { aspect-ratio: 1 / 1; border: 0; border-radius: 12px; background: var(--c-surface-2); color: inherit; font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; touch-action: manipulation; }
+.race-cell:active { transform: scale(0.96); }
+.race-cell.done { opacity: 0.25; }

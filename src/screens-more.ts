@@ -44,7 +44,7 @@ export async function duelsTab() {
       : h("p", { class: "muted" }, az.groups.empty),
     h("a", { class: "list-row", style: "--accent: var(--c-primary)", href: "/live", "data-link": "" },
       icon("pass", 28),
-      h("div", { class: "txt" }, h("b", null, az.live.entry), h("span", null, az.live.sub))),
+      h("div", { class: "txt" }, h("b", null, az.live.hubTitle), h("span", null, az.live.hubSub))),
     h("div", { class: "pair-input" }, nameIn, create),
     h("div", { class: "pair-input" }, codeIn, join),
     msg,
