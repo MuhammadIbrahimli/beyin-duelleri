@@ -1,6 +1,8 @@
 // "İlk cavab" (first answer): two players see the same question at the same moment, the first correct tap wins the round.
-// This file is pure game logic: no sockets, no timers. The Durable Object turns the events into messages and runs the timers.
+// Pure game logic: no sockets, no timers. The room host (worker/room.ts) turns the events into messages and runs the timers.
 import { randInt, rng, shuffle } from "../shared/rng";
+import { none, type Engine, type Ev, type Out as EngineOut, type Slot } from "./engine";
+import { seatJoin, seatLeave } from "./lobby";
 
 export const ROUNDS = 8;
 export const COUNTDOWN_MS = 3000;
@@ -10,7 +12,6 @@ export const AWAY_MS = 20000;     // a player who lost the connection has this l
 
 export interface Question { text: string; options: number[]; answer: number }
 export type Phase = "lobby" | "countdown" | "round" | "between" | "ended";
-export type Slot = 0 | 1;
 
 export interface Room {
   seed: number;
@@ -24,9 +25,8 @@ export interface Room {
   score: [number, number];
 }
 
-export type Ev = { to: Slot | "all"; msg: Record<string, unknown> };
-export type Timer = { kind: "countdown" | "round" | "next" | "away"; ms: number; round?: number; slot?: Slot };
-export interface Out { room: Room; events: Ev[]; timers: Timer[]; error?: string }
+export type Out = EngineOut<Room>;
+export type { Ev, Slot, Timer } from "./engine";
 
 export function makeQuestion(r: () => number): Question {
   const kind = randInt(r, 0, 2);
@@ -34,7 +34,7 @@ export function makeQuestion(r: () => number): Question {
   if (kind === 0) { a = randInt(r, 11, 89); b = randInt(r, 11, 89); ans = a + b; text = `${a} + ${b}`; }
   else if (kind === 1) { a = randInt(r, 30, 99); b = randInt(r, 11, a - 1); ans = a - b; text = `${a} − ${b}`; }
   else { a = randInt(r, 3, 9); b = randInt(r, 11, 19); ans = a * b; text = `${a} × ${b}`; }
-  // three wrong options close to the right one, so that guessing does not work
+  // three wrong options close to the right one, so that guessing does not work; never zero or negative
   const offsets = shuffle(r, [-10, -7, -5, -3, -2, -1, 1, 2, 3, 5, 7, 10].filter((o) => ans + o > 0));
   const wrong = offsets.slice(0, 3).map((o) => ans + o);
   const options = shuffle(r, [ans, ...wrong]);
@@ -56,56 +56,23 @@ export function createRoom(seed: number): Room {
   };
 }
 
-const out = (room: Room, events: Ev[] = [], timers: Timer[] = [], error?: string): Out => ({ room, events, timers, error });
+const out = (room: Room, events: Ev[] = [], timers: Out["timers"] = [], error?: string): Out => ({ room, events, timers, error });
 
-/** A player connects with a verified identity. A returning player gets their slot back. */
 export function join(room: Room, userId: string, nick: string): Out {
-  const mine = room.ids.indexOf(userId) as -1 | 0 | 1;
-  if (mine >= 0) {
-    const slot = mine as Slot;
-    room.online[slot] = true;
-    const events: Ev[] = [{ to: slot, msg: { t: "welcome", slot, state: snapshot(room) } }];
-    events.push({ to: (1 - slot) as Slot, msg: { t: "opponent", state: "back" } });
-    return out(room, events);
-  }
-  const free = room.ids.indexOf(null);
-  if (free < 0 || room.phase !== "lobby") return out(room, [], [], "full");
-  const slot = free as Slot;
-  room.ids[slot] = userId;
-  room.nicks[slot] = nick;
-  room.online[slot] = true;
-  const events: Ev[] = [{ to: slot, msg: { t: "welcome", slot, state: snapshot(room) } }];
-  const other = (1 - slot) as Slot;
-  if (room.ids[other]) {
-    events.push({ to: other, msg: { t: "opponent", state: "joined", nick } });
-    events.push({ to: slot, msg: { t: "opponent", state: "joined", nick: room.nicks[other] } });
-  }
-  if (room.ids[0] && room.ids[1]) {
-    room.phase = "countdown";
-    events.push({ to: "all", msg: { t: "countdown", ms: COUNTDOWN_MS } });
-    return out(room, events, [{ kind: "countdown", ms: COUNTDOWN_MS }]);
-  }
-  return out(room, events);
+  const r = seatJoin(room, userId, nick, () => snapshot(room), COUNTDOWN_MS);
+  return out(room, r.events, r.timers, r.error);
 }
 
-/** A lobby player leaves for good; in a game the other side waits for them. */
 export function leave(room: Room, slot: Slot): Out {
   room.online[slot] = false;
-  if (room.phase === "lobby") {
-    room.ids[slot] = null;
-    room.nicks[slot] = "";
-    return out(room);
-  }
-  if (room.phase === "ended") return out(room);
-  const other = (1 - slot) as Slot;
-  return out(room, [{ to: other, msg: { t: "opponent", state: "away", ms: AWAY_MS } }], [{ kind: "away", ms: AWAY_MS, slot }]);
+  const r = seatLeave(room, slot, AWAY_MS);
+  return out(room, r.events, r.timers);
 }
 
 /** The away timer ran out: the player who did not come back loses by forfeit. */
 export function awayTimeout(room: Room, slot: Slot): Out {
   if (room.phase === "ended" || room.online[slot]) return out(room);
-  const winner = (1 - slot) as Slot;
-  return finish(room, winner, "forfeit");
+  return finish(room, (1 - slot) as Slot, "forfeit");
 }
 
 export function countdownDone(room: Room): Out {
@@ -179,3 +146,24 @@ export function nextTimeout(room: Room, round: number): Out {
 export function snapshot(room: Room) {
   return { phase: room.phase, round: room.round, total: ROUNDS, score: room.score, nicks: room.nicks, online: room.online };
 }
+
+/** The room host talks to every live game through this adapter (see worker/engine.ts). */
+export const firstEngine: Engine<Room> = {
+  create: createRoom,
+  join,
+  leave,
+  awayTimeout,
+  countdownDone: (room) => countdownDone(room),
+  act: (room, slot, msg) =>
+    msg.t === "tap" && Number.isInteger(msg.round) && Number.isInteger(msg.choice)
+      ? answer(room, slot, msg.round as number, msg.choice as number)
+      : none(room),
+  roundTimeout: (room, round) => roundTimeout(room, round),
+  nextTimeout: (room, round) => nextTimeout(room, round),
+  inRound: (room) => room.phase === "round",
+  resume: (room, slot, msLeft) => {
+    const q = room.qs[room.round - 1];
+    return [{ to: slot, msg: { t: "round", n: room.round, total: ROUNDS, text: q.text, options: q.options, ms: msLeft } }];
+  },
+  ended: (room) => room.phase === "ended",
+};

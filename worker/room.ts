@@ -1,15 +1,21 @@
-// Durable Object for one "İlk cavab" room. One instance per room code.
-// Holds the sockets and timers; the rules live in rooms-core.ts.
-import { hashString } from "../shared/rng";
+// Durable Object for one live room (one instance per room code). It holds the sockets and the timers;
+// the rules of the game live in the engine it was created with (rooms-core for "first", race-core for "grid").
+import type { Engine, Ev, Out, Slot, Timer } from "./engine";
 import type { Env } from "./env";
-import * as core from "./rooms-core";
+import { firstEngine } from "./rooms-core";
+import { raceEngine } from "./race-core";
 import { verifyToken } from "./util";
 
-type Client = { userId?: string; slot?: core.Slot };
-type Msg = { t?: unknown; token?: unknown; round?: unknown; choice?: unknown };
+export const GAMES = { first: firstEngine, grid: raceEngine } as unknown as Record<string, Engine<unknown>>;
+export type Game = "first" | "grid";
+const isGame = (g: unknown): g is Game => g === "first" || g === "grid";
+
+type Client = { userId?: string; slot?: Slot };
 
 export class Room {
-  private room: core.Room | null = null;
+  private game: Game | null = null;
+  private engine: Engine<unknown> | null = null;
+  private room: unknown = null;
   private socks: [WebSocket | null, WebSocket | null] = [null, null];
   private who = new Map<WebSocket, Client>();
   private roundEnd = 0;
@@ -17,12 +23,11 @@ export class Room {
   constructor(_state: DurableObjectState, private env: Env) {}
 
   async fetch(request: Request): Promise<Response> {
+    // Only the Worker calls /init (see routes/rooms.ts); sockets come in on the room's /ws path.
+    if (new URL(request.url).pathname === "/init") return this.init(request);
     if (request.headers.get("Upgrade") !== "websocket") return new Response("expected websocket", { status: 426 });
-    if (!this.room) {
-      const code = request.headers.get("x-room-code") ?? "";
-      this.room = core.createRoom(hashString(code));
-    }
-    if (this.room.phase === "ended") return new Response("ended", { status: 410 });
+    if (!this.engine) return new Response("unknown room", { status: 404 });
+    if (this.engine.ended(this.room)) return new Response("ended", { status: 410 });
     const pair = new WebSocketPair();
     const client = pair[0];
     const server = pair[1];
@@ -34,12 +39,22 @@ export class Room {
     return new Response(null, { status: 101, webSocket: client });
   }
 
+  private async init(request: Request): Promise<Response> {
+    if (this.engine) return new Response("exists", { status: 409 });
+    const b = await request.json<{ game?: unknown; seed?: unknown }>().catch(() => ({}) as { game?: unknown; seed?: unknown });
+    if (!isGame(b.game) || typeof b.seed !== "number") return new Response("bad init", { status: 400 });
+    this.game = b.game;
+    this.engine = GAMES[b.game];
+    this.room = this.engine.create(b.seed);
+    return new Response("ok");
+  }
+
   private async onMessage(ws: WebSocket, raw: unknown) {
     const me = this.who.get(ws);
-    if (!me || !this.room) return;
-    let m: Msg;
+    if (!me || !this.engine) return;
+    let m: Record<string, unknown>;
     try {
-      m = JSON.parse(String(raw)) as Msg;
+      m = JSON.parse(String(raw)) as Record<string, unknown>;
     } catch {
       return;
     }
@@ -48,21 +63,23 @@ export class Room {
       await this.join(ws, me, m.token);
       return;
     }
-    if (m.t === "tap" && Number.isInteger(m.round) && Number.isInteger(m.choice)) {
-      this.run(core.answer(this.room, me.slot, m.round as number, m.choice as number));
-    }
+    this.run(this.engine.act(this.room, me.slot, m, Date.now()));
   }
 
   private async join(ws: WebSocket, me: Client, token: unknown) {
-    const room = this.room!;
+    const engine = this.engine!;
+    const room = this.room;
     const userId = await verifyToken(this.env.SESSION_SECRET, typeof token === "string" ? token : null);
     if (!userId) return this.fail(ws, "unauthorized");
     if (!this.who.has(ws)) return; // closed while the token was checked
     const row = await this.env.DB.prepare("SELECT nickname FROM users WHERE id = ?").bind(userId).first<{ nickname: string }>();
     const nick = row?.nickname ?? "?";
-    const out = core.join(room, userId, nick);
+    // the game comes first, so the client builds the right screen before the seat message
+    ws.send(JSON.stringify({ t: "game", game: this.game }));
+    const out = engine.join(room, userId, nick);
     if (out.error) return this.fail(ws, out.error);
-    const slot = room.ids.indexOf(userId) as core.Slot;
+    const welcome = out.events.find((e) => e.msg.t === "welcome");
+    const slot = welcome?.to as Slot;
     const old = this.socks[slot];
     if (old && old !== ws) {
       this.who.delete(old);
@@ -72,21 +89,19 @@ export class Room {
     me.userId = userId;
     me.slot = slot;
     this.run(out);
-    // a player who comes back in the middle of a round gets the question again, with the time left
-    if (room.phase === "round") {
-      const q = room.qs[room.round - 1];
-      const ms = Math.max(0, this.roundEnd - Date.now());
-      ws.send(JSON.stringify({ t: "round", n: room.round, total: core.ROUNDS, text: q.text, options: q.options, ms }));
+    // a player who comes back in the middle of a round gets the round again, with the time left
+    if (engine.inRound(room)) {
+      for (const e of engine.resume(room, slot, Math.max(0, this.roundEnd - Date.now()))) this.emit(e);
     }
   }
 
   private onGone(ws: WebSocket) {
     const me = this.who.get(ws);
     this.who.delete(ws);
-    if (!me || me.slot === undefined || !this.room) return;
+    if (!me || me.slot === undefined || !this.engine) return;
     if (this.socks[me.slot] !== ws) return; // a newer connection already took this seat
     this.socks[me.slot] = null;
-    this.run(core.leave(this.room, me.slot));
+    this.run(this.engine.leave(this.room, me.slot));
   }
 
   private fail(ws: WebSocket, code: string) {
@@ -98,15 +113,15 @@ export class Room {
     }
   }
 
-  private run(out: core.Out) {
+  private run(out: Out<unknown>) {
     if (out.error) return;
     for (const e of out.events) this.emit(e);
     for (const t of out.timers) this.schedule(t);
-    if (out.room.phase === "ended") this.closeAll();
+    if (this.engine?.ended(out.room)) this.closeAll();
   }
 
-  private emit(e: core.Ev) {
-    if (e.msg.t === "round") this.roundEnd = Date.now() + core.ROUND_MS;
+  private emit(e: Ev) {
+    if (e.msg.t === "round") this.roundEnd = Date.now() + Number(e.msg.ms);
     const data = JSON.stringify(e.msg);
     const targets = e.to === "all" ? this.socks : [this.socks[e.to]];
     for (const s of targets) {
@@ -118,18 +133,20 @@ export class Room {
     }
   }
 
-  private schedule(t: core.Timer) {
-    const room = this.room!;
+  private schedule(t: Timer) {
+    const engine = this.engine!;
+    const room = this.room;
     setTimeout(() => {
+      const now = Date.now();
       switch (t.kind) {
         case "countdown":
-          return this.run(core.countdownDone(room));
+          return this.run(engine.countdownDone(room, now));
         case "round":
-          return this.run(core.roundTimeout(room, t.round!));
+          return this.run(engine.roundTimeout(room, t.round!, now));
         case "next":
-          return this.run(core.nextTimeout(room, t.round!));
+          return this.run(engine.nextTimeout(room, t.round!, now));
         case "away":
-          return this.run(core.awayTimeout(room, t.slot!));
+          return this.run(engine.awayTimeout(room, t.slot!));
       }
     }, t.ms);
   }

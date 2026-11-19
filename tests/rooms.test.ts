@@ -225,6 +225,8 @@ describe("disconnects", () => {
 
 describe("POST /api/rooms and the socket route", () => {
   let env: any;
+  // stands in for the Durable Object namespace: accepts the /init call that sets a room up
+  const fakeRooms = { idFromName: (n: string) => n, get: () => ({ fetch: async () => new Response("ok") }) };
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["Date"] });
     env = { DB: makeD1(), SESSION_SECRET: "test-secret", SITE_ORIGIN: "", ADMIN_TOKEN: "admin-secret-token" };
@@ -237,13 +239,13 @@ describe("POST /api/rooms and the socket route", () => {
   }
 
   it("needs a signed-in player to create a room", async () => {
-    const res = await app.request("/api/rooms", { method: "POST" }, { ...env, ROOMS: {} });
+    const res = await app.request("/api/rooms", { method: "POST" }, { ...env, ROOMS: fakeRooms });
     expect(res.status).toBe(401);
   });
 
   it("returns a six character code for a signed-in player", async () => {
     const t = await token();
-    const res = await app.request("/api/rooms", { method: "POST", headers: { authorization: `Bearer ${t}` } }, { ...env, ROOMS: {} });
+    const res = await app.request("/api/rooms", { method: "POST", headers: { authorization: `Bearer ${t}` } }, { ...env, ROOMS: fakeRooms });
     expect(res.status).toBe(200);
     const { code } = (await res.json()) as any;
     expect(code).toMatch(/^[A-Z0-9]{6}$/);
@@ -256,9 +258,9 @@ describe("POST /api/rooms and the socket route", () => {
   });
 
   it("rejects a malformed room code and a plain GET without an upgrade", async () => {
-    const bad = await app.request("/api/rooms/x!/ws", { headers: { upgrade: "websocket" } }, { ...env, ROOMS: {} });
+    const bad = await app.request("/api/rooms/x!/ws", { headers: { upgrade: "websocket" } }, { ...env, ROOMS: fakeRooms });
     expect(bad.status).toBe(400);
-    const plain = await app.request("/api/rooms/ABC123/ws", {}, { ...env, ROOMS: {} });
+    const plain = await app.request("/api/rooms/ABC123/ws", {}, { ...env, ROOMS: fakeRooms });
     expect(plain.status).toBe(426);
   });
 });
