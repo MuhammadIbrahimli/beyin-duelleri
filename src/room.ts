@@ -7,6 +7,7 @@ import { az, t } from "./i18n";
 import { go, onLeave } from "./router";
 import { memoryView } from "./memory";
 import { raceView } from "./race";
+import { reactionView } from "./reaction";
 
 const app = () => document.getElementById("app")!;
 const CODE = /^[A-Z0-9]{4,8}$/;
@@ -28,7 +29,7 @@ const errText = (code?: string) => (az.live.err as Record<string, string>)[code 
 export function livePage() {
   const err = h("p", { class: "soft", role: "alert" });
   const codeIn = h("input", { class: "field", placeholder: az.live.codePh, maxlength: 8, autocapitalize: "characters", "aria-label": az.live.codePh }) as HTMLInputElement;
-  const create = (game: "first" | "grid" | "memory") => async () => {
+  const create = (game: "first" | "grid" | "memory" | "reaction") => async () => {
     err.textContent = "";
     try {
       const r = await api<{ code: string }>("POST", "/rooms", { game });
@@ -52,6 +53,8 @@ export function livePage() {
     h("p", { class: "soft room-desc" }, az.live.gridSub),
     h("button", { class: "btn block", onclick: create("memory") }, az.live.createMemory),
     h("p", { class: "soft room-desc" }, az.live.memorySub),
+    h("button", { class: "btn block", onclick: create("reaction") }, az.live.createReaction),
+    h("p", { class: "soft room-desc" }, az.live.reactionSub),
     h("p", { class: "soft room-or" }, az.live.or),
     h("div", { class: "room-join" }, codeIn, h("button", { class: "btn block", onclick: join }, az.live.join)),
     err,
@@ -114,7 +117,10 @@ export function roomPage(codeRaw: string) {
 
   function handle(m: any) {
     if (m.t === "game") {
-      view = m.game === "grid" ? raceView(ctx) : m.game === "memory" ? memoryView(ctx) : firstView(ctx);
+      view = m.game === "grid" ? raceView(ctx)
+        : m.game === "memory" ? memoryView(ctx)
+        : m.game === "reaction" ? reactionView(ctx)
+        : firstView(ctx);
       return;
     }
     if (m.t === "error") {

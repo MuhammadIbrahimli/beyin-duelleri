@@ -40,3 +40,10 @@
 .memory-tile:active:not(:disabled) { transform: scale(0.96); }
 .memory-tile.lit { background: var(--c-primary); transform: scale(1.04); }
 .memory-tile:disabled { cursor: default; }
+
+/* "Həyəcan": one big pad; neutral while waiting, green on the signal, red for an early tap */
+.react-pad { width: 100%; max-width: 360px; min-height: 260px; border: 0; border-radius: 28px; background: var(--c-surface-2); color: inherit; font-size: clamp(1.8rem, 9vw, 2.6rem); font-weight: 800; letter-spacing: -0.02em; touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer; transition: background 120ms linear; }
+.react-pad:disabled { cursor: default; }
+.react-pad.go { background: var(--c-good); color: #04241a; animation: pop 120ms var(--ease) both; }
+.react-pad.early { background: var(--c-bad); color: #2a0707; animation: shake 300ms var(--ease); }
+.react-pad.settled { opacity: 0.7; }
