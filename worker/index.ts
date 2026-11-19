@@ -11,6 +11,7 @@ import { recapRoutes } from "./routes/recap";
 import { sendStreakReminders } from "./push";
 import { runRoutes } from "./routes/runs";
 import { meRoutes, sessionRoutes } from "./routes/session";
+import { sharePage } from "./share";
 
 export const app = new Hono<AppEnv>().basePath("/api");
 app.use("*", rateLimit);
@@ -30,7 +31,12 @@ app.onError((e, c) => {
 });
 
 export default {
-  fetch: app.fetch,
+  fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    // invite links from chats get their own preview; everything else goes to the API and the app
+    const m = new URL(request.url).pathname.match(/^\/(d|g)\/([A-Za-z0-9]{3,16})$/);
+    if (m && request.method === "GET") return sharePage(request, env, m[1] as "d" | "g", m[2]);
+    return app.fetch(request, env, ctx);
+  },
   async scheduled(_e: ScheduledController, env: Env, ctx: ExecutionContext) {
     ctx.waitUntil(Promise.all([aggregate(env.DB), sendStreakReminders(env)]));
   },
