@@ -14,6 +14,14 @@ database_name = "beyin"
 database_id = "689bf0db-0d20-4be8-9923-ea0db972aa77"
 migrations_dir = "migrations"
 
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
+
 [[ratelimits]]
 name = "RATE_LIMITER"
 namespace_id = "1001"

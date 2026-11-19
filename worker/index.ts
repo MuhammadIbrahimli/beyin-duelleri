@@ -8,14 +8,19 @@ import { groupRoutes } from "./routes/groups";
 import { miscRoutes } from "./routes/misc";
 import { pushRoutes } from "./routes/push";
 import { recapRoutes } from "./routes/recap";
+import { roomRoutes } from "./routes/rooms";
 import { sendStreakReminders } from "./push";
 import { runRoutes } from "./routes/runs";
 import { meRoutes, sessionRoutes } from "./routes/session";
 import { sharePage } from "./share";
 
+export { Room } from "./room";
+
 export const app = new Hono<AppEnv>().basePath("/api");
 app.use("*", rateLimit);
 app.route("/", sessionRoutes);
+// Mounted before any sub-app that calls use("*", auth): Hono applies those middlewares to every route registered after them.
+app.route("/", roomRoutes);
 app.route("/", adminRoutes); // before the user routes: it has its own token check
 app.route("/", meRoutes);
 app.route("/", runRoutes);

@@ -10,6 +10,8 @@ export interface Env {
   VAPID_PUBLIC?: string;
   /** mailto: or https: contact for push services; falls back to SITE_ORIGIN. */
   VAPID_SUBJECT?: string;
+  /** Durable Object namespace for live 1v1 rooms ("İlk cavab"). Optional so the API still runs without it. */
+  ROOMS?: DurableObjectNamespace;
 }
 export interface AuthedVars { userId: string }
 export type AppEnv = { Bindings: Env; Variables: AuthedVars };
