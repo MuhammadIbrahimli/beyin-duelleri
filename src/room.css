@@ -1,9 +1,3 @@
-/* "İlk cavab" screens. Loaded with src/room.ts, so it only reaches players who open a room. */
-.room-entry { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-5); max-width: 420px; margin: 0 auto; }
-.room-title { font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight: 800; letter-spacing: -0.02em; margin: 0; }
-.room-or { text-align: center; margin: 0; }
-.room-join { display: flex; gap: var(--sp-2); }
-.room-join .field { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.08em; }
 
 .room { display: flex; flex-direction: column; align-items: center; gap: var(--sp-4); padding: var(--sp-5); max-width: 420px; margin: 0 auto; width: 100%; }
 .room-score { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); width: 100%; font-weight: 700; }
@@ -19,7 +13,6 @@
 .room .opts .btn.good { background: var(--c-good); color: #04241a; }
 .room button[hidden] { display: none; }
 .room-body { display: flex; flex-direction: column; align-items: center; gap: var(--sp-4); width: 100%; }
-.room-desc { margin: 0; font-size: var(--fs-s, 0.9rem); }
 
 /* "Sürətli sıra": the 5×5 table and the two progress lanes */
 .race-lanes { display: grid; gap: 8px; width: 100%; max-width: 360px; }

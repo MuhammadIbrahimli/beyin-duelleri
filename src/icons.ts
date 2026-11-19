@@ -16,6 +16,12 @@ export const ICONS: Record<string, string> = {
   lovber: "M12 5a2 2 0 100-4 2 2 0 000 4zM12 5v16M5 12H3a9 9 0 0018 0h-2M8.5 9h7",
   "go-no-go": "M9 8a4 4 0 100 8 4 4 0 000-8zM14 14h7v7h-7z",
   "reqem-yaddasi": "M5 9h14M5 15h14M10 4L8 20M16 4l-2 16",
+  // live games
+  "live-first": "M12 3a9 9 0 100 18 9 9 0 000-18zM9.5 9.5a2.5 2.5 0 115 0c0 1.7-2.5 2-2.5 4M12 17.5h.01",
+  "live-grid": "M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z",
+  "live-memory": "M4 4h7v7H4zM13 13h7v7h-7z",
+  "live-reaction": "M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3",
+  "live-riddle": "M4 5h16v11H9l-5 4z",
   // misc
   chevron: "M9 6l6 6-6 6",
   check: "M5 12.5l4.5 4.5L19 7.5",

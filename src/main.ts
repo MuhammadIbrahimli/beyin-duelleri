@@ -1,7 +1,7 @@
 import "./styles.css";
 import { session } from "./api";
 import { initPwa } from "./pwa";
-import { route, startRouter } from "./router";
+import { go, route, startRouter } from "./router";
 import { category, duelResult, home, intro, invite, invitePage, play, result } from "./screens";
 
 route("/", () => home());
@@ -14,7 +14,8 @@ route("/d/:code", (c) => invitePage(c.params.code));
 route("/duel/:code", (c) => duelResult(c.params.code));
 route("/qrupla", () => import("./qrupla").then((q) => q.qrupla()));
 route("/duels", () => import("./screens-more").then((m) => m.duelsTab()));
-route("/live", () => import("./room").then((m) => m.livePage()));
+// the live games now live on the duels page; old links land there
+route("/live", () => go("/duels", true));
 route("/r/:code", (c) => import("./room").then((m) => m.roomPage(c.params.code)));
 route("/g/:code", (c) => import("./screens-more").then((x) => x.groupPage(c.params.code)));
 route("/ranking", () => import("./screens-more").then((m) => m.ranking()));

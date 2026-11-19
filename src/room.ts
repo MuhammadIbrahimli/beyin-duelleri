@@ -24,44 +24,14 @@ export interface Ctx {
 }
 export interface View { handle(m: any): void }
 
-const errText = (code?: string) => (az.live.err as Record<string, string>)[code ?? ""] ?? az.common.error;
+export const errText = (code?: string) => (az.live.err as Record<string, string>)[code ?? ""] ?? az.common.error;
 
-/** Entry screen: create a room for either game, or open one by its code. */
-export function livePage() {
-  const err = h("p", { class: "soft", role: "alert" });
-  const codeIn = h("input", { class: "field", placeholder: az.live.codePh, maxlength: 8, autocapitalize: "characters", "aria-label": az.live.codePh }) as HTMLInputElement;
-  const create = (game: "first" | "grid" | "memory" | "reaction" | "riddle") => async () => {
-    err.textContent = "";
-    try {
-      const r = await api<{ code: string }>("POST", "/rooms", { game });
-      go(`/r/${r.code}`);
-    } catch (e: any) {
-      err.textContent = errText(e.code);
-    }
-  };
-  const join = () => {
-    const c = codeIn.value.trim().toUpperCase();
-    if (!CODE.test(c)) { err.textContent = az.live.err.bad_code; return; }
-    go(`/r/${c}`);
-  };
-  mount(app(), h("div", { class: "screen room-entry" },
-    h("a", { class: "link", href: "/duels", "data-link": "" }, "←"),
-    h("h1", { class: "room-title" }, az.live.hubTitle),
-    h("p", { class: "soft" }, az.live.hubSub),
-    h("button", { class: "btn primary block", onclick: create("first") }, az.live.createFirst),
-    h("p", { class: "soft room-desc" }, az.live.firstSub),
-    h("button", { class: "btn block", onclick: create("grid") }, az.live.createGrid),
-    h("p", { class: "soft room-desc" }, az.live.gridSub),
-    h("button", { class: "btn block", onclick: create("memory") }, az.live.createMemory),
-    h("p", { class: "soft room-desc" }, az.live.memorySub),
-    h("button", { class: "btn block", onclick: create("reaction") }, az.live.createReaction),
-    h("p", { class: "soft room-desc" }, az.live.reactionSub),
-    h("button", { class: "btn block", onclick: create("riddle") }, az.live.createRiddle),
-    h("p", { class: "soft room-desc" }, az.live.riddleSub),
-    h("p", { class: "soft room-or" }, az.live.or),
-    h("div", { class: "room-join" }, codeIn, h("button", { class: "btn block", onclick: join }, az.live.join)),
-    err,
-  ));
+export type LiveGame = "first" | "grid" | "memory" | "reaction" | "riddle";
+
+/** Creates a room for one of the live games; the caller opens it with go(`/r/${code}`). */
+export async function createRoom(game: LiveGame): Promise<string> {
+  const r = await api<{ code: string }>("POST", "/rooms", { game });
+  return r.code;
 }
 
 /** The room itself: lobby, countdown, the game's rounds and the result. */
@@ -71,7 +41,7 @@ export function roomPage(codeRaw: string) {
   const status = h("p", { class: "soft", role: "status", "aria-live": "polite" });
   const share = h("div", { class: "room-share" });
   const body = h("div", { class: "room-body" });
-  const again = h("button", { class: "btn primary block", hidden: true, onclick: () => go("/live") }, az.live.again);
+  const again = h("button", { class: "btn primary block", hidden: true, onclick: () => go("/duels") }, az.live.again);
   const retry = h("button", { class: "btn block", hidden: true, onclick: () => { retry.hidden = true; void connect(); } }, az.live.reconnect);
   mount(app(), h("div", { class: "screen room" }, scoreEl, status, share, body, again, retry));
   if (!CODE.test(code)) { status.textContent = az.live.err.bad_code; return; }

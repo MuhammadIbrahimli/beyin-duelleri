@@ -1,0 +1,100 @@
+/* Duels page: the live games come first, then groups and the duels you have played. */
+.duels-head { display: flex; flex-direction: column; gap: var(--sp-2); }
+.duels-head h1 { margin: 0; }
+
+.stack { display: flex; flex-direction: column; gap: var(--sp-3); }
+.stack > h2 { margin: var(--sp-3) 0 0; font-size: var(--fs-l); letter-spacing: -0.01em; }
+
+.live-msg { min-height: 1.3em; margin: 0; font-size: var(--fs-s); font-weight: 700; color: var(--c-bad); }
+
+/* the live hub: one panel with its own light, so it reads as the main thing on the page */
+.live-hub {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-4);
+  border-radius: var(--radius-l);
+  background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--c-primary) 14%, transparent), transparent 60%), var(--c-surface);
+  border: 1px solid var(--c-line);
+  box-shadow: var(--shadow-1);
+}
+.live-hub h2 { margin: 0; font-size: var(--fs-xl); letter-spacing: -0.02em; }
+.live-hub > .muted { margin: 0; }
+.live-hub .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--c-good) 14%, transparent);
+  color: var(--c-good);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.live-hub .eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-good);
+  animation: live-pulse 1.6s var(--ease) infinite;
+}
+@keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* five game cards: two columns, the last one spans the width */
+.game-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin-top: var(--sp-2); }
+.game-card {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  min-height: 136px;
+  padding: var(--sp-4);
+  border-radius: var(--radius);
+  background: linear-gradient(165deg, color-mix(in srgb, var(--accent) 22%, var(--c-surface)), var(--c-surface) 72%);
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--c-line));
+  box-shadow: var(--shadow-1);
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.game-card:hover { border-color: var(--accent); }
+.game-card:active { transform: scale(0.97); }
+.game-card:disabled { opacity: 0.55; cursor: default; transform: none; }
+.game-card.wide { grid-column: 1 / -1; flex-direction: row; align-items: center; min-height: 0; gap: var(--sp-4); }
+.game-ico { flex: none; width: 28px; height: 28px; color: var(--accent); }
+.game-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.game-txt b { font-size: var(--fs-m); letter-spacing: -0.01em; }
+.game-txt span { font-size: var(--fs-s); line-height: 1.35; color: var(--c-muted); }
+
+.live-hub .pair-input { margin-top: var(--sp-1); }
+.pair-input .field { min-width: 0; }
+.pair-input .btn { white-space: nowrap; padding: 0 var(--sp-4); }
+
+/* the group tools sit in one quiet panel under the list */
+.tools { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--radius); background: var(--c-surface); border: 1px solid var(--c-line); }
+
+/* empty states read as invitations, not errors */
+.empty {
+  padding: var(--sp-4);
+  border-radius: var(--radius);
+  border: 1px dashed var(--c-line);
+  color: var(--c-muted);
+  font-size: var(--fs-s);
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* on phones the wide card keeps its row layout and the grid stays two columns */
+@media (max-width: 360px) {
+  .game-card { min-height: 120px; padding: var(--sp-3); }
+  .game-txt b { font-size: var(--fs-s); }
+}

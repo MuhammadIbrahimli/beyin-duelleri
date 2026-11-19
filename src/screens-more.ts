@@ -6,56 +6,103 @@ import { go } from "./router";
 import { recapSection, recoverySection, remindersRow, vibrationRow } from "./account";
 import { h } from "./dom";
 import { setSound, soundOn } from "./fx";
+import type { LiveGame } from "./room";
 import { icon } from "./icons";
 import { az, t } from "./i18n";
+import "./duels.css";
 import { accent, cardFooter, formatScore, langSwitch, openCard, screen, showError } from "./screens";
 
 const expName = (slug: string) => az.experiments[slug as keyof typeof az.experiments].name;
 const SLUGS = Object.keys(az.experiments);
 
 // ---- Duellər + persistent groups --------------------------------------------------
+/** Duels page: live games first (one tap opens a room), then your groups and the duels you have played. */
 export async function duelsTab() {
   let data: any, groups: any;
   try { [data, groups] = await Promise.all([api("GET", "/me/duels"), api("GET", "/groups")]); } catch { return showError(); }
 
-  const msg = h("p", { class: "soft", role: "alert" });
+  // live games: a card opens a new room for that game
+  const liveMsg = h("p", { class: "live-msg", role: "alert" });
+  const liveCards: HTMLButtonElement[] = [];
+  const setLiveBusy = (busy: boolean) => liveCards.forEach((b) => { b.disabled = busy; });
+  const openLive = async (game: LiveGame) => {
+    liveMsg.textContent = "";
+    setLiveBusy(true);
+    try {
+      const { createRoom } = await import("./room");
+      go(`/r/${await createRoom(game)}`);
+    } catch (e: any) {
+      const { errText } = await import("./room");
+      liveMsg.textContent = errText(e.code);
+      setLiveBusy(false);
+    }
+  };
+  const games: LiveGame[] = ["first", "grid", "memory", "reaction", "riddle"];
+  for (const g of games) {
+    const card = h("button", { class: g === "riddle" ? "game-card wide" : "game-card", style: `--accent: var(--c-live-${g})`, onclick: () => openLive(g) },
+      icon(`live-${g}`, 26, "ico game-ico"),
+      h("div", { class: "game-txt" }, h("b", null, az.live.cards[g].name), h("span", null, az.live.cards[g].sub))) as HTMLButtonElement;
+    liveCards.push(card);
+  }
+  const codeIn = h("input", { class: "field", placeholder: az.live.codePh, maxlength: 8, autocapitalize: "characters", "aria-label": az.live.codePh }) as HTMLInputElement;
+  const joinLive = h("button", { class: "btn", onclick: () => {
+    const c = codeIn.value.trim().toUpperCase();
+    if (!/^[A-Z0-9]{4,8}$/.test(c)) { liveMsg.textContent = az.live.err.bad_code; return; }
+    go(`/r/${c}`);
+  } }, az.live.join);
+
+  // groups: a code everybody joins; the standing is per group
+  const groupMsg = h("p", { class: "live-msg", role: "alert" });
   const nameIn = h("input", { class: "field", placeholder: az.groups.namePh, maxlength: 24, "aria-label": az.groups.namePh }) as HTMLInputElement;
-  const codeIn = h("input", { class: "field", placeholder: az.groups.codePh, maxlength: 8, autocapitalize: "characters", "aria-label": az.groups.codePh }) as HTMLInputElement;
-  const create = h("button", { class: "btn", onclick: async () => {
-    msg.textContent = "";
+  const groupCodeIn = h("input", { class: "field", placeholder: az.groups.codePh, maxlength: 8, autocapitalize: "characters", "aria-label": az.groups.codePh }) as HTMLInputElement;
+  const createGroup = h("button", { class: "btn primary", onclick: async () => {
+    groupMsg.textContent = "";
     try { const g = await api("POST", "/groups", { name: nameIn.value }); go(`/g/${g.code}`); }
-    catch (e: any) { msg.textContent = e.code === "bad_name" ? az.groups.errName : az.common.error; }
+    catch (e: any) { groupMsg.textContent = e.code === "bad_name" ? az.groups.errName : az.common.error; }
   } }, az.groups.create);
-  const join = h("button", { class: "btn", onclick: async () => {
-    msg.textContent = "";
-    try { const g = await api("POST", "/groups/join", { code: codeIn.value }); go(`/g/${g.code}`); }
-    catch (e: any) { msg.textContent = e.code === "full" ? az.groups.full : e.status === 404 ? az.groups.notFound : az.common.error; }
+  const joinGroup = h("button", { class: "btn", onclick: async () => {
+    groupMsg.textContent = "";
+    try { const g = await api("POST", "/groups/join", { code: groupCodeIn.value }); go(`/g/${g.code}`); }
+    catch (e: any) { groupMsg.textContent = e.code === "full" ? az.groups.full : e.status === 404 ? az.groups.notFound : az.common.error; }
   } }, az.groups.join);
+  const groupList = groups.groups.length
+    ? h("div", { class: "list" }, ...groups.groups.map((g: any) =>
+        h("a", { class: "list-row", style: "--accent: var(--c-primary)", href: `/g/${g.code}`, "data-link": "" },
+          icon("pass", 28),
+          h("div", { class: "txt" }, h("b", null, g.name), h("span", null, [t("groups.members", { n: g.members }), t("duels.rank", { n: g.rank })].join(" · "))),
+          icon("chevron", 18))))
+    : h("div", { class: "empty" }, az.groups.empty);
+
+  // the duels you have played
+  const duelList = data.duels.length === 0
+    ? h("div", { class: "empty" }, az.duels.empty)
+    : h("div", { class: "list" }, ...data.duels.map((d: any) =>
+        h("a", { class: "list-row", style: accent(d.slug), href: `/duel/${d.code}`, "data-link": "" },
+          icon(d.slug, 28),
+          h("div", { class: "txt" }, h("b", null, expName(d.slug)),
+            h("span", null, [az.duels[d.status as "open" | "closed" | "expired"], t("duels.players", { n: d.finished }),
+              d.myRank ? t("duels.rank", { n: d.myRank }) : ""].filter(Boolean).join(" · "))),
+          icon("chevron", 18))));
 
   screen("duels",
-    h("h1", null, az.groups.title),
-    h("p", { class: "muted" }, az.groups.sub),
-    groups.groups.length
-      ? h("div", { class: "list" }, ...groups.groups.map((g: any) =>
-          h("a", { class: "list-row", style: "--accent: var(--c-primary)", href: `/g/${g.code}`, "data-link": "" },
-            icon("pass", 28),
-            h("div", { class: "txt" }, h("b", null, g.name), h("span", null, [t("groups.members", { n: g.members }), t("duels.rank", { n: g.rank })].join(" · "))),
-            icon("chevron", 18))))
-      : h("p", { class: "muted" }, az.groups.empty),
-    h("a", { class: "list-row", style: "--accent: var(--c-primary)", href: "/live", "data-link": "" },
-      icon("pass", 28),
-      h("div", { class: "txt" }, h("b", null, az.live.hubTitle), h("span", null, az.live.hubSub))),
-    h("div", { class: "pair-input" }, nameIn, create),
-    h("div", { class: "pair-input" }, codeIn, join),
-    msg,
-    h("h2", null, az.duels.title),
-    ...(data.duels.length === 0 ? [h("p", { class: "muted" }, az.duels.empty)] : [h("div", { class: "list" }, ...data.duels.map((d: any) =>
-      h("a", { class: "list-row", style: accent(d.slug), href: `/duel/${d.code}`, "data-link": "" },
-        icon(d.slug, 28),
-        h("div", { class: "txt" }, h("b", null, expName(d.slug)),
-          h("span", null, [az.duels[d.status as "open" | "closed" | "expired"], t("duels.players", { n: d.finished }),
-            d.myRank ? t("duels.rank", { n: d.myRank }) : ""].filter(Boolean).join(" · "))),
-        icon("chevron", 18))))]));
+    h("header", { class: "duels-head" }, h("h1", null, az.duels.title), h("p", { class: "muted" }, az.duels.pageSub)),
+    h("section", { class: "live-hub" },
+      h("div", { class: "eyebrow" }, az.live.eyebrow),
+      h("h2", null, az.live.hubTitle),
+      h("p", { class: "muted" }, az.live.hubSub),
+      h("div", { class: "game-grid" }, ...liveCards),
+      h("div", { class: "pair-input" }, codeIn, joinLive),
+      liveMsg),
+    h("section", { class: "stack" },
+      h("h2", null, az.groups.title),
+      groupList,
+      h("div", { class: "tools" },
+        h("div", { class: "pair-input" }, nameIn, createGroup),
+        h("div", { class: "pair-input" }, groupCodeIn, joinGroup),
+        groupMsg)),
+    h("section", { class: "stack" },
+      h("h2", null, az.duels.mine),
+      duelList));
 }
 
 /** One group: its code, invite buttons and the standing leaderboard. A link from a friend lands here too. */
