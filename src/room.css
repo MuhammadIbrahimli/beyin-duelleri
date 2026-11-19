@@ -33,3 +33,10 @@
 .race-cell { aspect-ratio: 1 / 1; border: 0; border-radius: 12px; background: var(--c-surface-2); color: inherit; font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; touch-action: manipulation; }
 .race-cell:active { transform: scale(0.96); }
 .race-cell.done { opacity: 0.25; }
+
+/* "Yaddaş döyüşü": the 3×3 board; a lit tile is the one the server is showing */
+.memory-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 300px; }
+.memory-tile { aspect-ratio: 1 / 1; border: 0; border-radius: 16px; background: var(--c-surface-2); cursor: pointer; touch-action: manipulation; transition: background 120ms linear, transform 120ms var(--ease); }
+.memory-tile:active:not(:disabled) { transform: scale(0.96); }
+.memory-tile.lit { background: var(--c-primary); transform: scale(1.04); }
+.memory-tile:disabled { cursor: default; }

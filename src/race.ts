@@ -9,22 +9,46 @@ const CELLS = SIZE * SIZE;
 const lane = (label: HTMLElement, fill: HTMLElement) =>
   h("div", { class: "race-lane" }, label, h("div", { class: "room-track" }, fill));
 
-export function raceView(ctx: Ctx): View {
-  const timer = h("div", { class: "room-bar" });
-  const timerTrack = h("div", { class: "room-track" }, timer);
+/** Two lanes, mine and the opponent's, each filled by how far that player is through `total` steps. */
+export function progressLanes(ctx: Ctx) {
   const mineLabel = h("span", { class: "race-label" });
   const oppLabel = h("span", { class: "race-label" });
   const mineFill = h("i", { class: "race-fill" });
   const oppFill = h("i", { class: "race-fill opp" });
-  const lanes = h("div", { class: "race-lanes" }, lane(mineLabel, mineFill), lane(oppLabel, oppFill));
+  const node = h("div", { class: "race-lanes" }, lane(mineLabel, mineFill), lane(oppLabel, oppFill));
+  /** Returns how far I am. */
+  const paint = (progress: number[], total: number): number => {
+    const me = ctx.slot();
+    if (me === null) return 0;
+    const op: Slot = me === 0 ? 1 : 0;
+    mineFill.style.width = `${(progress[me] / total) * 100}%`;
+    oppFill.style.width = `${(progress[op] / total) * 100}%`;
+    mineLabel.textContent = `${az.live.you}: ${progress[me]}/${total}`;
+    oppLabel.textContent = `${ctx.nick(op)}: ${progress[op]}/${total}`;
+    return progress[me];
+  };
+  return { node, paint };
+}
+
+/** Restarts the bar that drains over the time the server gave (a reconnect passes the time left). */
+export function drainBar(bar: HTMLElement, ms: number) {
+  bar.style.animation = "none";
+  void bar.offsetWidth;
+  bar.style.animation = `room-drain ${Math.max(0, ms)}ms linear forwards`;
+}
+
+export function raceView(ctx: Ctx): View {
+  const timer = h("div", { class: "room-bar" });
+  const timerTrack = h("div", { class: "room-track" }, timer);
+  const lanes = progressLanes(ctx);
   const board = h("div", { class: "race-board" });
-  ctx.body.replaceChildren(timerTrack, lanes, board);
+  ctx.body.replaceChildren(timerTrack, lanes.node, board);
 
   let round = 0;
   let total = 0;
-  let done = 0;             // how many numbers I have tapped in order
-  let frozenUntil = 0;      // after a wrong number my taps are ignored for a moment
-  let decided = true;       // no taps until a table is up
+  let done = 0;            // how many numbers I have tapped in order
+  let frozenUntil = 0;     // after a wrong number my taps are ignored for a moment
+  let decided = true;      // no taps until a table is up
   let cells = new Map<number, HTMLButtonElement>();
   let missTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -36,22 +60,8 @@ export function raceView(ctx: Ctx): View {
   };
 
   const paint = (progress: number[]) => {
-    const me = ctx.slot();
-    if (me === null) return;
-    const op: Slot = me === 0 ? 1 : 0;
-    done = progress[me];
-    mineFill.style.width = `${(done / CELLS) * 100}%`;
-    oppFill.style.width = `${(progress[op] / CELLS) * 100}%`;
-    mineLabel.textContent = `${az.live.you}: ${done}/${CELLS}`;
-    oppLabel.textContent = `${ctx.nick(op)}: ${progress[op]}/${CELLS}`;
+    done = lanes.paint(progress, CELLS);
     cells.forEach((cell, v) => cell.classList.toggle("done", v <= done));
-  };
-
-  const restartTimer = (ms: number) => {
-    timer.style.animation = "none";
-    void timer.offsetWidth;
-    timer.style.animationPlayState = "running";
-    timer.style.animation = `room-drain ${Math.max(0, ms)}ms linear forwards`;
   };
 
   const resultText = (m: any) => {
@@ -75,7 +85,8 @@ export function raceView(ctx: Ctx): View {
           return cell;
         }));
         paint(m.progress);
-        restartTimer(m.ms);
+        timer.style.animationPlayState = "running";
+        drainBar(timer, m.ms);
         ctx.setStatus(pickText());
         return;
       }
