@@ -1,19 +1,23 @@
 // Durable Object for one live room (one instance per room code). It holds the sockets and the timers;
 // the rules of the game live in the engine it was created with (rooms-core for "first", race-core for "grid").
-import type { Engine, Ev, Out, Slot, Timer } from "./engine";
+import { GAME_IDS, TIMED_MESSAGES, type Engine, type Ev, type GameId, type Out, type Slot, type Timer } from "./engine";
 import type { Env } from "./env";
-import { firstEngine } from "./rooms-core";
+import { memoryEngine } from "./memory-core";
 import { raceEngine } from "./race-core";
+import { firstEngine } from "./rooms-core";
 import { verifyToken } from "./util";
 
-export const GAMES = { first: firstEngine, grid: raceEngine } as unknown as Record<string, Engine<unknown>>;
-export type Game = "first" | "grid";
-const isGame = (g: unknown): g is Game => g === "first" || g === "grid";
+export const GAMES: Record<GameId, Engine<unknown>> = {
+  first: firstEngine as unknown as Engine<unknown>,
+  grid: raceEngine as unknown as Engine<unknown>,
+  memory: memoryEngine as unknown as Engine<unknown>,
+};
+const isGame = (g: unknown): g is GameId => (GAME_IDS as readonly unknown[]).includes(g);
 
 type Client = { userId?: string; slot?: Slot };
 
 export class Room {
-  private game: Game | null = null;
+  private game: GameId | null = null;
   private engine: Engine<unknown> | null = null;
   private room: unknown = null;
   private socks: [WebSocket | null, WebSocket | null] = [null, null];
@@ -121,7 +125,7 @@ export class Room {
   }
 
   private emit(e: Ev) {
-    if (e.msg.t === "round") this.roundEnd = Date.now() + Number(e.msg.ms);
+    if (TIMED_MESSAGES.has(String(e.msg.t))) this.roundEnd = Date.now() + Number(e.msg.ms);
     const data = JSON.stringify(e.msg);
     const targets = e.to === "all" ? this.socks : [this.socks[e.to]];
     for (const s of targets) {
@@ -136,19 +140,7 @@ export class Room {
   private schedule(t: Timer) {
     const engine = this.engine!;
     const room = this.room;
-    setTimeout(() => {
-      const now = Date.now();
-      switch (t.kind) {
-        case "countdown":
-          return this.run(engine.countdownDone(room, now));
-        case "round":
-          return this.run(engine.roundTimeout(room, t.round!, now));
-        case "next":
-          return this.run(engine.nextTimeout(room, t.round!, now));
-        case "away":
-          return this.run(engine.awayTimeout(room, t.slot!));
-      }
-    }, t.ms);
+    setTimeout(() => this.run(engine.timer(room, t, Date.now())), t.ms);
   }
 
   private closeAll() {

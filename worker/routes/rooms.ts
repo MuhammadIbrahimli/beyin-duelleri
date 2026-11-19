@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { GAME_IDS, type GameId } from "../engine";
 import type { AppEnv } from "../env";
 import { auth } from "../middleware/auth";
 import { newDuelCode, newSeed } from "../util";
@@ -11,7 +12,7 @@ const CODE = /^[A-Z0-9]{4,8}$/;
 roomRoutes.post("/rooms", auth, async (c) => {
   if (!c.env.ROOMS) return c.json({ error: "rooms_unavailable" }, 503);
   const b = await c.req.json<{ game?: unknown }>().catch(() => ({}) as { game?: unknown });
-  const game = b.game === "grid" ? "grid" : "first";
+  const game: GameId = (GAME_IDS as readonly unknown[]).includes(b.game) ? (b.game as GameId) : "first";
   const code = newDuelCode(6).toUpperCase();
   const stub = c.env.ROOMS.get(c.env.ROOMS.idFromName(code));
   const res = await stub.fetch("https://room/init", {

@@ -156,13 +156,20 @@ export const raceEngine: Engine<Race> = {
   create: createRace,
   join,
   leave,
-  awayTimeout,
-  countdownDone: (room) => countdownDone(room),
+  timer: (room, t) => timerEvent(room, t),
   act: (room, slot, msg, now) =>
     msg.t === "tap" ? tap(room, slot, Number(msg.round), Number(msg.value), now) : none(room),
-  roundTimeout: (room, round) => roundTimeout(room, round),
-  nextTimeout: (room, round) => nextTimeout(room, round),
   inRound: (room) => room.phase === "round",
   resume: (room, slot, msLeft) => resume(room, slot, msLeft),
   ended: (room) => room.phase === "ended",
 };
+
+function timerEvent(room: Race, t: Timer): Out {
+  switch (t.kind) {
+    case "countdown": return countdownDone(room);
+    case "round": return roundTimeout(room, t.round!);
+    case "next": return nextTimeout(room, t.round!);
+    case "away": return awayTimeout(room, t.slot!);
+    default: return none(room);
+  }
+}

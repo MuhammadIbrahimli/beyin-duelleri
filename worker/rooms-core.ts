@@ -1,7 +1,7 @@
 // "İlk cavab" (first answer): two players see the same question at the same moment, the first correct tap wins the round.
 // Pure game logic: no sockets, no timers. The room host (worker/room.ts) turns the events into messages and runs the timers.
 import { randInt, rng, shuffle } from "../shared/rng";
-import { none, type Engine, type Ev, type Out as EngineOut, type Slot } from "./engine";
+import { none, type Engine, type Ev, type Out as EngineOut, type Slot, type Timer } from "./engine";
 import { seatJoin, seatLeave } from "./lobby";
 
 export const ROUNDS = 8;
@@ -147,19 +147,26 @@ export function snapshot(room: Room) {
   return { phase: room.phase, round: room.round, total: ROUNDS, score: room.score, nicks: room.nicks, online: room.online };
 }
 
+function timerEvent(room: Room, t: Timer): Out {
+  switch (t.kind) {
+    case "countdown": return countdownDone(room);
+    case "round": return roundTimeout(room, t.round!);
+    case "next": return nextTimeout(room, t.round!);
+    case "away": return awayTimeout(room, t.slot!);
+    default: return none(room);
+  }
+}
+
 /** The room host talks to every live game through this adapter (see worker/engine.ts). */
 export const firstEngine: Engine<Room> = {
   create: createRoom,
   join,
   leave,
-  awayTimeout,
-  countdownDone: (room) => countdownDone(room),
+  timer: (room, t) => timerEvent(room, t),
   act: (room, slot, msg) =>
     msg.t === "tap" && Number.isInteger(msg.round) && Number.isInteger(msg.choice)
       ? answer(room, slot, msg.round as number, msg.choice as number)
       : none(room),
-  roundTimeout: (room, round) => roundTimeout(room, round),
-  nextTimeout: (room, round) => nextTimeout(room, round),
   inRound: (room) => room.phase === "round",
   resume: (room, slot, msLeft) => {
     const q = room.qs[room.round - 1];
