@@ -8,6 +8,7 @@ import { go, onLeave } from "./router";
 import { memoryView } from "./memory";
 import { raceView } from "./race";
 import { reactionView } from "./reaction";
+import { riddleView } from "./riddle";
 
 const app = () => document.getElementById("app")!;
 const CODE = /^[A-Z0-9]{4,8}$/;
@@ -29,7 +30,7 @@ const errText = (code?: string) => (az.live.err as Record<string, string>)[code 
 export function livePage() {
   const err = h("p", { class: "soft", role: "alert" });
   const codeIn = h("input", { class: "field", placeholder: az.live.codePh, maxlength: 8, autocapitalize: "characters", "aria-label": az.live.codePh }) as HTMLInputElement;
-  const create = (game: "first" | "grid" | "memory" | "reaction") => async () => {
+  const create = (game: "first" | "grid" | "memory" | "reaction" | "riddle") => async () => {
     err.textContent = "";
     try {
       const r = await api<{ code: string }>("POST", "/rooms", { game });
@@ -55,6 +56,8 @@ export function livePage() {
     h("p", { class: "soft room-desc" }, az.live.memorySub),
     h("button", { class: "btn block", onclick: create("reaction") }, az.live.createReaction),
     h("p", { class: "soft room-desc" }, az.live.reactionSub),
+    h("button", { class: "btn block", onclick: create("riddle") }, az.live.createRiddle),
+    h("p", { class: "soft room-desc" }, az.live.riddleSub),
     h("p", { class: "soft room-or" }, az.live.or),
     h("div", { class: "room-join" }, codeIn, h("button", { class: "btn block", onclick: join }, az.live.join)),
     err,
@@ -120,6 +123,7 @@ export function roomPage(codeRaw: string) {
       view = m.game === "grid" ? raceView(ctx)
         : m.game === "memory" ? memoryView(ctx)
         : m.game === "reaction" ? reactionView(ctx)
+        : m.game === "riddle" ? riddleView(ctx)
         : firstView(ctx);
       return;
     }

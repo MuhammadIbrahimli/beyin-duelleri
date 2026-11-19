@@ -574,6 +574,8 @@ export const az = {
     memorySub: "Eyni ardıcıllıq, eyni anda. Xanalar bir-bir işıqlanır, sonra onu sən təkrarla. Səhvsiz birinci təkrarlayan raundu udur. 3 raund.",
     createReaction: "Həyəcan",
     reactionSub: "Siqnalı gözlə, ilk sən bas. Siqnaldan əvvəl basan həmin raundda uduzur. 5 raund.",
+    createRiddle: "Tapmaca yarışı",
+    riddleSub: "Eyni tapmaca, eyni anda. Düzgün cavabı birinci seç. Yanlış cavab qısa gecikmə verir. 5 tapmaca.",
     or: "və ya",
     codePh: "Otaq kodu",
     join: "Qoşul",
@@ -644,6 +646,14 @@ export const az = {
     none: "Heç kim basmadı. Raund heç kimə.",
     wonYou: "Sən birinci! {ms} ms",
     wonOpp: "{nick} birinci ({ms} ms)",
+  },
+  riddle: {
+    roundOf: "Tapmaca {n} / {total}",
+    hint: "Cavabı birinci seç",
+    miss: "Yanlış cavab. Bir az gözlə.",
+    wonYou: "Düzgün! Bu tapmacanı sən tapdın",
+    wonOpp: "{nick} birinci tapdı",
+    time: "Heç kim tapa bilmədi. Cavab: {answer}",
   },
   ranking: {
     title: "Reytinq",
