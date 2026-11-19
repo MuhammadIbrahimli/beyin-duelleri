@@ -42,6 +42,9 @@ export async function duelsTab() {
             h("div", { class: "txt" }, h("b", null, g.name), h("span", null, [t("groups.members", { n: g.members }), t("duels.rank", { n: g.rank })].join(" · "))),
             icon("chevron", 18))))
       : h("p", { class: "muted" }, az.groups.empty),
+    h("a", { class: "list-row", style: "--accent: var(--c-primary)", href: "/live", "data-link": "" },
+      icon("pass", 28),
+      h("div", { class: "txt" }, h("b", null, az.live.entry), h("span", null, az.live.sub))),
     h("div", { class: "pair-input" }, nameIn, create),
     h("div", { class: "pair-input" }, codeIn, join),
     msg,

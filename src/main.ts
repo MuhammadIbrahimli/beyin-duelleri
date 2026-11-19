@@ -14,6 +14,8 @@ route("/d/:code", (c) => invitePage(c.params.code));
 route("/duel/:code", (c) => duelResult(c.params.code));
 route("/qrupla", () => import("./qrupla").then((q) => q.qrupla()));
 route("/duels", () => import("./screens-more").then((m) => m.duelsTab()));
+route("/live", () => import("./room").then((m) => m.livePage()));
+route("/r/:code", (c) => import("./room").then((m) => m.roomPage(c.params.code)));
 route("/g/:code", (c) => import("./screens-more").then((x) => x.groupPage(c.params.code)));
 route("/ranking", () => import("./screens-more").then((m) => m.ranking()));
 route("/passport", () => import("./screens-more").then((m) => m.passport()));
