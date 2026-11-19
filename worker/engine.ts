@@ -2,17 +2,17 @@
 // it returns the messages to send and the timers to start; the host does the sockets and the clock.
 export type Slot = 0 | 1;
 export type Ev = { to: Slot | "all"; msg: Record<string, unknown> };
-export type TimerKind = "countdown" | "show" | "round" | "next" | "away";
+export type TimerKind = "countdown" | "show" | "go" | "round" | "next" | "away";
 export type Timer = { kind: TimerKind; ms: number; round?: number; slot?: Slot };
 export interface Out<R> { room: R; events: Ev[]; timers: Timer[]; error?: string }
 
 export const none = <R>(room: R): Out<R> => ({ room, events: [], timers: [] });
 
-export const GAME_IDS = ["first", "grid", "memory"] as const;
+export const GAME_IDS = ["first", "grid", "memory", "reaction"] as const;
 export type GameId = (typeof GAME_IDS)[number];
 
 /** Messages that start a timed phase. The host remembers when it ends, so a player who comes back can be told the time left. */
-export const TIMED_MESSAGES = new Set(["round", "show", "input"]);
+export const TIMED_MESSAGES = new Set(["round", "show", "input", "ready", "go"]);
 
 export interface Engine<R> {
   create(seed: number): R;
