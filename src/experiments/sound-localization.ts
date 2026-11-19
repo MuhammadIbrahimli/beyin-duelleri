@@ -1,5 +1,7 @@
 import { h, mount } from "../dom";
 import { fx } from "../fx";
+import { audioCtx, track } from "../audio";
+let ctx: AudioContext | null = null;
 import { az, t } from "../i18n";
 
 export interface SoundSchedule { trials: { pan: -1 | 0 | 1 }[] }
@@ -21,7 +23,6 @@ export default function play(root: HTMLElement, schedule: SoundSchedule): Promis
     opts.style.display = "none";
     mount(root, h("div", { class: "screen full", style: "position:relative" }, dots, stage));
 
-    let ctx: AudioContext | null = null;
     let i = 0, answering = false;
     const tone = () => {
       if (!ctx) return;
@@ -34,6 +35,7 @@ export default function play(root: HTMLElement, schedule: SoundSchedule): Promis
       g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
       o.connect(g).connect(p).connect(ctx.destination);
       o.start();
+      track(o);
       o.stop(ctx.currentTime + 0.55);
     };
     const answer = (c: "left" | "center" | "right") => {
@@ -60,8 +62,7 @@ export default function play(root: HTMLElement, schedule: SoundSchedule): Promis
     }
 
     start.addEventListener("click", () => {
-      ctx ??= new AudioContext();
-      if (ctx.state === "suspended") void ctx.resume();
+      ctx = audioCtx();
       start.style.display = "none";
       opts.style.display = "";
       setTimeout(step, 200);

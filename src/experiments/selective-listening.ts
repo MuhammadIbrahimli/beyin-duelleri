@@ -1,5 +1,7 @@
 import { h, mount } from "../dom";
 import { fx } from "../fx";
+import { audioCtx, track } from "../audio";
+let ctx: AudioContext | null = null;
 import { az, t } from "../i18n";
 
 export interface ListenSchedule { trials: { left: number; right: number }[] }
@@ -20,7 +22,6 @@ export default function play(root: HTMLElement, schedule: ListenSchedule): Promi
     ask.style.display = "none";
     mount(root, h("div", { class: "screen full", style: "position:relative" }, dots, stage));
 
-    let ctx: AudioContext | null = null;
     const beep = (freq: number, pan: number, at: number) => {
       if (!ctx) return;
       const o = ctx.createOscillator(), g = ctx.createGain(), p = ctx.createStereoPanner();
@@ -31,6 +32,7 @@ export default function play(root: HTMLElement, schedule: ListenSchedule): Promi
       g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + 0.12);
       o.connect(g).connect(p).connect(ctx.destination);
       o.start(ctx.currentTime + at);
+      track(o);
       o.stop(ctx.currentTime + at + 0.14);
     };
 
@@ -56,8 +58,7 @@ export default function play(root: HTMLElement, schedule: ListenSchedule): Promi
     }
 
     start.addEventListener("click", () => {
-      ctx ??= new AudioContext();
-      if (ctx.state === "suspended") void ctx.resume();
+      ctx = audioCtx();
       start.style.display = "none";
       setTimeout(() => trial(0), 300);
     });

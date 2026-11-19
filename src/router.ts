@@ -1,3 +1,4 @@
+import { stopAll } from "./audio";
 export interface Ctx { params: Record<string, string>; query: URLSearchParams }
 type Handler = (ctx: Ctx) => void | Promise<void>;
 const routes: { re: RegExp; keys: string[]; fn: Handler }[] = [];
@@ -13,7 +14,13 @@ export function go(url: string, replace = false) {
   void render();
 }
 
+let generation = 0;
+/** Changes on every navigation: a game that finishes after the player left checks this and stays quiet. */
+export const navGeneration = () => generation;
+
 export async function render() {
+  generation++;
+  stopAll();
   const u = new URL(location.href);
   for (const r of routes) {
     const m = r.re.exec(u.pathname);

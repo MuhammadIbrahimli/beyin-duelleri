@@ -12,7 +12,7 @@ import { icon, mark } from "./icons";
 import { az, getLang, setLang, t, type Lang } from "./i18n";
 import { available, loaders } from "./experiments";
 import { CATEGORIES } from "../shared/categories";
-import { go } from "./router";
+import { go, navGeneration } from "./router";
 import { lastRun, latest, remember } from "./state";
 
 export const app = () => document.getElementById("app")!;
@@ -175,9 +175,12 @@ export async function play(slug: string, q: URLSearchParams) {
     if (duelCode) return go(`/d/${duelCode}`, true);
     return showError(() => go(location.pathname + location.search, true));
   }
+  const gen = navGeneration();
   const mod = await loader();
   const root = app();
   const payload = await mod.default(root, run.schedule);
+  // the player left the game (menu, another test): the run is not sent and nothing navigates
+  if (gen !== navGeneration()) return;
   try {
     const res: FinishResult = await api("POST", `/runs/${run.runId}/finish`, { payload });
     remember(res);

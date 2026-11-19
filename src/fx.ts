@@ -5,12 +5,11 @@ const SOUND_KEY = "bd_sound";
 export const soundOn = () => localStorage.getItem(SOUND_KEY) === "1";
 export const setSound = (on: boolean) => localStorage.setItem(SOUND_KEY, on ? "1" : "0");
 
-let ctx: AudioContext | null = null;
+import { audioCtx, inExperiment, track } from "./audio";
 function tone(freq: number, ms: number, type: OscillatorType = "sine", gain = 0.05) {
-  if (!soundOn()) return;
+  if (!soundOn() || !inExperiment()) return;
   try {
-    ctx ??= new AudioContext();
-    if (ctx.state === "suspended") void ctx.resume();
+    const ctx = audioCtx();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.type = type;
@@ -19,6 +18,7 @@ function tone(freq: number, ms: number, type: OscillatorType = "sine", gain = 0.
     g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + ms / 1000);
     o.connect(g).connect(ctx.destination);
     o.start();
+    track(o);
     o.stop(ctx.currentTime + ms / 1000);
   } catch { /* audio is a nicety, never an error */ }
 }
