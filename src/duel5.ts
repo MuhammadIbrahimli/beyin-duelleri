@@ -114,6 +114,7 @@ export async function duelHome() {
   const modes = h("div", { class: "d5-modes" },
     h("button", { class: "d5-mode", onclick: friendMatch }, h("b", null, az.duel5.friend), h("small", null, az.duel5.friendSub)),
     h("a", { class: "d5-mode", href: "/train", "data-link": "" }, h("b", null, az.duel5.train), h("small", null, az.duel5.trainSub)),
+    h("a", { class: "d5-mode", href: "/marafon", "data-link": "" }, h("b", null, az.game2.marafon.title), h("small", null, az.game2.marafon.start)),
     daily ? h("a", { class: "d5-mode", href: `/play/${daily.slug}?daily=1`, "data-link": "" },
       h("b", null, az.duel5.daily),
       h("small", null, az.experiments[daily.slug as keyof typeof az.experiments]?.name ?? "")) : null);
@@ -122,7 +123,8 @@ export async function duelHome() {
         h("span", null, `${m.points[0]} : ${m.points[1]} · ${m.opponentBot ? az.duel5.vsBot : m.rated ? az.duel5.rated : az.duel5.friendly}`),
         h("span", { class: "d5-pill " + (m.draw ? "" : m.won ? "won" : "lost") }, m.draw ? az.duel5.draw : m.won ? az.duel5.won : az.duel5.lost))))
     : h("p", { class: "soft" }, az.duel5.noMatches);
-  screen("home", top, league, cta, modes, h("h2", null, az.duel5.recent), recent);
+  const extras = await import("./game2").then((g) => g.homeExtras()).catch(() => null);
+  screen("home", top, league, cta, modes, extras, h("h2", null, az.duel5.recent), recent);
 }
 
 /** Search for an opponent: the server pairs by rating; a bot is only offered after a wait, and is labelled as a bot. */

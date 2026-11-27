@@ -27,7 +27,7 @@ export function tint(slug: string | null) {
 function tabs(active: string) {
   const items: [string, string, string][] = [
     ["/", az.nav.home, "home"], ["/duels", az.nav.duels, "duels"],
-    ["/ranking", az.nav.ranking, "rank"], ["/passport", az.nav.passport, "pass"],
+    ["/leaderboard", az.nav.ranking, "rank"], ["/shop", az.nav.shop, "shop"], ["/profile", az.nav.profile, "pass"],
   ];
   const on = active === "exp" ? "home" : active; // the experiments catalogue lives under Məşq et, inside the home tab
   return h("nav", { class: "tabs" }, h("div", null, ...items.map(([href, label, id]) =>

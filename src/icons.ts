@@ -5,6 +5,8 @@ export const ICONS: Record<string, string> = {
   // tabs
   exp: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
   home: "M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z",
+  shop: "M5 8h14l-1 12H6zM9 8V6a3 3 0 016 0v2",
+  profile: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6",
   duels: "M7 7h13M16 3l4 4-4 4M17 17H4M8 13l-4 4 4 4",
   rank: "M5 21V11M12 21V4M19 21v-6",
   pass: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6",

@@ -1,10 +1,12 @@
+import { game2Ru } from "./game2.ru";
 // Russian UI texts. Must have exactly the same shape as az.ts (the compiler checks it).
 // TODO(verify): a native speaker should read every string, and the science blurbs need real sources.
 import type { Dict } from "./az";
 
 export const ru: Dict = {
   app: { name: "Beyin duelləri", tagline: "Проверь мозг вместе с другом." },
-  nav: { experiments: "Тесты", duels: "Дуэли", ranking: "Рейтинг", passport: "Паспорт", home: "Главная" },
+  nav: { experiments: "Тесты", duels: "Дуэли", ranking: "Рейтинг", passport: "Паспорт", home: "Главная", shop: "Магазин", profile: "Профиль" },
+  game2: game2Ru,
   duel5: {
     cta: "В ДУЭЛЬ",
     ctaSub: "Встреться со случайным соперником",

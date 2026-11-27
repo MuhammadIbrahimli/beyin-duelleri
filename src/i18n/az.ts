@@ -1,8 +1,10 @@
+import { game2Az } from "./game2.az";
 // All UI text lives here. TODO(verify): every string needs a check by a native Azerbaijani speaker
 // (and the science blurbs by someone who can vouch for the sources).
 export const az = {
   app: { name: "Beyin duelləri", tagline: "Beynini dostunla yoxla." },
-  nav: { experiments: "Təcrübələr", duels: "Duellər", ranking: "Reytinq", passport: "Pasport", home: "Ana səhifə" },
+  nav: { experiments: "Təcrübələr", duels: "Duellər", ranking: "Reytinq", passport: "Pasport", home: "Ana səhifə", shop: "Mağaza", profile: "Profil" },
+  game2: game2Az,
   duel5: {
     cta: "DUELƏ BAŞLA",
     ctaSub: "Təsadüfi rəqiblə qarşılaş",

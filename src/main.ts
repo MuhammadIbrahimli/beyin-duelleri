@@ -8,6 +8,13 @@ route("/", () => import("./duel5").then((d) => d.duelHome()));
 // the experiments catalogue is reached from the home screen (Məşq et)
 route("/train", () => home());
 route("/match/search", (c) => import("./duel5").then((d) => d.duelSearch(c.query.get("rematch"))));
+route("/shop", () => import("./game2").then((g) => g.shopPage()));
+route("/marafon", () => import("./game2").then((g) => g.marafonPage()));
+route("/leaderboard", (c) => import("./game2").then((g) => g.boardPage(c.query.get("tab") ?? "rating", c.query.get("scope") ?? "world", Number(c.query.get("page")) || 1)));
+route("/friends", () => import("./game2").then((g) => g.friendsPage()));
+route("/teams", () => import("./game2").then((g) => g.teamsPage()));
+route("/teams/:id", (c) => import("./game2").then((g) => g.teamPage(c.params.id)));
+route("/profile", () => import("./game2").then((g) => g.profilePage()));
 route("/e/:slug", (c) => intro(c.params.slug));
 route("/play/:slug", (c) => play(c.params.slug, c.query));
 route("/c/:id", (c) => category(c.params.id));
