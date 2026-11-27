@@ -1,116 +1,115 @@
-# Каталог тестов по категориям
+# Experiment Catalog by Category
 
-Здесь собраны тесты, которые уже есть в приложении, и кандидаты из открытых библиотек. Кандидаты нельзя считать проверенными: каждый нужно реализовать, подобрать пороги и проверить на людях, прежде чем включать в «Beyin balı».
+This catalog lists experiments already in the app and candidates from open experiment libraries. Candidates are not validated merely because they appear here: implement each one, choose scoring thresholds, and test it with people before including it in Beyin balı.
 
-Источники (парадигмы, не код: код мы пишем сами, GPL-код PEBL и библиотеку PsyToolkit не копируем):
-- [PsyToolkit, библиотека экспериментов](https://psytoolkit.org/experiment-library) (более 50 парадигм: Corsi, N-back, Flanker, Simon, SART, PVT, Navon, Mental rotation, Tower of Hanoi, Wisconsin и др.)
-- [PEBL, тестовая батарея](https://pebl.sourceforge.net/battery.html) (около 50–70 тестов: Wisconsin, Trail Making, Tower of London, Iowa Gambling Task и др.)
+Sources are references to experimental paradigms, not code. The project writes its own code and does not copy GPL-licensed PEBL code or PsyToolkit's library.
 
-Статусы: **есть** (уже в приложении), **следующий** (берём в ближайшую пачку), **потом** (когда будет время и данные).
+- [PsyToolkit experiment library](https://psytoolkit.org/experiment-library) — more than 50 paradigms, including Corsi, N-back, Flanker, Simon, SART, PVT, Navon, mental rotation, Tower of Hanoi, and Wisconsin tasks.
+- [PEBL test battery](https://pebl.sourceforge.net/battery.html) — roughly 50–70 tests, including Wisconsin, Trail Making, Tower of London, and Iowa Gambling Task.
 
-## Yaddaş (память)
+**Statuses:** **available** means already in the app; **next** means considered for the next batch; **later** means deferred.
 
-| Тест | Парадигма | Статус | Идея для 60 секунд |
-|---|---|---|---|
-| Yaddaş zənciri | Блоковый span, как Corsi | есть | запомни порядок плиток |
-| Yalançı yaddaş | ложная память DRM | есть | запомни слова, ответь, что было |
-| Rəqəm yaddaşı | span цифр | есть | запомни и введи цифры |
-| Обратный span цифр | Digit span backward | есть | те же цифры, но в обратном порядке |
-| Операционный span | Automated Operation Span | следующий | реши пример, запомни букву; повтори буквы по порядку |
-| N-back (2-back) | N-back | есть | жми, если буква совпадает с той, что была 2 шага назад |
-| Список слов | free recall | потом | запомни 12 слов, напиши сколько сможешь |
+## Yaddaş (Memory)
 
-## Diqqət (внимание и контроль)
+| Test | Paradigm | Status | 60-second idea |
+| --- | --- | --- | --- |
+| Yaddaş zənciri | Corsi-like block span | Available | Remember the order of tiles |
+| Yalançı yaddaş | DRM false memory | Available | Remember words, then identify which ones appeared |
+| Rəqəm yaddaşı | Digit span | Available | Remember and enter a sequence of digits |
+| Reverse digit span | Digit span backward | Available | Enter the same digits in reverse |
+| Operation span | Automated Operation Span | Next | Solve a math problem and remember a letter; recall the letters in order |
+| N-back (2-back) | N-back | Available | Tap when the current letter matches the one from two steps earlier |
+| Word list | Free recall | Later | Remember 12 words and type as many as you can recall |
 
-| Тест | Парадигма | Статус | Идея для 60 секунд |
-|---|---|---|---|
-| Rəng və söz | Stroop | есть | назови цвет букв, а не слово |
-| Toxun, ya yox | Go/No-Go | есть | тапни по зелёному, не тапай по красному |
-| Flanker | Eriksen Flanker | есть | смотри на центральную стрелку среди отвлекающих |
-| Simon | Simon task | есть | тапни левую или правую кнопку по цвету, не по стороне экрана |
-| SART | Sustained Attention to Response | есть | жми на все цифры, кроме тройки |
-| Поиск цели | Visual search | потом | найди один особый элемент среди похожих |
-| Внимание, сетевой тест | Attention Network Test | потом | подсказка показывает, где ждать цель |
+## Diqqət (Attention and Control)
 
-## Sürət (скорость и реакция)
+| Test | Paradigm | Status | 60-second idea |
+| --- | --- | --- | --- |
+| Rəng və söz | Stroop | Available | Name the letter color, not the written word |
+| Toxun, ya yox | Go/No-Go | Available | Tap green, do not tap red |
+| Flanker | Eriksen Flanker | Available | Respond to the center arrow among distractors |
+| Simon | Simon task | Available | Choose left or right based on color, not screen position |
+| SART | Sustained Attention to Response | Available | Tap every number except three |
+| Target search | Visual search | Later | Find one unusual item among similar items |
+| Attention network test | Attention Network Test | Later | A cue shows where to expect the target |
 
-| Тест | Парадигма | Статус | Идея для 60 секунд |
-|---|---|---|---|
-| Refleks | простая реакция | есть | тапни, когда экран станет зелёным |
-| Символы и цифры | Digit Symbol Substitution (DSST) | есть | по ключу подставь символ к каждой цифре за 60 секунд |
-| Психомоторная бдительность | PVT | есть | жди случайный сигнал и тапни как можно быстрее |
-| Выбор из двух | two-choice RT | потом | быстро выбери левую или правую реакцию |
+## Sürət (Speed)
 
-## Qavrayış (восприятие)
+| Test | Paradigm | Status | 60-second idea |
+| --- | --- | --- | --- |
+| Refleks | Simple reaction time | Available | Tap when the screen turns green |
+| Symbols and digits | Digit Symbol Substitution (DSST) | Available | Use a key to match symbols to digits for 60 seconds |
+| Psychomotor vigilance | PVT | Available | Wait for a random signal and tap as quickly as possible |
+| Two-choice response | Two-choice reaction time | Later | Quickly choose a left or right response |
 
-| Тест | Парадигма | Статус | Идея для 60 секунд |
-|---|---|---|---|
-| Eyni rəngdir? | яркостный контраст, Мюллер-Лайер, Эббингауз | есть | одинаковы ли два объекта |
-| Глобальное и локальное | Navon | есть | что видно сразу: большая буква или из мелких букв |
-| Мысленный поворот | Mental rotation (Shepard, Metzler, 1971) | есть | одинаковы ли две фигуры, если одну повернули |
-| Изменение сцены | change detection | потом | что изменилось между двумя картинками |
-| Понцо, решётка Германа | классические иллюзии | потом | осторожно: иллюзии уже есть в «Eyni rəngdir?» |
+## Qavrayış (Perception)
 
-## Düşüncə (мышление и решения)
+| Test | Paradigm | Status | 60-second idea |
+| --- | --- | --- | --- |
+| Eyni rəngdir? | Luminance contrast, Müller-Lyer, Ebbinghaus | Available | Decide whether two objects are the same |
+| Global and local | Navon | Available | See the large letter or the small letters that form it |
+| Mental rotation | Shepard–Metzler mental rotation | Available | Decide whether two shapes match after rotation |
+| Scene change | Change detection | Later | Find what changed between two images |
+| Ponzo, Hermann grid | Classic illusions | Later | Use carefully; similar illusions already appear in Eyni rəngdir? |
 
-| Тест | Парадигма | Статус | Идея для 60 секунд |
-|---|---|---|---|
-| Lövbər | якорение | есть | оценка числа при разном якоре |
-| Ханойская башня | Tower of Hanoi | есть | за минимум ходов переложи диски |
-| Смена правила | Dimensional Card Sorting / Wisconsin | следующий | угадай правило сортировки по обратной связи и смени его |
-| Переключение задач | task switching | есть | чередуй два правила для одной и той же карточки |
-| Шар и бита | Bat-and-ball (рефлексивное мышление) | потом | короткие задачи, где интуитивный ответ неверный |
-| Балун | BART (риск) | потом | надувай шар: чем дальше, тем выше награда и риск лопнуть |
-| Игра с картами | Iowa Gambling Task | потом | долгая, в 60 секунд не умещается |
+## Düşüncə (Reasoning and Decisions)
 
-## Что это значит по объёму
+| Test | Paradigm | Status | 60-second idea |
+| --- | --- | --- | --- |
+| Lövbər | Anchoring effect | Available | Estimate a number after seeing different anchors |
+| Tower of Hanoi | Tower of Hanoi | Available | Move disks in as few steps as possible |
+| Rule switching | Dimensional Card Sorting / Wisconsin | Next | Infer a sorting rule from feedback and then switch |
+| Task switching | Task switching | Available | Alternate two rules for the same card |
+| Ball and bat | Bat-and-ball / reflective reasoning | Later | Short problems where the intuitive answer is wrong |
+| Balloon | BART risk task | Later | Inflate a balloon for a higher reward while risking a pop |
+| Card game | Iowa Gambling Task | Later | A longer task that does not fit a 60-second session |
 
-- Уже есть 19 тестов.
-- В следующей пачке 9 кандидатов (по 1–3 в каждой категории).
-- Всего в каталоге около 25 мест. Для 10–20 в каждой категории нужно ещё 2–3 пачки, и парадигм для этого достаточно.
+## Catalog size
 
-## Ограничения
+- The earlier catalog listed 19 available tests.
+- The next batch listed nine candidates, one to three in each category.
+- The catalog had about 25 slots at that time. Reaching 10–20 per category would require two or three more batches, and suitable paradigms exist.
 
-- Многие парадигмы в 60 секунд теряют надёжность. Версия из библиотеки длится 5–15 минут, так что короткие варианты надо проверять на людях.
-- Пороги и баллы (`config/points.ts`) для каждого нового теста стартовые, их нужно пересчитать по данным.
-- Названия на азербайджанском и русском пока не проверены носителями.
+## Limitations
 
-## Механики и дубли
+- Many paradigms lose reliability when shortened to 60 seconds. Standard library versions often take 5–15 minutes, so short versions need user testing.
+- Initial thresholds and scores in `config/points.ts` need recalibration using collected data.
+- Azerbaijani and Russian test names have not all been reviewed by native speakers.
 
-Правило: один тест на одну механику. Соответствие механики каждому тесту — в `shared/mechanisms.ts`: тип требует записи для каждого теста, а тест в `tests/features.test.ts` падает, если механика повторилась.
+## Mechanics and duplicates
 
-Что было убрано как дубль (2025-11 аудит): Flanker и Simon (конфликт, как Stroop), Navon (глобальный–локальный конфликт, тот же паттерн), SART (вариант Go/No-Go), PVT (простая реакция, как Refleks), обратный span цифр (span, как «Rəqəm yaddaşı»).
+Rule: each test should use one distinct mechanic. The mapping lives in `shared/mechanisms.ts`; the type requires a mapping for every test, and `tests/features.test.ts` fails when a mechanic is duplicated.
 
-Оставлены разные по сути: Corsi-подобный span (пространственный) и span цифр (вербальный) — разные хранилища памяти, их раздельно и измеряют. Если решите считать их дублями, уберите один.
+The 2025-11 audit removed duplicates: Flanker and Simon (conflict like Stroop), Navon (the same global/local conflict pattern), SART (a Go/No-Go variant), PVT (simple reaction like Refleks), and reverse digit span (a span task like Rəqəm yaddaşı).
 
-Карточная сортировка не делается: она ближе всего к переключению правил.
+Corsi-like spatial span and digit span remain separate because they use spatial and verbal memory stores. If they are considered duplicates, remove one. Card sorting was not added because it is closest to the existing rule-switching test.
 
-## Добавлено в последней пачке
+## Recent additions
 
-- Свободное воспроизведение слов (`word-recall`, память): слова из наборов языка, без подсказки.
-- Attentional blink (`attentional-blink`, внимание): две цифры в потоке букв.
-- Силлогизмы (`syllogism`, мышление): вывод в символах, без смысла слов.
-- Устный счёт (`mental-arithmetic`, скорость): задачи со временем.
+- Free word recall (`word-recall`, memory): recall words from language-specific sets without cues.
+- Attentional blink (`attentional-blink`, attention): detect two digits in a stream of letters.
+- Syllogisms (`syllogism`, reasoning): draw a symbolic conclusion without relying on word meaning.
+- Mental arithmetic (`mental-arithmetic`, speed): solve timed calculations.
 
-## Перцепция, последняя пачка
+## Recent perception additions
 
-- Направление движения точек с шумом (`random-dot-motion`).
-- Подсчёт точек (`numerosity`): малые количества видны сразу, большие оцениваются.
+- Random-dot motion direction (`random-dot-motion`).
+- Numerosity (`numerosity`): small quantities are perceived immediately; larger ones are estimated.
 
-## Проверка экранов
+## Screen check
 
-Все 28 адресов `/play/<slug>` открываются в браузере и отрисовывают игровой экран без ошибок в консоли. Полное прохождение каждого теста вручную не проверялось.
+All 28 `/play/<slug>` routes opened in a browser and rendered the game screen without console errors. Each experiment was not manually completed end to end.
 
-## Последняя пачка: ощущения и решения
+## Recent tasks: perception and decisions
 
-- Середина линии (`line-bisection`, восприятие): ошибка в процентах и смещение вправо или влево.
-- Колоды карт (`iowa-gambling`, мышление): обучение на исходах четырёх колод; итог — чистый выигрыш.
-- Высота тона (`pitch-discrimination`, восприятие): звук нужен, экран начинается с кнопки «Начать». Результат зависит от наушников и динамиков.
+- Line bisection (`line-bisection`, perception): report percentage error and left/right bias.
+- Iowa Gambling (`iowa-gambling`, reasoning): learn from outcomes of four decks; score is net gain.
+- Pitch discrimination (`pitch-discrimination`, perception): requires audio and begins with a Start button. Results depend on speakers or headphones.
 
-Словесная беглость отложена: нужен словарь, чтобы проверять слова.
+Verbal fluency was deferred because it needs a dictionary to validate responses.
 
-## Итог: 55 тестов из 60
+## Current total: 55 of 60 target tests
 
-Цель была 12 на категорию. Не хватает: память (1), внимание (3), скорость (1). Эти механики либо требуют контента, которого у нас нет (полноценный словарь, картинки лиц), либо дублируют уже сделанные тесты, поэтому не добавлялись.
+The goal was 12 tests per category. Remaining gaps listed in the source notes were memory (1), attention (3), and speed (1). Those mechanics either require content that is not available (such as a full dictionary or face images) or duplicate existing tests, so they were not added.
 
-Честные оговорки: словесная беглость проверяет только форму слова (словаря нет); мелькание ограничено частотой экрана (около 30 Гц); порядок вспышек и локализация звука зависят от устройства и наушников; для колод, пары, Posner, MOT и ряда других тестов ответы частично видны клиенту (как и в тестах с обратной связью).
+**Caveats:** verbal fluency currently checks only word form because there is no dictionary; flicker tasks are limited by screen refresh rate (about 30 Hz); flash order and sound localization depend on the device; and in card, pair, Posner, MOT, and several other tasks, some answers are visible to the client, as is common in feedback-based tests.
