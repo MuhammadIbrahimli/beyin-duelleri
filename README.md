@@ -81,3 +81,25 @@ Email is stored only after separate consent. The app is a set of short behaviora
 ## License
 
 See [LICENSE](LICENSE).
+
+## Beyin duellisi 2.0
+
+Competitive layer: a five-discipline match (reaction, memory, math, attention, logic), a shared matchmaking queue with rating-based pairing, training bots (Asan, Orta, Çətin, Ekspert), Elo rating with leagues, XP, Qızıl currency, quests, achievements, a cosmetic shop, Marafon, leaderboards, friends, teams, team challenges, city battles, seasons, streaks and shareable result cards. The interface is available in Azerbaijani (AZ) and Russian (RU); the switch is on every screen.
+
+- Everything that affects a result or a reward is computed on the server. The client sends only moves and choices.
+- Settings live in `config/`: `match.ts`, `matchmaking.ts`, `rating.ts`, `economy.ts`, `quests.ts`, `achievements.ts`, `shop.ts`, `marafon.ts`, `seasons.ts`, `season-rewards.ts`, `streak.ts`, `city-battles.ts`, `universities.ts` (official names from the Ministry of Science and Education pages, see the comment in the file) and `ads.ts`.
+- Migrations `0019`–`0023` only add tables and one nullable column per change; existing data is not touched.
+- Durable Object `Queue` (shared matchmaking queue) requires migration `v2` in `wrangler.toml`.
+- Payments and ads are switched off in `config/ads.ts`: nothing is charged or shown without a provider. `/api/shop/order` and `/api/ads/reward` answer 503 until then.
+
+```bash
+npm run db:migrate:local
+npm run dev
+npm test
+npm run typecheck
+npx vite build
+```
+
+Owner analytics: `GET /api/admin/duel-stats` with the `x-admin-token` header, or the `/admin-duel` page.
+
+Status and known limitations: `IMPLEMENTATION_PROGRESS.md`.
