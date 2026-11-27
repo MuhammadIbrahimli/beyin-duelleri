@@ -1,43 +1,43 @@
-# Рекламодатели: что показывать и где искать
+# Advertisers: What to Show and Where to Look
 
-Это практический план, а не гарантия дохода. Названия компаний ниже только примеры категорий, проверь актуальность и контакты сам.
+This is a practical plan, not an income guarantee. Company names and categories are examples; check current contacts and relevance before outreach.
 
-## Какие цифры брать из `/admin`
+## Metrics from `/admin`
 
-Рекламодателя интересует охват, аудитория и вовлечённость, и он обычно просит скриншоты. Показывай только то, что видно в панели:
+Advertisers usually ask about reach, audience, and engagement. Share only metrics that are visible in the admin panel:
 
-- **MAU** (уникальные посетители за 30 дней), WAU и DAU. Это главная цифра.
-- **Тестов на человека** и **возврат на 7-й день**: показывают, что люди возвращаются.
-- **Позвали друга**: доказывает органический рост (вирусность).
-- **Города, устройства, языки**: кто эта аудитория. Возраст мы не собираем, поэтому не обещай «16–35» как факт. Источник такого утверждения может быть только аналитика канала или опрос.
-- Блок «Медиакит» в админке собирает текст из этих цифр. Не округляй вверх.
+- **MAU, WAU, and DAU:** unique monthly, weekly, and daily visitors; MAU is the headline metric.
+- **Tests per player** and **day-seven return:** indicators of repeat use.
+- **Friend invitations:** a measure of referral activity.
+- **Cities, devices, and languages:** describe only what the product actually records. The app does not collect age, so do not state an age range as a fact unless it comes from a separate survey or channel analytics.
+- The admin media-kit block summarizes these figures. Do not round numbers upward.
 
-Порядки величин, с которых разговор имеет смысл: хотя бы несколько тысяч MAU. Раньше этого продавай не рекламу, а коллаборацию («тест дня от бренда на неделю») за небольшую фиксированную сумму или бартер.
+A conversation may become more practical once there are several thousand monthly active users. Earlier, offer a small pilot or barter collaboration, such as a clearly sponsored daily test for a week, instead of selling reach the product cannot yet demonstrate.
 
-## Что продавать
+## Possible offers
 
-1. **Спонсорский тест дня или недели**, всегда с пометкой «Sponsorlu». В интерфейсе пока нет отдельного слота, его нужно добавить, когда появится первый клиент.
-2. **Челленджи городов** («Bakı vs Gəncə неделя при поддержке …»). Это прямо ложится на рейтинг городов.
-3. **Интеграция в видео канала.** Основная ценность для бренда часто здесь, приложение усиливает её.
-4. **Групповые страницы для организаций** (школа, вуз, компания): организация платит за брендированную группу и отчёт.
+1. A sponsored test of the day or week, visibly labeled **Sponsorlu**. The interface may need a dedicated sponsor slot before the first client.
+2. A city challenge, such as a sponsored Baku-versus-Ganja week.
+3. A placement in a channel video, with the app as an extension of that content.
+4. A branded group page and aggregate report for a school, university, or company.
 
-## Где искать
+## Potential partners
 
-- **Те, кто уже тратит на молодёжь в соцсетях:** телеком-операторы, банки и финтех, доставка еды, маркетплейсы, магазины электроники, энергетики и напитки, онлайн-образование и курсы, языковые центры, вузы, приложения для такси и самокатов.
-- **Как выйти:** писать маркетинг-менеджеру или в отдел digital/SMM напрямую (через LinkedIn и Instagram), а не в общую почту. Перед письмом посмотри, какие кампании бренд уже делает с блогерами: чем ближе к твоему формату, тем лучше.
-- **Посредники:** рекламные и инфлюенсер-агентства в Баку, которые собирают блогеров под бренды. Для них твой канал с приложением выглядит как готовый «нативный» продукт.
-- **Рекламные сети** как запасной вариант (небольшой стабильный доход, но на малой аудитории копейки): Google AdSense/Ad Manager, для русскоязычной аудитории также Яндекс Рекламная сеть. Проверь, какая выплачивает на твой способ получения денег.
-- **Собственный канал.** Закреплённое сообщение «Реклама и сотрудничество: …» и контакт в описании, плюс страница-медиакит.
+Consider brands already advertising to young audiences: telecom operators, banks and fintech, food delivery, marketplaces, electronics retailers, beverage companies, online education, language centers, universities, and mobility apps.
 
-## Как вести разговор
+Contact a marketing, digital, or social-media manager directly through a professional channel. Review the brand's current creator campaigns and propose a format that fits. Baku advertising and influencer agencies may also be useful partners.
 
-1. Одна страница: что это, MAU, возврат, города, примеры форматов, цена пилота (например, неделя «тест дня»).
-2. Предложи **пилот** на 1–2 недели с отчётом из админки по итогам: это снижает риск для бренда.
-3. Метки источников: для каждого бренда и видео делай отдельную ссылку `?s=brandname`, тогда в админке видно, сколько людей он привёл.
-4. Правила: рекламный контент всегда помечен «Sponsorlu», без обещаний про здоровье и интеллект, бренду отдаются только агрегаты, личные данные не передаются.
+Ad networks are a later fallback; earnings may be very small with a limited audience. Check payment availability and eligibility for the account and country before relying on a network.
 
-## Юридически (проверь у юриста)
+Keep a visible contact for advertising inquiries on the channel and prepare a one-page media kit.
 
-- Требования к маркировке рекламы и к согласию на рассылку.
-- Закон о персональных данных: теперь собираются имя, город, email.
-- Условия платёжных провайдеров и налоги для разных форм работы.
+## How to pitch
+
+1. Prepare one page describing the product, actual MAU and retention, cities, available formats, and a pilot price.
+2. Offer a one- or two-week pilot with an aggregate report from the admin panel.
+3. Use a separate source tag such as `?s=brandname` for each partner or video to measure visits.
+4. Label all promotional content. Do not make health or intelligence claims. Share aggregate data only; do not disclose personal data.
+
+## Legal review
+
+Ask a qualified local professional to review advertising labels, consent for notifications, personal-data rules, payment-provider terms, and tax treatment. The product may collect names, cities, and email addresses, so keep the privacy notice and consent flow accurate.

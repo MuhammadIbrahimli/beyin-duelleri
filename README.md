@@ -1,126 +1,83 @@
-# Beyin duelləri
+# Beyin Duelleri
 
-Веб-приложение (PWA) на азербайджанском и русском: мини-эксперимент за 60–90 секунд, карточка результата, дуэль с другом и общий рейтинг «Beyin balı».
-Стек: TypeScript, Vite, Cloudflare Workers + Hono, Cloudflare D1. Исходные требования: `SPEC.md`.
+Beyin Duelleri is an Azerbaijani-first brain-experiment PWA. A player completes a short interactive test, gets a result card, challenges a friend, and can compare results through group and city rankings. The interface is available in Azerbaijani and Russian.
 
-## Запуск локально
+The project uses TypeScript, Vite, Cloudflare Workers with Hono, and Cloudflare D1. The original product concept is documented in [SPEC.md](SPEC.md); the current test inventory and limitations are in [docs/tests-catalog.md](docs/tests-catalog.md).
 
-Нужен Node 22+ (проверено на 24).
+## Run locally
+
+Requirements: Node.js 22 or newer and npm.
 
 ```bash
 npm install
-```
-
-```bash
 npm run db:migrate:local
-```
-
-```bash
 npm run dev
 ```
 
-Открой http://localhost:8787. `npm run dev` сам собирает фронтенд, создаёт `.dev.vars` (секрет сессий и токен админки) и запускает Worker с локальной D1.
+Open [http://localhost:8787](http://localhost:8787). The development command builds the frontend, prepares local `.dev.vars` values, and runs the Worker against a local D1 database.
 
-| Действие | Команда |
+The local admin page is [http://localhost:8787/admin](http://localhost:8787/admin). The admin token is in `.dev.vars` under `ADMIN_TOKEN`.
+
+## Common commands
+
+| Task | Command |
 | --- | --- |
-| Тесты | `npm test` |
-| Проверка типов | `npm run typecheck` |
-| Фронтенд с горячей перезагрузкой (рядом с `npm run dev`) | `npm run dev:web` |
-| Тестовые данные (фейковые игроки) | `npm run db:seed` |
-| Убрать тестовые данные | `npm run db:unseed` |
-| Пересчитать процентили (cron вручную, сервер должен работать) | `npm run db:cron` |
-| Список всех `TODO(verify)` | `npm run todo` |
+| Run tests | `npm test` |
+| Check types | `npm run typecheck` |
+| Run the frontend dev server separately | `npm run dev:web` |
+| Seed sample players | `npm run db:seed` |
+| Remove sample players | `npm run db:unseed` |
+| Recalculate percentiles | `npm run db:cron` |
+| List `TODO(verify)` markers | `npm run todo` |
 
-Админка: http://localhost:8787/admin, токен лежит в `.dev.vars` (`ADMIN_TOKEN`).
-Метки источников: ссылка вида `http://localhost:8787/?s=video3` запоминает источник первого визита.
+A source tag can be tested with a URL such as `http://localhost:8787/?s=video3`.
 
-## Деплой на Cloudflare
+## Deploy to Cloudflare
 
-Первый раз (создаёт D1, применяет миграции, собирает, деплоит, задаёт секреты `SESSION_SECRET`, `ADMIN_TOKEN` и ключи Web Push `VAPID_PRIVATE`/`VAPID_PUBLIC`; токен админки печатается один раз, сохрани его). Перед этим один раз `npx wrangler login`.
+First-time setup provisions D1, runs migrations, builds and deploys the app, and configures secrets:
 
 ```bash
+npx wrangler login
 npm run setup
 ```
 
-Все следующие разы (сборка, миграции, деплой):
+Save the generated admin token when it is shown. For subsequent releases:
 
 ```bash
 npm run deploy
 ```
 
-- **Напоминания о серии (Web Push).** Нужен контакт для push-сервисов: после `npm run setup` выполни `npx wrangler secret put VAPID_SUBJECT` и введи `mailto:твой@адрес` или адрес сайта (если пусто, берётся `SITE_ORIGIN`; без обоих напоминания выключены). Cron раз в час, с 19:00 до 21:59 по Баку шлёт пустой push тем, кто играл вчера в тест дня, а сегодня ещё нет (не больше 40 за запуск, чтобы не упереться в лимит запросов бесплатного плана; на большой аудитории это нужно будет переносить на очередь).
-- Один Worker отдаёт и статику (`dist/`), и API (`/api/*`). Cron раз в час пересчитывает процентили.
-- Ограничение частоты: Rate Limiting binding (120 запросов в минуту на хэш IP). IP не хранится, хэш с солью, которая меняется каждые сутки.
-- Короткий домен: подключи в панели Cloudflare, впиши его в `config/brand.ts` (для карточек), при желании в `SITE_ORIGIN` в `wrangler.toml`.
-
-## Что внутри
-
-- **55 тестов**, по одному на механику (`shared/mechanisms.ts`). Категории: память (11), внимание (9), скорость (11), восприятие (12), мышление (12). Список и источники: `docs/tests-catalog.md`.
-- **Beyin balı (0–100).** Каждый результат переводится в баллы (`config/points.ts`), в общий балл идёт лучший результат по каждому тесту, среднее по всем тестам, непройденный тест = 0. Рейтинг городов и игроков живой (считается на лету по таблице `user_scores`), город появляется уже с одним игроком.
-- **Профиль.** Имя, город и email необязательны. Предлагаются один раз после первого результата, редактируются в «Pasport». Имя проверяется (длина, символы, без ссылок). Email хранится только с отдельной галочкой согласия.
-- **Группы.** Постоянные группы (класс, друзья, коллеги): один код и общий рейтинг по Beyin balı. До 50 человек, до 5 своих групп.
-- **Языки.** Азербайджанский и русский, переключатель AZ | RU. Язык определяется по браузеру, запоминается. Дуэль остаётся на языке создателя (одинаковые слова).
-- **Звук и вибрация.** Вибрация по умолчанию (на iPhone Safari её нет, переключатель там скрыт), звук включается в «Pasport».
-- **Код восстановления.** В «Pasport» можно показать код вида `XXXX-XXXX-XXXX` и войти по нему на другом устройстве или после очистки браузера. В базе только хэш, новый код отменяет старый.
-- **Напоминания о серии.** Включаются в «Pasport» (браузер сам спросит разрешение; на iPhone сначала «Добавить на экран»). Текст уведомления зашит в `public/sw.js` на двух языках.
-- **Карточки итогов.** В «Pasport» кнопки «Последние 7 / 30 дней» собирают карточку: Beyin balı, число тестов и дней, изменение балла, самый сильный тест, серия, место.
-- **Аналитика для рекламодателей.** `/admin`: посетители за день/неделю/месяц (DAU/WAU/MAU) и по месяцам, новые пользователи, воронка, возврат на 1 и 7 день, города, устройства, языки, источники, текст медиакита, модерация имён, выгрузка email (только с согласием). Подробнее: `docs/advertisers.md`.
-
-```
-shared/      логика клиента и сервера: seed, баллы, Beyin balı, уровни, дуэли, серия, валидность, профиль
-worker/      Hono API, cron-агрегация, бейджи, рейтинги, группы, админка
-src/         клиент: экраны, эксперименты (лениво), карточки на canvas, i18n (az, ru)
-src/tokens.css   дизайн-токены: цвета, шрифты, отступы, движение (меняй здесь)
-config/      данные для проверки: источники, слова, факты, пороги, баллы, города, список запрещённых слов
-migrations/  схема D1
-tests/       vitest
-```
-
-Сервер выдаёт seed и расписание задания, клиент присылает только времена и ответы, баллы и валидность считает сервер.
-
-## Что нужно проверить перед запуском (`TODO(verify)`)
-
-Я не выдумывал данные: всё помечено в коде и ждёт тебя. Актуальный список: `npm run todo`.
-
-1. **Тексты** (`src/i18n/az.ts`, `src/i18n/ru.ts`): все строки и блоки «Elm necə deyir» проверяют носители обоих языков. Кнопка «Ənə» в «Eyni rəngdir?» (в SPEC так, похоже на опечатку).
-2. **Источники** (`config/sources.ts`): ссылки на первоисточники для всех 11 тестов.
-3. **Наборы слов** (`config/wordsets.ts`): по 10 наборов на язык, все написаны мной, их должен проверить носитель (сила ассоциаций, орфография). После первых сотен прохождений убрать наборы, на которых приманку почти никто не «помнит».
-4. **Факты для «Lövbər»** (`config/lovber.ts`): 11 вопросов с общеизвестными округлёнными значениями, ни одно не сверено с источником (поле `sourceUrl` пустое). Сверить каждое и добавить ссылку. Кривая баллов для процентной ошибки тоже стартовая.
-5. **Пороги уровней и баллы** (`config/levels.ts`, `config/points.ts`): стартовые, пересчитать по процентилям после первых сотен прохождений. Для двух новых тестов (Go/No-Go, цифры) пороги мои, не из SPEC.
-6. **Запрещённые слова в именах** (`config/blocklist.ts`): стартовый короткий список (az, ru, en), проверка устойчива к регистру, разделителям и буквам-двойникам (`S1k.t1r`). Носители должны расширить и проверить его; в админке можно сбросить любое имя.
-7. **Ники, города, видео, домен/метка канала** (`config/nicknames.az.ts`, `config/cities.ts`, `config/videos.ts`, `config/brand.ts`).
-8. **Страница «Məxfilik»**: текст проверяет юрист (закон Азербайджана о персональных данных). Теперь он должен учитывать имя, email и рассылку.
-
-## Открытые решения и ограничения
-
-- Имя игрока теперь свободный текст, видимый другим (это меняет принцип SPEC «никакого свободного текста между людьми»). Защита: 2–20 символов, без ссылок и контактов, фильтр запрещённых слов, сброс в админке.
-- Рейтинг городов считается по среднему баллу, город виден с одного игрока; рядом всегда число игроков, а при малых городах показывается предупреждение.
-- Результаты «Lövbər» до этого обновления хранились в метрах, теперь в процентах. На новом деплое это не важно, на старой локальной базе старые значения выглядят как огромные проценты (`npm run db:unseed` и удаление `.wrangler/state` чистят базу).
-- Email только сохраняется (с согласием): отправки писем в приложении пока нет, это отдельная задача (нужен почтовый сервис).
-- «Eyni rəngdir?»: во всех трёх раундах пары равны, ответ «Ənə» три раза даёт 0 ошибок.
-- Не сделано: Telegram-бот, лиги недели, «Səni necə görürlər?», косметика, B2B-страница для школ, спонсорский слот теста дня, отправка писем на email.
-- Деплой на настоящий Cloudflare не проверялся: тесты идут на имитации D1 (`node:sqlite`), Web Push проверен тестами (подпись VAPID, выбор адресатов) и не проверен на реальных push-сервисах. Первый деплой считай пробным прогоном.
-
-## Beyin duellisi 2.0 (новое)
-
-Соревновательная часть: матч из пяти дисциплин (реакция, память, математика, внимание, логика), общая очередь с подбором по рейтингу, боты (Asan, Orta, Çətin, Ekspert), рейтинг Elo с лигами, опыт, Qızıl, квесты, достижения, магазин, Марафон, таблицы лидеров, друзья, команды, битва городов, сезоны, серии, карточки для публикации.
-
-- Всё, что влияет на результат или награду, считает сервер. Клиент присылает только ходы.
-- Настройки в `config/`: `match.ts`, `matchmaking.ts`, `rating.ts`, `economy.ts`, `quests.ts`, `achievements.ts`, `shop.ts`, `marafon.ts`, `seasons.ts`, `season-rewards.ts`, `streak.ts`, `city-battles.ts`, `universities.ts` (официальные названия с сайта Министерства науки и образования, см. комментарий в файле), `ads.ts`.
-- Миграции: `0019` (матчи, рейтинг, кошельки), `0020` (квесты, достижения, Марафон, магазин, друзья, команды, сезоны), `0021` (смена города, итоги сезонов), `0022` (приглашения в команду, реакции, серии). Они только добавляют таблицы и одну nullable-колонку.
-- Новые Durable Object: `Queue` (общая очередь). Нужна миграция `v2` в `wrangler.toml`.
-- Платежи и реклама выключены (`config/ads.ts`): без ключей и одобрения провайдера ничего не списывается и не показывается; `/api/shop/order` и `/api/ads/reward` отвечают 503.
-
-Запуск и проверка:
+For Web Push reminders, configure a VAPID subject after setup:
 
 ```bash
-npm run db:migrate:local
-npm run dev
-npm test
-npm run typecheck
-npx vite build
+npx wrangler secret put VAPID_SUBJECT
 ```
 
-Владелец: `GET /api/admin/duel-stats` с заголовком `x-admin-token`, либо страница `/admin-duel`.
+Use a `mailto:` contact or a site URL. Reminders are disabled if neither a subject nor a site origin is available. The hourly cron sends reminders during the configured evening window in Baku. It processes up to 40 subscriptions per run.
 
-Подробный статус и ограничения: `IMPLEMENTATION_PROGRESS.md`.
+One Worker serves the static frontend from `dist/` and the API under `/api/*`. Configure a custom domain in Cloudflare and update `config/brand.ts` if the result cards should use it.
+
+## Product features
+
+- **55 short experiments** across memory, attention, speed, perception, and reasoning. See the [test catalog](docs/tests-catalog.md).
+- **Beyin balı** score from 0 to 100, based on each player's best result per test.
+- **Profiles and rankings:** optional name, city, and email; live player and city rankings.
+- **Groups:** share a group code and compare scores, up to 50 people per group and five groups per player.
+- **Challenges:** invite friends with a link and compare results.
+- **Languages:** Azerbaijani and Russian, with the preferred language remembered on the device.
+- **Recovery code:** restore an account on another device using a code whose hash is stored in the database.
+- **Result cards and streak reminders:** shareable summaries and optional Web Push notifications.
+- **Rate limiting:** requests are limited by a daily-rotating salted IP hash; raw IP addresses are not stored.
+
+Email is stored only after separate consent. The app is a set of short behavioral games, not a diagnostic, IQ test, or medical tool.
+
+## Documentation
+
+- [Product concept and MVP specification](SPEC.md)
+- [Experiment catalog and known limitations](docs/tests-catalog.md)
+- [Growth plan for Azerbaijan](docs/growth-az.md)
+- [Advertiser notes](docs/advertisers.md)
+
+## License
+
+See [LICENSE](LICENSE).
