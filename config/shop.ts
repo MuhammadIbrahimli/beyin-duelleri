@@ -10,6 +10,8 @@ export interface ShopItem {
   description: { az: string; ru: string };
   /** a CSS class of the client that draws the preview */
   look: string;
+  /** a reward only: it is never sold, it comes from a season or an event */
+  reward?: boolean;
 }
 
 export const SHOP_ITEMS: ShopItem[] = [
@@ -24,6 +26,7 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "ti_quick", slot: "title", price: 90, name: { az: "Sürətli", ru: "Быстрый" }, description: { az: "Profil titulu", ru: "Титул в профиле" }, look: "ti-quick" },
   { id: "ef_confetti", slot: "effect", price: 100, name: { az: "Konfetti", ru: "Конфетти" }, description: { az: "Qələbə effekti", ru: "Эффект победы" }, look: "ef-confetti" },
   { id: "ef_spark", slot: "effect", price: 160, name: { az: "Qığılcım", ru: "Искры" }, description: { az: "Qələbə effekti", ru: "Эффект победы" }, look: "ef-spark" },
+  { id: "ti_champion", slot: "title", price: 0, reward: true, name: { az: "Çempion", ru: "Чемпион" }, description: { az: "Mövsüm çempionu üçün titul", ru: "Титул за лучший результат сезона" }, look: "ti-thinker" },
 ];
 
 export const SHOP_SLOTS: ShopSlot[] = ["avatar", "frame", "theme", "title", "effect"];

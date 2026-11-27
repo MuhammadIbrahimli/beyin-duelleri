@@ -1,13 +1,15 @@
 // Beyin duellisi on the client: the home screen, the search for an opponent, the VS card and the result of a match.
 // The match itself is played in the room (src/room.ts); the server decides every result and reward.
 import "./duel5.css";
+import "./game2.css";
 import { api, me } from "./api";
-import { h } from "./dom";
+import { countUp, h } from "./dom";
+import { shareButton } from "./share";
 import { az, t } from "./i18n";
 import { go, onLeave } from "./router";
 import { screen } from "./screens";
 
-type Player = { id: string | null; nick: string; rating: number | null; league: string | null; bot: boolean; level?: string };
+type Player = { id: string | null; nick: string; rating: number | null; league: string | null; bot: boolean; level?: string; avatar?: string | null };
 const BOT_LEVELS = ["asan", "orta", "cetin", "ekspert"] as const;
 type BotLevelId = (typeof BOT_LEVELS)[number];
 
@@ -124,7 +126,9 @@ export async function duelHome() {
         h("span", { class: "d5-pill " + (m.draw ? "" : m.won ? "won" : "lost") }, m.draw ? az.duel5.draw : m.won ? az.duel5.won : az.duel5.lost))))
     : h("p", { class: "soft" }, az.duel5.noMatches);
   const extras = await import("./game2").then((g) => g.homeExtras()).catch(() => null);
-  screen("home", top, league, cta, modes, extras, h("h2", null, az.duel5.recent), recent);
+  const g3 = await import("./game3").then((g) => g.homeBlocks()).catch(() => null);
+  const dailyLink = h("a", { class: "g2-link", href: "/daily-board", "data-link": "" }, az.game3.daily.title);
+  screen("home", top, g3, league, cta, modes, dailyLink, extras, h("h2", null, az.duel5.recent), recent);
 }
 
 /** Search for an opponent: the server pairs by rating; a bot is only offered after a wait, and is labelled as a bot. */
@@ -232,7 +236,7 @@ export function duelSearch(rematchWith: string | null) {
 function showVs(m: { code: string; mode: string; me: Player; opponent: Player }) {
   sessionStorage.setItem("bd_match", JSON.stringify({ code: m.code, opp: m.opponent.id, bot: m.opponent.bot, mode: m.mode }));
   const side = (p: Player, right: boolean) => h("div", { class: "d5-vs-side" + (right ? " right" : "") },
-    avatar(p.nick, p.bot),
+    p.avatar ? h("span", { class: "d5-avatar", style: "width:84px;height:84px;background:transparent" }, h("span", { class: "g2-look " + p.avatar, style: "width:84px;height:84px" })) : avatar(p.nick, p.bot),
     h("b", null, p.nick),
     p.bot ? h("span", { class: "d5-bot-tag" }, "BOT") : null,
     p.league ? leagueBadge(p.league, 40) : null,
@@ -278,11 +282,7 @@ export function matchEndPanel(o: EndOpts): HTMLElement {
   const actions = h("div", { class: "d5-actions" },
     h("button", { class: "btn primary block", onclick: () => go("/match/search") }, az.duel5.playAgain),
     canRematch ? h("button", { class: "btn block", onclick: () => go(`/match/search?rematch=${encodeURIComponent(o.opp!)}`) }, az.duel5.rematch) : null,
-    h("button", { class: "btn block", onclick: () => {
-      const text = t("duel5.shareText", { me: o.nicks[mine], score, opp: o.nicks[other] });
-      if (typeof navigator.share === "function") void navigator.share({ title: az.app.name, text }).catch(() => {});
-      else void navigator.clipboard?.writeText(text).catch(() => {});
-    } }, az.duel5.share),
+    shareButton(() => ({ kicker: "Beyin duellisi", title: `${o.nicks[mine]} — ${o.nicks[other]}`, big: score, lines: [title, o.reason === "forfeit" ? az.duel5.forfeit : ""].filter(Boolean) }), { button: az.duel5.share, saved: az.game3.share.saved }),
     h("button", { class: "btn block", onclick: () => go("/") }, az.duel5.home));
   void fillResult(o.code, o.mode, ratingLine, gains);
   return h("div", { class: "d5-end" },
@@ -302,9 +302,9 @@ async function fillResult(code: string, mode: string, ratingLine: HTMLElement, g
     const row = mine?.matches?.find((x: any) => x.id === code);
     if (!row) continue;
     ratingLine.textContent = row.rated ? t("duel5.ratingDelta", { n: signed(row.delta) }) : mode === "training" ? "" : az.duel5.unrated;
-    gains.replaceChildren(
-      h("span", null, t("duel5.xpGain", { n: row.xp })),
-      ...(row.qizil > 0 ? [h("span", null, t("duel5.goldGain", { n: row.qizil }))] : []));
+    const xpEl = h("span", null, "");
+    countUp(xpEl, row.xp, (n) => t("duel5.xpGain", { n }));
+    gains.replaceChildren(xpEl, ...(row.qizil > 0 ? [h("span", null, t("duel5.goldGain", { n: row.qizil }))] : []));
     return;
   }
 }

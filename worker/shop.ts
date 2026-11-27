@@ -33,7 +33,7 @@ export type BuyResult =
 
 export async function buy(db: D1Database, uid: string, itemId: string, now: number): Promise<BuyResult> {
   const item = itemById(itemId);
-  if (!item) return { ok: false, reason: "unknown" };
+  if (!item || item.reward) return { ok: false, reason: "unknown" };
   const has = await db.prepare("SELECT 1 AS x FROM inventory WHERE user_id = ? AND item_id = ?").bind(uid, itemId).first();
   if (has) return { ok: false, reason: "owned" };
   const res = await debit(db, uid, "qizil", item.price, `buy:${uid}:${itemId}`, "purchase", now);

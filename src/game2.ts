@@ -7,6 +7,7 @@ import { az, getLang, t } from "./i18n";
 import { go, onLeave } from "./router";
 import { screen } from "./screens";
 import { avatar, leagueBadge } from "./duel5";
+import { shareButton } from "./share";
 
 const G = () => az.game2;
 const loc = (o: { az: string; ru: string }) => (getLang() === "ru" ? o.ru : o.az);
@@ -131,8 +132,12 @@ export async function marafonPage() {
 
   function showOver(v: any, best: number) {
     clear();
+    const prev = Number(localStorage.getItem("bd_marafon_best") ?? 0);
+    if (v.score > prev) localStorage.setItem("bd_marafon_best", String(v.score));
     body.replaceChildren(
       h("h2", null, az.game2.marafon.over),
+      v.score > prev && v.score > 0 ? h("p", { class: "g2-record", role: "status" }, az.game3.record.title) : h("span", { hidden: true }),
+      shareButton(() => ({ kicker: "Beyin duellisi · " + az.game2.marafon.title, title: az.game2.marafon.over, big: String(v.score), lines: [`${az.game2.marafon.best}: ${best}`] }), { button: az.duel5.share, saved: az.game3.share.saved }),
       h("p", { class: "g2-big" }, `${v.score}`),
       h("p", { class: "soft" }, `${az.game2.marafon.best}: ${best}`),
       h("button", { class: "btn primary block", onclick: () => void start() }, az.game2.marafon.again),
@@ -211,7 +216,7 @@ export async function marafonPage() {
 
 // ---- leaderboards and city battle -------------------------------------------------------------------------------
 
-const TABS = ["rating", "beyin", "marafon", "teams", "cities"] as const;
+const TABS = ["rating", "beyin", "marafon", "teams", "cities", "universities"] as const;
 type BoardTab = (typeof TABS)[number];
 
 export async function boardPage(tabIn: string, scopeIn: string, pageIn = 1) {
@@ -242,7 +247,12 @@ export async function boardPage(tabIn: string, scopeIn: string, pageIn = 1) {
           : t("game2.board.cityLeader", { name: names[b.cities.findIndex((c: any) => c.city === b.leader)] ?? b.leader })),
         h("p", { class: "soft" }, az.game2.board.cityNote),
         h("p", { class: "soft" }, t("game2.board.cityMin", { m: b.minMatches, n: b.minPlayers })),
-        h("p", { class: "soft" }, az.game2.board.cityChangeNote)));
+        h("p", { class: "soft" }, az.game2.board.cityChangeNote),
+        shareButton(() => ({ kicker: "Beyin duellisi · " + az.game2.board.cityTitle, title: names.join(" — "), big: b.leader && b.leader !== "draw" ? (b.cities.find((c: any) => c.city === b.leader)?.name ?? "") : "—", lines: [az.game2.board.cityNote] }), { button: az.duel5.share, saved: az.game3.share.saved })));
+    return;
+  }
+  if (tab === "universities") {
+    list.replaceChildren(await (await import("./game3")).universityBlock());
     return;
   }
   if (tab === "teams") {
@@ -258,7 +268,8 @@ export async function boardPage(tabIn: string, scopeIn: string, pageIn = 1) {
     h("span", { class: "muted" }, `${pageIn}/${r.pages}`),
     h("button", { class: "btn", disabled: pageIn >= r.pages ? true : null, onclick: () => go(`/leaderboard?tab=${tab}&scope=${scope}&page=${pageIn + 1}`) }, "›"));
   const mine = r.me ? h("p", { class: "g2-me" }, `${az.game2.board.rank}: ${r.me.rank} · ${r.me.value}`) : null;
-  list.replaceChildren(...(rows.length ? rows : [h("p", { class: "soft" }, az.game2.board.empty)]), ...(mine ? [mine] : []), pager);
+  const around = scope === "world" ? await (await import("./game3")).aroundBlock(tab) : null;
+  list.replaceChildren(...(rows.length ? rows : [h("p", { class: "soft" }, az.game2.board.empty)]), ...(mine ? [mine] : []), pager, ...(around ? [around] : []));
 }
 
 function boardRow(rank: number, nick: string, value: string, _id: unknown, me: boolean) {
@@ -311,6 +322,7 @@ export async function friendsPage() {
           } }, az.game2.friends.challenge))) : [h("p", { class: "soft" }, az.game2.friends.noFriends)])));
   }
   await draw();
+  body.append(await (await import("./game3")).friendExtrasBlock());
 }
 
 // ---- teams ------------------------------------------------------------------------------------------------------
@@ -372,6 +384,7 @@ export async function teamPage(id: string) {
       ? h("p", null, t("game2.teams.avg", { n: team.avgRating }))
       : h("p", { class: "soft" }, az.game2.teams.notRanked),
     h("h3", { class: "g2-sub" }, az.game2.teams.members),
+    shareButton(() => ({ kicker: "Beyin duellisi · " + az.game2.teams.title, title: team.name, big: String(team.avgRating), lines: [team.ranked ? az.game2.teams.ranking : az.game2.teams.notRanked] }), { button: az.duel5.share, saved: az.game3.share.saved }),
     ...team.members.map((m: any) => boardRow(0, m.nick, String(m.rating), m.id, m.id === me()?.id)));
 }
 
@@ -398,6 +411,8 @@ export async function profilePage() {
   },
     h("b", null, loc(a.title)),
     h("span", { class: "muted" }, a.unlocked ? (az.game2.profile.rarity as Record<string, string>)[a.rarity] : `${a.value}/${a.target}`))));
+  const g3 = await import("./game3");
+  const [skills, seasons] = await Promise.all([g3.skillsBlock(), g3.seasonBlock()]);
   screen("pass",
     h("div", { class: "g2-profile-head" },
       h("span", { class: "g2-frame " + (frame ? frame.look : "") }, avatarItem
@@ -428,6 +443,8 @@ export async function profilePage() {
     p.equipped && Object.keys(p.equipped).length
       ? h("p", null, ...Object.keys(p.equipped).map((slot) => h("span", { class: "g2-tag" }, shop.items.find((i: any) => i.id === p.equipped[slot])?.name ? loc(shop.items.find((i: any) => i.id === p.equipped[slot]).name) : "")))
       : h("p", { class: "soft" }, az.game2.profile.nothingEquipped),
+    skills,
+    seasons,
     h("h2", null, az.game2.profile.recent),
     ...(hist.matches.length ? hist.matches.slice(0, 5).map((m: any) => h("div", { class: "d5-row" },
       h("span", null, `${m.points[0]} : ${m.points[1]} · ${m.opponentBot ? az.game2.profile.bot : ""}`),

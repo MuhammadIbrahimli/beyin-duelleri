@@ -4,6 +4,7 @@ import { RATING } from "../config/rating";
 import type { BotLevel } from "../config/match";
 import type { Env } from "./env";
 import { leagueOf } from "./rating-core";
+import { equippedOf, itemById } from "./shop";
 import { newDuelCode, newSeed } from "./util";
 
 export interface MatchOpts {
@@ -36,6 +37,8 @@ export interface PlayerCard {
   rating: number;
   league: string;
   bot: boolean;
+  /** the look class of the equipped avatar, or null */
+  avatar: string | null;
 }
 
 /** What the VS screen shows about a player. Only public data: name, rating, league. */
@@ -45,7 +48,9 @@ export async function playerCard(db: D1Database, userId: string): Promise<Player
     .bind(RATING.start, userId)
     .first<{ nick: string; rating: number }>();
   const rating = row?.rating ?? RATING.start;
-  return { id: userId, nick: row?.nick ?? "?", rating, league: leagueOf(rating), bot: false };
+  const eq = await equippedOf(db, userId);
+  const look = eq.avatar ? itemById(eq.avatar)?.look ?? null : null;
+  return { id: userId, nick: row?.nick ?? "?", rating, league: leagueOf(rating), bot: false, avatar: look };
 }
 
 /** Releases the players of a finished match from the queue's match lock (see worker/queue.ts). */

@@ -5,7 +5,7 @@ import { az, t } from "../i18n";
 export interface IowaSchedule { outcomes: Record<"A" | "B" | "C" | "D", number[]> }
 const DECKS = ["A", "B", "C", "D"] as const;
 
-/** Four decks of cards. Each card gives money, sometimes taken back. Learn which decks pay in the long run. */
+/** Four decks of cards. Each card gives points, sometimes taken back. Learn which decks give the most points in the long run. */
 export default function play(root: HTMLElement, schedule: IowaSchedule): Promise<{ choices: number[] }> {
   return new Promise((resolve) => {
     const choices: number[] = [];

@@ -15,7 +15,7 @@ export type CreateTeam =
 
 export async function createTeam(db: D1Database, uid: string, nameRaw: unknown, kind: unknown, now: number): Promise<CreateTeam> {
   const name = String(nameRaw ?? "").trim();
-  if (name.length < 2 || name.length > 40) return { ok: false, reason: "bad_name" };
+  if (name.length < 2 || name.length > 80) return { ok: false, reason: "bad_name" };
   if (!(TEAM_KINDS as readonly string[]).includes(String(kind))) return { ok: false, reason: "bad_kind" };
   if (kind === "university") {
     // a university name must match the verified list; with an empty list nothing can be created
@@ -29,8 +29,8 @@ export async function createTeam(db: D1Database, uid: string, nameRaw: unknown, 
   for (let i = 0; i < 5; i++) {
     code = newDuelCode(6).toUpperCase();
     const ins = await db
-      .prepare("INSERT OR IGNORE INTO teams (id, name, kind, code, owner_id, verified, created_at) VALUES (?, ?, ?, ?, ?, 0, ?)")
-      .bind(id, name, kind, code, uid, now)
+      .prepare("INSERT OR IGNORE INTO teams (id, name, kind, code, owner_id, verified, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .bind(id, name, kind, code, uid, kind === "university" ? 1 : 0, now)
       .run();
     if ((ins.meta.changes ?? 0) === 1) {
       await db.prepare("INSERT INTO team_members (team_id, user_id, joined_at) VALUES (?, ?, ?)").bind(id, uid, now).run();

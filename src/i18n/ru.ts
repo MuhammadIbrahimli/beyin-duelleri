@@ -1,4 +1,5 @@
 import { game2Ru } from "./game2.ru";
+import { game3Ru } from "./game3.ru";
 // Russian UI texts. Must have exactly the same shape as az.ts (the compiler checks it).
 // TODO(verify): a native speaker should read every string, and the science blurbs need real sources.
 import type { Dict } from "./az";
@@ -7,6 +8,7 @@ export const ru: Dict = {
   app: { name: "Beyin duelləri", tagline: "Проверь мозг вместе с другом." },
   nav: { experiments: "Тесты", duels: "Дуэли", ranking: "Рейтинг", passport: "Паспорт", home: "Главная", shop: "Магазин", profile: "Профиль" },
   game2: game2Ru,
+  game3: game3Ru,
   duel5: {
     cta: "В ДУЭЛЬ",
     ctaSub: "Встреться со случайным соперником",
@@ -159,7 +161,7 @@ export const ru: Dict = {
     "random-dot-motion": { name: "Направление движения", hook: "Большинство точек движется в одну сторону. Куда?", measure: "Измеряем: выделение общего движения из шума.", unit: "%" },
     numerosity: { name: "Посчитай точки", hook: "Посмотри на точки мгновение и назови их число.", measure: "Измеряем: мгновенный подсчёт малых количеств и оценку больших.", unit: "точек" },
     "line-bisection": { name: "Середина линии", hook: "Коснись середины линии.", measure: "Измеряем: точность деления отрезка на глаз.", unit: "%" },
-    "iowa-gambling": { name: "Колоды карт", hook: "Выбирай из четырёх колод. Какая приносит больше в итоге?", measure: "Измеряем: обучение на опыте, различение частой мелкой и редкой крупной потери.", unit: "" },
+    "iowa-gambling": { name: "Колоды карт", hook: "Выбирай из четырёх колод. Какая даёт больше очков в итоге?", measure: "Измеряем: обучение на опыте, различение частой мелкой и редкой крупной потери.", unit: "" },
     "pitch-discrimination": { name: "Разница тонов", hook: "Какой тон выше: первый или второй?", measure: "Измеряем: слуховое различение высоты тона.", unit: "%" },
     "inattentional-blindness": { name: "Незамеченное", hook: "Следи за кругами. Заметил ли ты что-то необычное?", measure: "Измеряем: умение замечать неожиданное, когда внимание занято другим.", unit: "%" },
     "finger-tapping": { name: "Стук пальцем", hook: "10 секунд стучи по кнопке как можно быстрее.", measure: "Измеряем: скорость моторики пальца.", unit: "нажатий" },

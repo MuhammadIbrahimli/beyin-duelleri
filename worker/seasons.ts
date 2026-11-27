@@ -4,6 +4,8 @@
 import { EVENTS, SEASON } from "../config/seasons";
 import { RATING } from "../config/rating";
 import { dayKey } from "./calendar";
+import { credit } from "./economy-core";
+import { seasonRewardFor } from "../config/season-rewards";
 
 const DAY = 24 * 60 * 60 * 1000;
 const dayIdx = (d: string) => Math.round(Date.parse(d + "T00:00:00Z") / DAY);
@@ -63,6 +65,12 @@ export async function applySeasonCorrection(db: D1Database, uid: string, now: nu
     .prepare("INSERT OR IGNORE INTO season_results (user_id, season_id, peak, rating_end, played, wins, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
     .bind(uid, st.season_id, Math.max(seasonPeak?.p ?? 0, rating.rating), rating.rating, played?.n ?? 0, played?.w ?? 0, now)
     .run();
+  // a season reward once per season: Qızıl, and a reward-only title at the top thresholds
+  const reward = seasonRewardFor(Math.max(seasonPeak?.p ?? 0, rating.rating));
+  if (reward) {
+    await credit(db, uid, "qizil", reward.qizil, `season:${st.season_id}:${uid}:qizil`, "season", now);
+    if (reward.item) await db.prepare("INSERT OR IGNORE INTO inventory (user_id, item_id, acquired_at) VALUES (?, ?, ?)").bind(uid, reward.item, now).run();
+  }
   const corrected = Math.max(RATING.floor, Math.round(RATING.start + (rating.rating - RATING.start) * SEASON.softKeep));
   await db.prepare("UPDATE ratings SET rating = ?, updated_at = ? WHERE user_id = ?").bind(corrected, now, uid).run();
 }

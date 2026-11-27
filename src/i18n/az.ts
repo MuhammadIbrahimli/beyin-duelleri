@@ -1,10 +1,12 @@
 import { game2Az } from "./game2.az";
+import { game3Az } from "./game3.az";
 // All UI text lives here. TODO(verify): every string needs a check by a native Azerbaijani speaker
 // (and the science blurbs by someone who can vouch for the sources).
 export const az = {
   app: { name: "Beyin duelləri", tagline: "Beynini dostunla yoxla." },
   nav: { experiments: "Təcrübələr", duels: "Duellər", ranking: "Reytinq", passport: "Pasport", home: "Ana səhifə", shop: "Mağaza", profile: "Profil" },
   game2: game2Az,
+  game3: game3Az,
   duel5: {
     cta: "DUELƏ BAŞLA",
     ctaSub: "Təsadüfi rəqiblə qarşılaş",
@@ -157,7 +159,7 @@ export const az = {
     "random-dot-motion": { name: "Hərəkət istiqaməti", hook: "Nöqtələrin çoxu bir tərəfə hərəkət edir. Hansı?", measure: "Ölçürük: ümumi hərəkəti səs-küydən ayırmağı.", unit: "%" },
     numerosity: { name: "Nöqtələri say", hook: "Bir an göstərilən nöqtələrin sayını de.", measure: "Ölçürük: az nöqtəni dərhal, çoxunu təxminən qavramağı.", unit: "nöqtə" },
     "line-bisection": { name: "Xəttin ortası", hook: "Xəttin orta nöqtəsinə toxun.", measure: "Ölçürük: məkan qavrayışında xətti bərabər bölmək dəqiqliyini.", unit: "%" },
-    "iowa-gambling": { name: "Kartlar", hook: "Dörd dəstədən seç. Hansı uzun müddətdə qazandırır?", measure: "Ölçürük: təcrübədən öyrənməyi: qısa qazancla uzunmüddətli itkini ayırmağı.", unit: "" },
+    "iowa-gambling": { name: "Kartlar", hook: "Dörd dəstədən seç. Hansı uzun müddətdə daha çox xal verir?", measure: "Ölçürük: təcrübədən öyrənməyi: qısa müddətli xal artımı ilə uzunmüddətli itkini ayırmağı.", unit: "" },
     "pitch-discrimination": { name: "Ton fərqi", hook: "Hansı ton yüksəkdir: birinci, yoxsa ikinci?", measure: "Ölçürük: tonun yüksəkliyini eşitmək dəqiqliyini.", unit: "%" },
     "inattentional-blindness": { name: "Gözlənilməz obyekt", hook: "Dairələrə bax. Qeyri-adi bir şey gördünmü?", measure: "Ölçürük: diqqət başqa işə yönələndə gözlənilməz obyekti görmə ehtimalını.", unit: "%" },
     "finger-tapping": { name: "Barmaq nöqtələri", hook: "10 saniyə ərzində mümkün qədər tez toxun.", measure: "Ölçürük: barmağın motor sürətini.", unit: "toxunma" },

@@ -95,3 +95,11 @@
 @media (prefers-reduced-motion: reduce) {
   .g2-bar i, .g2-marafon .g2-bar i { transition: none; animation: none; }
 }
+
+/* streak, notifications, skills, toasts and league moments */
+.g2-skill { display: grid; grid-template-columns: 1fr 2fr auto; gap: var(--sp-2); align-items: center; padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-s); background: var(--c-surface); }
+.g2-toast { position: sticky; top: 8px; z-index: 5; display: grid; gap: 4px; padding: var(--sp-3); border-radius: var(--radius-s); background: var(--c-surface-2); font-weight: 700; }
+.g2-up { display: grid; grid-template-columns: auto 1fr; gap: var(--sp-3); align-items: center; padding: var(--sp-4); border-radius: var(--radius); background: var(--c-surface); }
+.g2-up p { margin: 0; }
+.g2-pre { margin: 0; padding: var(--sp-3); border-radius: var(--radius-s); background: var(--c-surface); overflow-x: auto; font-size: var(--fs-xs); white-space: pre-wrap; word-break: break-word; }
+.g2-record { margin: 0; font-weight: 900; color: var(--c-primary); }

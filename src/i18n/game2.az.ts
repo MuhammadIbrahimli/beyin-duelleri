@@ -65,7 +65,7 @@ export const game2Az = {
   },
   board: {
     title: "Reytinq",
-    tabs: { rating: "Reytinq", beyin: "Beyin balı", marafon: "Marafon", teams: "Komandalar", cities: "Şəhərlər" },
+    tabs: { rating: "Reytinq", beyin: "Beyin balı", marafon: "Marafon", teams: "Komandalar", cities: "Şəhərlər", universities: "Universitetlər" },
     scope: { world: "Ümumi", week: "Həftəlik", friends: "Dostlar" },
     me: "Sən",
     rank: "Yer",
@@ -118,7 +118,7 @@ export const game2Az = {
     full: "Komanda doludur",
     notFound: "Kod tapılmadı",
     limit: "Bu qədər komanda var",
-    badName: "Ad 2–40 simvol olmalıdır",
+    badName: "Ad 2–80 simvol olmalıdır",
     yourCode: "Komandanın kodu: {code}",
   },
   profile: {

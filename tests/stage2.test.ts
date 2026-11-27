@@ -208,7 +208,7 @@ describe("friends and teams", () => {
   });
 
   it("a university team is refused until its name is on the verified list", async () => {
-    expect(await createTeam(db, "ua", "Bakı Dövlət Universiteti", "university", NOW)).toEqual({ ok: false, reason: "not_verified" });
+    expect(await createTeam(db, "ua", "Heç bir universitet", "university", NOW)).toEqual({ ok: false, reason: "not_verified" });
   });
 
   it("a team joins by code and is ranked only with enough members", async () => {

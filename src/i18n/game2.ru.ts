@@ -65,7 +65,7 @@ export const game2Ru = {
   },
   board: {
     title: "Рейтинг",
-    tabs: { rating: "Рейтинг", beyin: "Beyin balı", marafon: "Марафон", teams: "Команды", cities: "Города" },
+    tabs: { rating: "Рейтинг", beyin: "Beyin balı", marafon: "Марафон", teams: "Команды", cities: "Города", universities: "Университеты" },
     scope: { world: "Общий", week: "За неделю", friends: "Друзья" },
     me: "Ты",
     rank: "Место",
@@ -118,7 +118,7 @@ export const game2Ru = {
     full: "Команда заполнена",
     notFound: "Код не найден",
     limit: "Достигнут лимит команд",
-    badName: "Название должно быть от 2 до 40 символов",
+    badName: "Название должно быть от 2 до 80 символов",
     yourCode: "Код команды: {code}",
   },
   profile: {
