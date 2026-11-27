@@ -201,3 +201,18 @@ describe("disconnects and reconnects", () => {
     expect(resumed[0]).toMatchObject({ to: 0, msg: { t: "ready", ms: 1234, stage: 0, sid: "reaction" } });
   });
 });
+
+describe("the stages answer to their own taps", () => {
+  it("a right answer in the logic stage (a riddle) scores the round for that player", () => {
+    const s = twoPlayers(42, "friendly");
+    let guard = 0;
+    while (!(s.room.stage === 4 && s.room.phase === "stage" && (s.room.sub as { phase: string }).phase === "round") && guard++ < 5000) {
+      if (!step(s)) break;
+    }
+    const sub = s.room.sub as { round: number; qs: { answer: number }[] };
+    expect(s.room.stage).toBe(4);
+    const out = duel.act(s.room, 1, { t: "tap", round: sub.round, choice: sub.qs[sub.round - 1].answer, stage: 4 }, s.now);
+    const result = out.events.find((e) => e.msg.t === "result");
+    expect(result?.msg).toMatchObject({ winner: 1, stage: 4, sid: "logic" });
+  });
+});

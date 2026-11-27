@@ -148,6 +148,11 @@ export class Room {
       const released = releasePlayers(this.env, humans).catch((e) => console.error("release players", e));
       this.state.waitUntil(Promise.all([stored, released]));
     }
+    // a match nobody joined closes without a result: its players are released from the queue lock as well
+    if (this.game === "multi" && (out.room as { reason?: string }).reason === "no_show") {
+      const seated = (out.room as { ids: [string | null, string | null] }).ids.filter((id): id is string => !!id);
+      this.state.waitUntil(releasePlayers(this.env, seated).catch((e) => console.error("release players", e)));
+    }
     if (this.engine?.ended(out.room)) this.closeAll();
   }
 

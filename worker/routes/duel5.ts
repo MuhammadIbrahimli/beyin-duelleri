@@ -60,7 +60,7 @@ duel5Routes.get("/ratings/me", auth, async (c) => {
     rating,
     peak: row?.peak ?? rating,
     league: leagueOf(rating),
-    leagues: LEAGUES.map((l) => l.id),
+    leagues: LEAGUES.map((l) => ({ id: l.id, min: l.min })),
     played,
     wins,
     losses: row?.losses ?? 0,
@@ -114,6 +114,18 @@ duel5Routes.get("/economy/me", auth, async (c) => {
 /** The player's last matches, newest first. */
 duel5Routes.get("/matches/mine", auth, async (c) => {
   const uid = c.get("userId");
+  // XP and Qızıl each match gave this player, read from the ledger (refs look like match:CODE:SEAT:CURRENCY)
+  const gains = await c.env.DB.prepare("SELECT ref, currency, delta FROM econ_ledger WHERE user_id = ? AND reason IN ('match', 'bot_match') ORDER BY id DESC LIMIT 200")
+    .bind(uid)
+    .all<{ ref: string; currency: string; delta: number }>();
+  const byCode = new Map<string, { xp: number; qizil: number }>();
+  for (const g of gains.results) {
+    const code = g.ref.split(":")[1];
+    const cur = byCode.get(code) ?? { xp: 0, qizil: 0 };
+    if (g.currency === "xp") cur.xp += g.delta;
+    else cur.qizil += g.delta;
+    byCode.set(code, cur);
+  }
   const rows = await c.env.DB.prepare(
     "SELECT id, mode, rated, winner, reason, user0, user1, bot0, bot1, points0, points1, delta0, delta1, created_at " +
       "FROM matches WHERE user0 = ? OR user1 = ? ORDER BY created_at DESC LIMIT 20",
@@ -134,6 +146,8 @@ duel5Routes.get("/matches/mine", auth, async (c) => {
         delta: seat === 0 ? m.delta0 : m.delta1,
         opponentBot: !!oppBot,
         createdAt: m.created_at,
+        xp: byCode.get(String(m.id))?.xp ?? 0,
+        qizil: byCode.get(String(m.id))?.qizil ?? 0,
       };
     }),
   });

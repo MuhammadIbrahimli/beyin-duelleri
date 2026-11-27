@@ -4,7 +4,10 @@ import { initPwa } from "./pwa";
 import { go, route, startRouter } from "./router";
 import { category, duelResult, home, intro, invite, invitePage, play, result } from "./screens";
 
-route("/", () => home());
+route("/", () => import("./duel5").then((d) => d.duelHome()));
+// the experiments catalogue is reached from the home screen (Məşq et)
+route("/train", () => home());
+route("/match/search", (c) => import("./duel5").then((d) => d.duelSearch(c.query.get("rematch"))));
 route("/e/:slug", (c) => intro(c.params.slug));
 route("/play/:slug", (c) => play(c.params.slug, c.query));
 route("/c/:id", (c) => category(c.params.id));

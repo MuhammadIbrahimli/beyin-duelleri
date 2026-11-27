@@ -26,11 +26,12 @@ export function tint(slug: string | null) {
 
 function tabs(active: string) {
   const items: [string, string, string][] = [
-    ["/", az.nav.experiments, "exp"], ["/duels", az.nav.duels, "duels"],
+    ["/", az.nav.home, "home"], ["/duels", az.nav.duels, "duels"],
     ["/ranking", az.nav.ranking, "rank"], ["/passport", az.nav.passport, "pass"],
   ];
+  const on = active === "exp" ? "home" : active; // the experiments catalogue lives under Məşq et, inside the home tab
   return h("nav", { class: "tabs" }, h("div", null, ...items.map(([href, label, id]) =>
-    h("a", { href, "data-link": "", class: id === active ? "on" : "", "aria-label": label }, icon(id), h("span", null, label)))));
+    h("a", { href, "data-link": "", class: id === on ? "on" : "", "aria-label": label }, icon(id), h("span", null, label)))));
 }
 
 /** AZ | RU toggle. Switching rebuilds the whole app in the other language. */

@@ -9,6 +9,7 @@ import { memoryView } from "./memory";
 import { raceView } from "./race";
 import { reactionView } from "./reaction";
 import { riddleView } from "./riddle";
+import { matchEndPanel } from "./duel5";
 
 const app = () => document.getElementById("app")!;
 const CODE = /^[A-Z0-9]{4,8}$/;
@@ -38,12 +39,13 @@ export async function createRoom(game: LiveGame): Promise<string> {
 export function roomPage(codeRaw: string) {
   const code = codeRaw.toUpperCase();
   const scoreEl = h("div", { class: "room-score" });
+  const stagesEl = h("div", { class: "d5-stages", hidden: true, "aria-label": az.duel5.stagesHead });
   const status = h("p", { class: "soft", role: "status", "aria-live": "polite" });
   const share = h("div", { class: "room-share" });
   const body = h("div", { class: "room-body" });
   const again = h("button", { class: "btn primary block", hidden: true, onclick: () => go("/duels") }, az.live.again);
   const retry = h("button", { class: "btn block", hidden: true, onclick: () => { retry.hidden = true; void connect(); } }, az.live.reconnect);
-  mount(app(), h("div", { class: "screen room" }, scoreEl, status, share, body, again, retry));
+  mount(app(), h("div", { class: "screen room" }, scoreEl, stagesEl, status, share, body, again, retry));
   if (!CODE.test(code)) { status.textContent = az.live.err.bad_code; return; }
 
   let ws: WebSocket | null = null;
@@ -53,12 +55,26 @@ export function roomPage(codeRaw: string) {
   let view: View | null = null;
   let finished = false;
   let leaving = false;
+  // a multi-discipline match: its stage list, the stage now and the result of each finished stage
+  let isMulti = false;
+  let plan: string[] = [];
+  let curStage = -1;
+  const stageRes: ("w" | "l" | "d")[] = [];
   onLeave(() => { leaving = true; ws?.close(); });
 
   const setStatus = (s: string) => { status.textContent = s; };
   const send = (o: Record<string, unknown>) => { if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(o)); };
   const ctx: Ctx = { body, send, setStatus, slot: () => slot, nick: (s) => nicks[s] || az.live.opp };
   const opp = (): Slot => (slot === 0 ? 1 : 0);
+
+  function drawStages() {
+    stagesEl.hidden = !isMulti;
+    if (!isMulti) return;
+    stagesEl.replaceChildren(...plan.map((sid, i) => {
+      const cls = i < stageRes.length ? ({ w: "w", l: "l", d: "d" } as const)[stageRes[i]] : i === curStage ? "cur" : "";
+      return h("span", { class: cls }, (az.duel5.stageNames as Record<string, string>)[sid] ?? sid);
+    }));
+  }
 
   function drawScore() {
     if (slot === null) { scoreEl.replaceChildren(); return; }
@@ -88,8 +104,24 @@ export function roomPage(codeRaw: string) {
     return [az.live.endTitle, title, sub].filter(Boolean).join(". ");
   };
 
+  /** Stage messages of a multi-discipline match: keeps the stage list and the points up to date. */
+  function onStage(m: any) {
+    if (typeof m.stage === "number") {
+      curStage = m.stage;
+      if (m.sid && plan[m.stage] === undefined) plan[m.stage] = m.sid;
+    }
+    if (m.t === "stage_end") {
+      stageRes[m.stage] = m.winner === -1 ? "d" : m.winner === slot ? "w" : "l";
+      score = m.points;
+      drawScore();
+    }
+    drawStages();
+  }
+
   function handle(m: any) {
     if (m.t === "game") {
+      isMulti = m.game === "multi";
+      if (isMulti) { view = multiView(ctx, onStage, () => plan); return; }
       view = m.game === "grid" ? raceView(ctx)
         : m.game === "memory" ? memoryView(ctx)
         : m.game === "reaction" ? reactionView(ctx)
@@ -106,8 +138,10 @@ export function roomPage(codeRaw: string) {
     if (m.t === "welcome") {
       slot = m.slot as Slot;
       nicks = m.state.nicks;
-      score = m.state.score;
+      score = m.state.score ?? m.state.points ?? [0, 0];
+      if (isMulti && Array.isArray(m.state.plan)) plan = m.state.plan;
       drawScore();
+      drawStages();
       if (m.state.phase === "lobby") { setStatus(az.live.waitSub); showShare(); }
       return;
     }
@@ -118,8 +152,21 @@ export function roomPage(codeRaw: string) {
       return;
     }
     if (m.t === "countdown") { share.replaceChildren(); setStatus(az.live.countdown); }
+    if (m.t === "end" && isMulti) {
+      finished = true;
+      again.hidden = true;
+      setStatus(az.duel5.matchOver);
+      const prev = JSON.parse(sessionStorage.getItem("bd_match") ?? "null");
+      const own = prev && prev.code === code ? prev : null;
+      body.replaceChildren(matchEndPanel({
+        code, mode: own?.mode ?? "friendly", slot, winner: m.winner, reason: m.reason, points: m.points, history: m.history,
+        nicks, opp: own?.opp ?? null, oppIsBot: !!own?.bot,
+      }));
+      drawScore();
+      return;
+    }
     if (m.t === "end") { finished = true; again.hidden = false; setStatus(endText(m)); }
-    if (Array.isArray(m.score)) { score = m.score; drawScore(); }
+    if (!isMulti && Array.isArray(m.score)) { score = m.score; drawScore(); }
     view?.handle(m);
   }
 
@@ -207,4 +254,51 @@ function firstView(ctx: Ctx): View {
     }
   };
   return { handle };
+}
+
+const STAGE_GAME: Record<string, LiveGame> = { reaction: "reaction", memory: "memory", math: "first", attention: "grid", logic: "riddle", sudden: "reaction" };
+
+/** One stage runs the view of its game. Taps carry the stage number, so a late tap cannot count in another stage. */
+function subView(game: LiveGame, ctx: Ctx): View {
+  return game === "grid" ? raceView(ctx)
+    : game === "memory" ? memoryView(ctx)
+    : game === "reaction" ? reactionView(ctx)
+    : game === "riddle" ? riddleView(ctx)
+    : firstView(ctx);
+}
+
+/** A multi-discipline match: the view of the current stage, and a short pause with the result between stages. */
+function multiView(ctx: Ctx, onStage: (m: any) => void, plan: () => string[]): View {
+  let cur: View | null = null;
+  let stage = -1;
+  let sid: string | null = null;
+  const names = az.duel5.stageNames as Record<string, string>;
+  // the stage view keeps its own round line; the shell line says which discipline it is
+  const stageCtx: Ctx = {
+    ...ctx,
+    send: (o) => ctx.send({ ...o, stage }),
+    setStatus: (s) => ctx.setStatus(sid ? `${names[sid] ?? sid} · ${s}` : s),
+  };
+  return {
+    handle(m: any) {
+      if (m.t === "stage_end") {
+        onStage(m);
+        cur = null;
+        const next = plan()[m.stage + 1];
+        const names = az.duel5.stageNames as Record<string, string>;
+        ctx.body.replaceChildren(h("div", { class: "d5-break", role: "status" },
+          h("b", null, m.winner === -1 ? az.duel5.stageDraw : m.winner === ctx.slot() ? az.duel5.stageWon : az.duel5.stageLost),
+          h("span", { class: "muted" }, `${m.score[0]} : ${m.score[1]}`),
+          next ? h("span", { class: "soft" }, t("duel5.next", { name: names[next] ?? next })) : null));
+        return;
+      }
+      if (typeof m.stage === "number" && (m.stage !== stage || m.sid !== sid)) {
+        stage = m.stage;
+        sid = m.sid ?? sid;
+        cur = subView(STAGE_GAME[String(m.sid)] ?? "first", stageCtx);
+        onStage(m);
+      }
+      cur?.handle(m);
+    },
+  };
 }
