@@ -226,7 +226,7 @@ export async function boardPage(tabIn: string, scopeIn: string, pageIn = 1) {
   const tabsEl = h("div", { class: "g2-tabs", role: "tablist" }, ...TABS.map((k) =>
     h("a", { href: `/leaderboard?tab=${k}`, "data-link": "", class: k === tab ? "on" : "", role: "tab" },
       (az.game2.board.tabs as Record<string, string>)[k])));
-  const scopes = tab === "cities" || tab === "teams" ? [] : tab === "marafon" ? ["world", "week", "friends"] : ["world", "friends"];
+  const scopes = tab === "cities" || tab === "teams" || tab === "universities" ? [] : tab === "marafon" ? ["world", "week", "friends"] : ["world", "friends"];
   const scopeEl = h("div", { class: "g2-tabs" }, ...scopes.map((s) =>
     h("a", { href: `/leaderboard?tab=${tab}&scope=${s}`, "data-link": "", class: s === scope ? "on" : "" },
       (az.game2.board.scope as Record<string, string>)[s])));
@@ -331,6 +331,19 @@ export async function teamsPage() {
   const body = h("div", null);
   screen("rank", h("h1", null, az.game2.teams.title), body);
   const status = h("p", { class: "soft", role: "status" });
+  const weekBlock = async () => {
+    const w = await api("GET", "/leaderboards/team-week").catch(() => null);
+    const list = (rows: any[]) => rows.length
+      ? rows.map((x: any) => h("div", { class: "g2-row" }, h("span", { class: "g2-rank" }, String(x.rank)), h("span", { class: "g2-nick" }, x.name), h("span", { class: "g2-val" }, `${x.score}%`)))
+      : [h("p", { class: "soft" }, az.game2.teams.weekEmpty)];
+    return h("section", { class: "g2-block" },
+      h("h3", { class: "g2-sub" }, az.game2.teams.weekTitle),
+      h("p", { class: "soft" }, t("game2.teams.weekNote", { m: w?.minMatches ?? 3, n: w?.minMembers ?? 3 })),
+      h("h4", { class: "g2-sub" }, az.game2.teams.weekCurrent),
+      ...list(w?.current?.rows ?? []),
+      h("h4", { class: "g2-sub" }, az.game2.teams.weekPrev),
+      ...list(w?.previous?.rows ?? []));
+  };
   const reasonText = (r: string) => (az.game2.teams as unknown as Record<string, string>)[r === "not_verified" ? "notVerified" : r === "full" ? "full" : r === "not_found" ? "notFound" : r === "limit" ? "limit" : "badName"];
   async function draw() {
     const [mine, ranking] = await Promise.all([api("GET", "/teams"), api("GET", "/leaderboards/teams")]);
@@ -366,6 +379,7 @@ export async function teamsPage() {
           h("button", { class: "g2-link", onclick: () => go(`/teams/${x.id}`) }, x.name),
           h("span", { class: "muted" }, `${x.members} · ${(az.game2.teams.kinds as Record<string, string>)[x.kind] ?? x.kind}`)))
           : [h("p", { class: "soft" }, az.game2.teams.none)])),
+      await weekBlock(),
       h("section", { class: "g2-block" }, h("h3", { class: "g2-sub" }, az.game2.teams.ranking),
         ...(ranking.rows.length ? ranking.rows.map((x: any) => boardRow(x.rank, x.name, t("game2.teams.avg", { n: x.avgRating }), null, false))
           : [h("p", { class: "soft" }, az.game2.teams.notRanked)])));
@@ -445,6 +459,10 @@ export async function profilePage() {
       : h("p", { class: "soft" }, az.game2.profile.nothingEquipped),
     skills,
     seasons,
+    h("h2", null, az.game2.profile.ratingHistory),
+    ...((rr?.history ?? []).length ? (rr.history as { delta: number; rating_after: number; created_at: number }[]).map((x) => h("div", { class: "d5-row" },
+      h("span", null, new Date(x.created_at).toLocaleDateString(getLang() === "ru" ? "ru-RU" : "az-AZ")),
+      h("span", { class: "d5-pill " + (x.delta > 0 ? "won" : x.delta < 0 ? "lost" : "") }, `${x.delta > 0 ? "+" : ""}${x.delta} → ${x.rating_after}`))) : [h("p", { class: "soft" }, az.game2.profile.noRatingHistory)]),
     h("h2", null, az.game2.profile.recent),
     ...(hist.matches.length ? hist.matches.slice(0, 5).map((m: any) => h("div", { class: "d5-row" },
       h("span", null, `${m.points[0]} : ${m.points[1]} · ${m.opponentBot ? az.game2.profile.bot : ""}`),

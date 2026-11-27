@@ -182,3 +182,23 @@ describe("equipped items and the daily reward", () => {
     expect(await (await reward()).json()).toMatchObject({ granted: false });
   });
 });
+
+describe("weekly team competition", () => {
+  it("a team is ranked by its counted members' win rates in the week; players with too few matches do not count", async () => {
+    const { teamWeek } = await import("../worker/team-week");
+    const { weekStart: ws } = await import("../worker/calendar");
+    const start = ws(NOW);
+    await user("ue", "Rəqib");
+    const t = await createTeam(db, "ua", "Sinif 9B", "class", NOW);
+    if (!t.ok) throw new Error("setup");
+    await joinTeam(db, "ub", t.code, NOW);
+    await joinTeam(db, "uc", t.code, NOW);
+    for (const u of ["ua", "ub", "uc"]) for (let k = 0; k < 3; k++) {
+      await db.prepare("INSERT INTO matches (id, mode, rated, winner, reason, user0, user1, created_at) VALUES (?, 'friendly', 0, ?, 'finished', ?, 'ue', ?)")
+        .bind(`w-${u}-${k}`, u === "ua" ? 0 : 1, u, start + 3600_000 + k).run();
+    }
+    const rows = await teamWeek(db, start);
+    expect(rows.find((r) => r.id === t.id)).toMatchObject({ counted: 3 });
+    expect(rows.find((r) => r.id === t.id)!.score).toBeGreaterThan(0);
+  });
+});

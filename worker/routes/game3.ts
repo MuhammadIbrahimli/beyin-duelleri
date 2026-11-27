@@ -10,6 +10,7 @@ import { areFriends, headToHead, inviteToTeam, myTeamInvites, react, respondInvi
 import { skillsFor } from "../skills";
 import { notificationsFor } from "../notifications";
 import { dailyBoard } from "../daily-board";
+import { teamWeeks } from "../team-week";
 import { credit } from "../economy-core";
 import { todayBaku } from "../../shared/experiments";
 import { DAILY_REWARD } from "../../config/streak";
@@ -87,6 +88,9 @@ game3Routes.get("/leaderboards/daily", auth, async (c) => {
   const r = await dailyBoard(c.env.DB, c.get("userId"), scope, Date.now());
   return r ? c.json(r) : c.json({ error: "no_daily" }, 404);
 });
+
+/** The weekly team competition: this week and the previous one. */
+game3Routes.get("/leaderboards/team-week", auth, async (c) => c.json(await teamWeeks(c.env.DB, Date.now())));
 
 /** Verified university teams only (the list is in config/universities.ts). */
 game3Routes.get("/leaderboards/universities", auth, async (c) => {
