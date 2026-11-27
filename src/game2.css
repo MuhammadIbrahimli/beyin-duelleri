@@ -104,3 +104,5 @@
 .g2-pre { margin: 0; padding: var(--sp-3); border-radius: var(--radius-s); background: var(--c-surface); overflow-x: auto; font-size: var(--fs-xs); white-space: pre-wrap; word-break: break-word; }
 .g2-record { margin: 0; font-weight: 900; color: var(--c-primary); }
 .g2-rating .eyebrow { display: block; }
+.g2-details { display: grid; gap: var(--sp-2); }
+.g2-details summary { cursor: pointer; font-weight: 700; color: var(--c-muted); }

@@ -248,6 +248,12 @@ export async function boardPage(tabIn: string, scopeIn: string, pageIn = 1) {
         h("p", { class: "soft" }, az.game2.board.cityNote),
         h("p", { class: "soft" }, t("game2.board.cityMin", { m: b.minMatches, n: b.minPlayers })),
         h("p", { class: "soft" }, az.game2.board.cityChangeNote),
+        h("h3", { class: "g2-sub" }, t("game2.board.disciplineTitle", { name: (az.duel5.stageNames as Record<string, string>)[b.discipline?.discipline] ?? "" })),
+        h("p", { class: "soft" }, t("game2.board.disciplineNote", { n: b.discipline?.minStages ?? 2 })),
+        ...(b.discipline?.cities ?? []).map((c: any) => h("div", { class: "g2-city" },
+          h("b", null, c.name),
+          c.enough ? h("span", null, t("game2.board.cityScore", { n: c.score })) : h("span", { class: "muted" }, az.game2.board.cityNotEnough),
+          h("span", { class: "muted" }, t("game2.board.cityPlayers", { n: c.players })))),
         shareButton(() => ({ kicker: "Beyin duellisi · " + az.game2.board.cityTitle, title: names.join(" — "), big: b.leader && b.leader !== "draw" ? (b.cities.find((c: any) => c.city === b.leader)?.name ?? "") : "—", lines: [az.game2.board.cityNote] }), { button: az.duel5.share, saved: az.game3.share.saved })));
     return;
   }

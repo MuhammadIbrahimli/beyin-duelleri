@@ -128,7 +128,7 @@ export async function duelHome() {
   const extras = await import("./game2").then((g) => g.homeExtras()).catch(() => null);
   const g3 = await import("./game3").then((g) => g.homeBlocks()).catch(() => null);
   const dailyLink = h("a", { class: "g2-link", href: "/daily-board", "data-link": "" }, az.game3.daily.title);
-  screen("home", top, g3, league, cta, modes, dailyLink, extras, h("h2", null, az.duel5.recent), recent);
+  screen("home", top, league, cta, modes, dailyLink, g3, extras, h("h2", null, az.duel5.recent), recent);
 }
 
 /** Search for an opponent: the server pairs by rating; a bot is only offered after a wait, and is labelled as a bot. */

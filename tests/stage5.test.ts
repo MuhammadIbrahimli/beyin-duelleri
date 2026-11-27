@@ -202,3 +202,15 @@ describe("weekly team competition", () => {
     expect(rows.find((r) => r.id === t.id)!.score).toBeGreaterThan(0);
   });
 });
+
+describe("the discipline of the week", () => {
+  it("the discipline is one of the five stages and changes from week to week; an empty week shows no score", async () => {
+    const { disciplineFor, disciplineBattle, DISCIPLINES } = await import("../worker/cities");
+    const d1 = disciplineFor(NOW);
+    expect(DISCIPLINES).toContain(d1);
+    expect(disciplineFor(NOW + 7 * 86400000)).not.toBe(d1);
+    const b = await disciplineBattle(db, NOW);
+    expect(b.discipline).toBe(d1);
+    expect(b.cities.every((c) => c.enough === false && c.score === null)).toBe(true);
+  });
+});

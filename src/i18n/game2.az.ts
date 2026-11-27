@@ -80,6 +80,8 @@ export const game2Az = {
     cityMin: "Hər oyunçu ən azı {m} matç oynamalıdır; şəhərdən ən azı {n} oyunçu lazımdır.",
     cityWeek: "Bu həftə, {n} gün qalıb",
     cityChangeNote: "Şəhəri bu həftə dəyişən oyunçu sayılmır.",
+    disciplineTitle: "Həftənin dissiplini: {name}",
+    disciplineNote: "Hər şəhər üçün bu dissiplində oyunçuların orta qələbə faizi. Oyunçu ən azı {n} mərhələ oynamalıdır.",
   },
   friends: {
     title: "Dostlar",

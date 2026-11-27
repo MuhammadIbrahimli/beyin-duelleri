@@ -23,10 +23,12 @@ const LS = {
 export async function streakBlock(): Promise<HTMLElement> {
   const box = h("section", { class: "g2-block" });
   const draw = (s: any) => {
+    const next = s.milestones.find((m: any) => !m.claimed);
     box.replaceChildren(
       h("h2", null, G().streak.title),
-      h("p", { class: "soft" }, G().streak.lead),
-      h("p", { class: "g2-balance" }, t("game3.streak.days", { n: s.streak })),
+      h("p", { class: "g2-balance" }, t("game3.streak.days", { n: s.streak }) + (next ? " · " + t("game3.streak.next", { n: next.days }) : "")),
+      h("details", { class: "g2-details" },
+      h("summary", null, G().streak.lead),
       ...s.milestones.map((m: any) => {
         const can = m.reached && !m.claimed;
         const btn: HTMLButtonElement = h("button", {
@@ -47,7 +49,7 @@ export async function streakBlock(): Promise<HTMLElement> {
             h("b", null, t("game3.streak.days", { n: m.days })),
             h("span", { class: "muted" }, `+${m.xp} XP · +${m.qizil} Qızıl`)),
           h("div", { class: "g2-quest-foot" }, h("span", { class: "muted" }, m.reached ? "✓" : ""), btn));
-      }),
+      })),
     );
   };
   draw(await api("GET", "/streak").catch(() => ({ streak: 0, milestones: [] })));

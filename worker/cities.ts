@@ -62,3 +62,74 @@ export async function cityBattle(db: D1Database, now: number) {
   }
   return { week: b.week, cities, leader, endsAt: b.end, minPlayers: CITY_BATTLE.minPlayersPerCity, minMatches: CITY_BATTLE.minMatchesPerPlayer };
 }
+
+// ---- the discipline of the week: one stage of the match, rotated week by week -------------------------------------
+
+export const DISCIPLINES = ["reaction", "memory", "math", "attention", "logic"] as const;
+export type Discipline = (typeof DISCIPLINES)[number];
+export const DISCIPLINE_MIN_STAGES = 2;
+
+export function disciplineFor(now: number): Discipline {
+  const index = Math.floor(weekStart(now) / (7 * 24 * 60 * 60 * 1000));
+  return DISCIPLINES[((index % DISCIPLINES.length) + DISCIPLINES.length) % DISCIPLINES.length];
+}
+
+/** Each city's average stage win rate in this week's discipline. A player counts after DISCIPLINE_MIN_STAGES plays. */
+export async function disciplineBattle(db: D1Database, now: number) {
+  const b = battleFor(now);
+  const discipline = disciplineFor(now);
+  const rows = await db
+    .prepare(
+      "SELECT user0, user1, winner, history_json FROM matches WHERE mode != 'training' AND created_at >= ? AND created_at < ? LIMIT 5000",
+    )
+    .bind(b.start, b.end)
+    .all<{ user0: string | null; user1: string | null; winner: number; history_json: string }>();
+  const stats = new Map<string, { won: number; played: number }>();
+  const bump = (uid: string | null, won: boolean, played: number) => {
+    if (!uid) return;
+    const s = stats.get(uid) ?? { won: 0, played: 0 };
+    s.won += won ? 1 : 0;
+    s.played += played;
+    stats.set(uid, s);
+  };
+  for (const m of rows.results) {
+    let history: { id: string; winner: number }[] = [];
+    try {
+      history = JSON.parse(m.history_json ?? "[]");
+    } catch {
+      history = [];
+    }
+    for (const h of history) {
+      if (h.id !== discipline) continue;
+      bump(m.user0, h.winner === 0, 1);
+      bump(m.user1, h.winner === 1, 1);
+    }
+  }
+  const users = await db
+    .prepare(
+      "SELECT id, city_code, city_changed_at FROM users WHERE city_code IN (?, ?)",
+    )
+    .bind(b.pair[0], b.pair[1])
+    .all<{ id: string; city_code: string; city_changed_at: number | null }>();
+  const byCity = new Map<string, number[]>();
+  for (const u of users.results) {
+    if (u.city_changed_at && u.city_changed_at >= b.start) continue; // changed the city this week
+    const s = stats.get(u.id);
+    if (!s || s.played < DISCIPLINE_MIN_STAGES) continue;
+    const list = byCity.get(u.city_code) ?? [];
+    list.push(s.won / s.played);
+    byCity.set(u.city_code, list);
+  }
+  const cities = b.pair.map((code) => {
+    const list = byCity.get(code) ?? [];
+    const enough = list.length >= CITY_BATTLE.minPlayersPerCity;
+    const avg = list.length ? list.reduce((a, c) => a + c, 0) / list.length : 0;
+    return { city: code, name: CITY_BATTLE.names[code] ?? code, players: list.length, score: enough ? Math.round(avg * 1000) / 10 : null, enough };
+  });
+  let leader: string | null = null;
+  if (cities.every((c) => c.enough && c.score !== null)) {
+    const [x, y] = cities;
+    leader = x.score! === y.score! ? "draw" : x.score! > y.score! ? x.city : y.city;
+  }
+  return { discipline, week: b.week, cities, leader, minStages: DISCIPLINE_MIN_STAGES };
+}

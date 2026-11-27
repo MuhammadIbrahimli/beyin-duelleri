@@ -13,7 +13,7 @@ import { catalog, buy, equip, unequip, equippedOf, itemById } from "../shop";
 import { startRun, answerRun, stopRun } from "../marafon";
 import { addFriend, challenge, incomingChallenges, listFriends, myCode } from "../social";
 import { createTeam, joinTeam, myTeams, teamDetail, teamRanking } from "../teams";
-import { cityBattle } from "../cities";
+import { cityBattle, disciplineBattle } from "../cities";
 import { activeEvents, applySeasonCorrection, seasonFor, seasonHistory } from "../seasons";
 import { adsStatus, adsEnabled, createOrder, paymentsEnabled } from "../payments";
 import { weekStart } from "../calendar";
@@ -193,7 +193,10 @@ game2Routes.get("/teams/:id", auth, async (c) => {
 });
 
 // ---- city battles and seasons ---------------------------------------------------------------------------------------
-game2Routes.get("/cities/battle", auth, async (c) => c.json(await cityBattle(c.env.DB, Date.now())));
+game2Routes.get("/cities/battle", auth, async (c) => {
+  const now = Date.now();
+  return c.json({ ...(await cityBattle(c.env.DB, now)), discipline: await disciplineBattle(c.env.DB, now) });
+});
 
 game2Routes.get("/season", auth, async (c) => {
   const uid = c.get("userId");
