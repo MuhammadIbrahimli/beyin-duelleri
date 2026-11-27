@@ -303,3 +303,18 @@ describe("payments and ads are off", () => {
     expect(ad.status).toBe(503);
   });
 });
+
+describe("owner analytics", () => {
+  it("counts only stored data: an empty database gives zeros, not invented numbers", async () => {
+    const { duelStats } = await import("../worker/analytics");
+    const s = await duelStats(db, NOW);
+    expect(s.matches.total).toBe(0);
+    expect(s.funnel.players).toBe(0);
+    expect(s.suspicious).toEqual([]);
+  });
+
+  it("the owner endpoint refuses a wrong token", async () => {
+    const res = await app.request("/api/admin/duel-stats", { headers: { "x-admin-token": "wrong" } }, { ...(env() as object), ADMIN_TOKEN: "right-token" } as never);
+    expect(res.status).toBe(401);
+  });
+});

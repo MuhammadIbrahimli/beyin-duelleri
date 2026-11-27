@@ -17,6 +17,8 @@ import { cityBattle } from "../cities";
 import { activeEvents, applySeasonCorrection, seasonFor, seasonHistory } from "../seasons";
 import { adsStatus, adsEnabled, createOrder, paymentsEnabled } from "../payments";
 import { weekStart } from "../calendar";
+import { duelStats } from "../analytics";
+import { safeEqual } from "../util";
 
 export const game2Routes = new Hono<AppEnv>();
 const PAGE = 20;
@@ -198,6 +200,13 @@ game2Routes.get("/season", auth, async (c) => {
   const now = Date.now();
   await applySeasonCorrection(c.env.DB, uid, now);
   return c.json({ season: seasonFor(now), events: activeEvents(now), history: await seasonHistory(c.env.DB, uid) });
+});
+
+// ---- owner analytics (x-admin-token, same secret as /api/admin) ------------------------------------------
+game2Routes.get("/admin/duel-stats", async (c) => {
+  const secret = c.env.ADMIN_TOKEN;
+  if (!secret || !safeEqual(c.req.header("x-admin-token") ?? "", secret)) return c.json({ error: "unauthorized" }, 401);
+  return c.json(await duelStats(c.env.DB, Date.now()));
 });
 
 // ---- profile --------------------------------------------------------------------------------------------------------
