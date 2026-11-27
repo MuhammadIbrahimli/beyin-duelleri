@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { CITY_BATTLE } from "../../config/city-battles";
 import { CITY_CODES } from "../../config/cities";
 import { todayBaku } from "../../shared/experiments";
 import { validateEmail, validateName } from "../../shared/profile";
@@ -94,6 +95,14 @@ meRoutes.patch("/me", async (c) => {
   if (b.rerollNickname) add("nickname", randomNickname());
   if (b.city !== undefined) {
     if (b.city !== null && !(CITY_CODES as readonly string[]).includes(b.city)) return c.json({ error: "bad_city" }, 400);
+    // a city change is limited: it cannot be switched back and forth to win a city battle
+    const cur = await db.prepare("SELECT city_code, city_changed_at FROM users WHERE id = ?").bind(id).first<{ city_code: string | null; city_changed_at: number | null }>();
+    if (cur && cur.city_code !== b.city) {
+      if (cur.city_code && cur.city_changed_at && Date.now() - cur.city_changed_at < CITY_BATTLE.cityChangeCooldownMs) {
+        return c.json({ error: "city_cooldown" }, 429);
+      }
+      add("city_changed_at", Date.now());
+    }
     add("city_code", b.city);
   }
   if (b.email !== undefined) {

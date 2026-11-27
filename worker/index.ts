@@ -5,6 +5,7 @@ import { rateLimit } from "./middleware/auth";
 import { adminRoutes } from "./routes/admin";
 import { duelRoutes } from "./routes/duels";
 import { duel5Routes } from "./routes/duel5";
+import { game2Routes } from "./routes/game2";
 import { groupRoutes } from "./routes/groups";
 import { miscRoutes } from "./routes/misc";
 import { pushRoutes } from "./routes/push";
@@ -23,6 +24,7 @@ app.use("*", rateLimit);
 app.route("/", sessionRoutes);
 // Mounted before any sub-app that calls use("*", auth): Hono applies those middlewares to every route registered after them.
 app.route("/", roomRoutes);
+app.route("/", game2Routes);
 app.route("/", duel5Routes); // same reason as the rooms: sub-apps below put auth on every route after them
 app.route("/", adminRoutes); // before the user routes: it has its own token check
 app.route("/", meRoutes);

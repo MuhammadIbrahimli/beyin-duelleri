@@ -9,6 +9,7 @@ import { auth } from "../middleware/auth";
 import { balanceOf } from "../economy-core";
 import { createMatchRoom } from "../match-rooms";
 import { leagueOf } from "../rating-core";
+import { applySeasonCorrection } from "../seasons";
 
 export const duel5Routes = new Hono<AppEnv>();
 
@@ -43,6 +44,7 @@ duel5Routes.post("/matches/friend", auth, async (c) => {
 /** The player's rating, league, best rank and the last rating changes. */
 duel5Routes.get("/ratings/me", auth, async (c) => {
   const uid = c.get("userId");
+  await applySeasonCorrection(c.env.DB, uid, Date.now());
   const row = await c.env.DB.prepare(
     "SELECT rating, peak, played, wins, losses, draws, streak, best_streak FROM ratings WHERE user_id = ?",
   )

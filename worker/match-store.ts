@@ -4,6 +4,8 @@ import { ECONOMY } from "../config/economy";
 import { RATING } from "../config/rating";
 import { bakuDayStart, credit, gainedToday } from "./economy-core";
 import { applyRated, scoreForSeat0, type Player } from "./rating-core";
+import { applySeasonCorrection, eventXpMultiplier } from "./seasons";
+import { recordMatch } from "./stats";
 
 export interface MatchResult {
   code: string;
@@ -42,11 +44,13 @@ export async function storeMatch(db: D1Database, r: MatchResult, now: number): P
     .run();
   if (!(ins.meta.changes ?? 0)) return false; // already stored
 
+  for (const uid of human) if (uid) await applySeasonCorrection(db, uid, now);
   if (r.rated && human[0] && human[1]) await rate(db, r, human[0], human[1], now);
   for (const seat of [0, 1] as const) {
     const uid = human[seat];
     if (uid) await reward(db, r, seat, uid, now);
   }
+  await recordMatch(db, r, now);
   return true;
 }
 
@@ -125,7 +129,8 @@ async function reward(db: D1Database, r: MatchResult, seat: 0 | 1, uid: string, 
   const won = r.winner === seat;
   const stagesWon = r.history.filter((h) => h.winner === seat).length;
   const m = ECONOMY.match;
-  const xp = m.xpPlayed + (won ? m.xpWon : 0) + stagesWon * m.xpPerStageWon;
+  // an event can raise the XP of finished matches while it runs (config/seasons.ts)
+  const xp = Math.round((m.xpPlayed + (won ? m.xpWon : 0) + stagesWon * m.xpPerStageWon) * eventXpMultiplier(now));
   await credit(db, uid, "xp", xp, `match:${r.code}:${seat}:xp`, "match", now);
   if (r.mode === "rated") {
     const qizil = m.qizilPlayed + (won ? m.qizilWon : 0);

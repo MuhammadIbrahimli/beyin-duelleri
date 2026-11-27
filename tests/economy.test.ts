@@ -152,7 +152,9 @@ describe("storing a finished match", () => {
   it("a friendly match gives XP but never Qızıl", async () => {
     await storeMatch(db, match("F1", { mode: "friendly", rated: false }), NOW);
     expect(await balanceOf(db, "ua", "xp")).toBeGreaterThan(0);
-    expect(await balanceOf(db, "ua", "qizil")).toBe(0);
+    // the match itself gives no Qızıl (the balance may hold an achievement reward, which is a different reason)
+    const q = await db.prepare("SELECT COUNT(*) AS n FROM econ_ledger WHERE user_id = 'ua' AND currency = 'qizil' AND reason = 'match'").first();
+    expect(q?.n).toBe(0);
   });
 
   it("a rated match gives Qızıl to both players", async () => {
