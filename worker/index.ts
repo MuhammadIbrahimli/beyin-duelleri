@@ -4,6 +4,7 @@ import type { AppEnv, Env } from "./env";
 import { rateLimit } from "./middleware/auth";
 import { adminRoutes } from "./routes/admin";
 import { duelRoutes } from "./routes/duels";
+import { duel5Routes } from "./routes/duel5";
 import { groupRoutes } from "./routes/groups";
 import { miscRoutes } from "./routes/misc";
 import { pushRoutes } from "./routes/push";
@@ -15,6 +16,7 @@ import { meRoutes, sessionRoutes } from "./routes/session";
 import { sharePage } from "./share";
 
 export { Room } from "./room";
+export { Queue } from "./queue";
 
 export const app = new Hono<AppEnv>().basePath("/api");
 app.use("*", rateLimit);
@@ -25,6 +27,7 @@ app.route("/", adminRoutes); // before the user routes: it has its own token che
 app.route("/", meRoutes);
 app.route("/", runRoutes);
 app.route("/", duelRoutes);
+app.route("/", duel5Routes);
 app.route("/", groupRoutes);
 app.route("/", pushRoutes);
 app.route("/", recapRoutes);

@@ -12,13 +12,14 @@ const CODE = /^[A-Z0-9]{4,8}$/;
 roomRoutes.post("/rooms", auth, async (c) => {
   if (!c.env.ROOMS) return c.json({ error: "rooms_unavailable" }, 503);
   const b = await c.req.json<{ game?: unknown }>().catch(() => ({}) as { game?: unknown });
-  const game: GameId = (GAME_IDS as readonly unknown[]).includes(b.game) ? (b.game as GameId) : "first";
+  // the multi-discipline match has its own route (routes/duel5.ts): it needs the seats it was made for
+  const game: GameId = (GAME_IDS as readonly unknown[]).includes(b.game) && b.game !== "multi" ? (b.game as GameId) : "first";
   const code = newDuelCode(6).toUpperCase();
   const stub = c.env.ROOMS.get(c.env.ROOMS.idFromName(code));
   const res = await stub.fetch("https://room/init", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ game, seed: newSeed() }),
+    body: JSON.stringify({ game, seed: newSeed(), code }),
   });
   if (!res.ok) return c.json({ error: "server_error" }, 500);
   return c.json({ code, game });

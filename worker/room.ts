@@ -7,6 +7,9 @@ import { reactionEngine } from "./reaction-core";
 import { riddleEngine } from "./riddle-core";
 import { raceEngine } from "./race-core";
 import { firstEngine } from "./rooms-core";
+import { duel5Engine } from "./duel5-core";
+import { storeMatch, type MatchResult } from "./match-store";
+import { releasePlayers } from "./match-rooms";
 import { verifyToken } from "./util";
 
 export const GAMES: Record<GameId, Engine<unknown>> = {
@@ -15,10 +18,14 @@ export const GAMES: Record<GameId, Engine<unknown>> = {
   memory: memoryEngine as unknown as Engine<unknown>,
   reaction: reactionEngine as unknown as Engine<unknown>,
   riddle: riddleEngine as unknown as Engine<unknown>,
+  multi: duel5Engine as unknown as Engine<unknown>,
 };
+/** A room of the multi-discipline match is closed if the second player never comes (see duel5-core). */
+const LOBBY_TIMER_GAME: GameId = "multi";
 const isGame = (g: unknown): g is GameId => (GAME_IDS as readonly unknown[]).includes(g);
 
 type Client = { userId?: string; slot?: Slot };
+const LOBBY_MS = 30000;
 
 export class Room {
   private game: GameId | null = null;
@@ -28,7 +35,7 @@ export class Room {
   private who = new Map<WebSocket, Client>();
   private roundEnd = 0;
 
-  constructor(_state: DurableObjectState, private env: Env) {}
+  constructor(private state: DurableObjectState, private env: Env) {}
 
   async fetch(request: Request): Promise<Response> {
     // Only the Worker calls /init (see routes/rooms.ts); sockets come in on the room's /ws path.
@@ -49,11 +56,19 @@ export class Room {
 
   private async init(request: Request): Promise<Response> {
     if (this.engine) return new Response("exists", { status: 409 });
-    const b = await request.json<{ game?: unknown; seed?: unknown }>().catch(() => ({}) as { game?: unknown; seed?: unknown });
+    const b = await request
+      .json<{ game?: unknown; seed?: unknown; code?: unknown; opts?: unknown }>()
+      .catch(() => ({}) as { game?: unknown; seed?: unknown; code?: unknown; opts?: unknown });
     if (!isGame(b.game) || typeof b.seed !== "number") return new Response("bad init", { status: 400 });
     this.game = b.game;
     this.engine = GAMES[b.game];
-    this.room = this.engine.create(b.seed);
+    if (this.engine.setup) {
+      const opts = { ...((b.opts as Record<string, unknown>) ?? {}), code: typeof b.code === "string" ? b.code : "" };
+      this.room = this.engine.setup(b.seed, opts);
+    } else {
+      this.room = this.engine.create(b.seed);
+    }
+    if (this.game === LOBBY_TIMER_GAME) this.schedule({ kind: "lobby", ms: LOBBY_MS });
     return new Response("ok");
   }
 
@@ -125,6 +140,14 @@ export class Room {
     if (out.error) return;
     for (const e of out.events) this.emit(e);
     for (const t of out.timers) this.schedule(t);
+    // a finished match is stored once, in the background; the store is idempotent (see match-store.ts)
+    if (out.result) {
+      const res = out.result as MatchResult;
+      const stored = storeMatch(this.env.DB, res, Date.now()).catch((e) => console.error("store match", e));
+      const humans = res.ids.filter((id, s): id is string => !!id && !res.bots[s as 0 | 1]);
+      const released = releasePlayers(this.env, humans).catch((e) => console.error("release players", e));
+      this.state.waitUntil(Promise.all([stored, released]));
+    }
     if (this.engine?.ended(out.room)) this.closeAll();
   }
 

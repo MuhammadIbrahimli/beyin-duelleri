@@ -27,6 +27,7 @@ export interface Riddle {
   ids: [string | null, string | null];
   nicks: [string, string];
   online: [boolean, boolean];
+  total: number;              // rounds in this game
   qs: Question[];             // one riddle per round, fixed when the room is made
   round: number;              // 0 before the first riddle
   frozen: [number, number];   // taps are ignored until this time (after a wrong answer)
@@ -36,9 +37,9 @@ export interface Riddle {
 export type Out = EngineOut<Riddle>;
 
 /** Same seed, same riddles and option order on every device. No riddle comes twice in one match. */
-export function makeQuestions(seed: number): Question[] {
+export function makeQuestions(seed: number, rounds = ROUNDS): Question[] {
   const r = rng(seed);
-  const picks = shuffle(r, RIDDLES.map((_, i) => i)).slice(0, ROUNDS);
+  const picks = shuffle(r, RIDDLES.map((_, i) => i)).slice(0, rounds);
   return picks.map((i) => {
     const riddle = RIDDLES[i];
     const options = shuffle(r, [riddle.answer, ...riddle.wrong]);
@@ -46,14 +47,15 @@ export function makeQuestions(seed: number): Question[] {
   });
 }
 
-export function createRiddle(seed: number): Riddle {
+export function createRiddle(seed: number, rounds = ROUNDS): Riddle {
   return {
     seed,
     phase: "lobby",
     ids: [null, null],
     nicks: ["", ""],
     online: [false, false],
-    qs: makeQuestions(seed),
+    total: rounds,
+    qs: makeQuestions(seed, rounds),
     round: 0,
     frozen: [0, 0],
     score: [0, 0],
@@ -63,7 +65,7 @@ export function createRiddle(seed: number): Riddle {
 const out = (room: Riddle, events: Ev[] = [], timers: Timer[] = [], error?: string): Out => ({ room, events, timers, error });
 
 export function snapshot(room: Riddle) {
-  return { phase: room.phase, round: room.round, total: ROUNDS, score: room.score, nicks: room.nicks, online: room.online };
+  return { phase: room.phase, round: room.round, total: room.total, score: room.score, nicks: room.nicks, online: room.online };
 }
 
 export function join(room: Riddle, userId: string, nick: string): Out {
@@ -85,11 +87,11 @@ export function awayTimeout(room: Riddle, slot: Slot): Out {
 /** The round message: the riddle and its four options. The right option is not sent. */
 function roundMsg(room: Riddle, ms: number) {
   const q = room.qs[room.round - 1];
-  return { t: "round", n: room.round, total: ROUNDS, text: q.text, options: q.options, ms };
+  return { t: "round", n: room.round, total: room.total, text: q.text, options: q.options, ms };
 }
 
 function startRound(room: Riddle): Out {
-  if (room.round >= ROUNDS) return endGame(room);
+  if (room.round >= room.total) return endGame(room);
   room.round++;
   room.phase = "round";
   room.frozen = [0, 0];

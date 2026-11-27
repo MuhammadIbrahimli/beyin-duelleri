@@ -12,6 +12,8 @@ export interface Env {
   VAPID_SUBJECT?: string;
   /** Durable Object namespace for live 1v1 rooms ("İlk cavab"). Optional so the API still runs without it. */
   ROOMS?: DurableObjectNamespace;
+  /** Durable Object for the one shared matchmaking queue (worker/queue.ts). */
+  QUEUE?: DurableObjectNamespace;
 }
 export interface AuthedVars { userId: string }
 export type AppEnv = { Bindings: Env; Variables: AuthedVars };

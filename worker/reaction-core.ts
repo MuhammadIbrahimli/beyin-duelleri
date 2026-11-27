@@ -21,6 +21,7 @@ export interface Reaction {
   ids: [string | null, string | null];
   nicks: [string, string];
   online: [boolean, boolean];
+  total: number;               // rounds in this game
   waits: number[];             // one wait per round, fixed when the room is made
   round: number;               // 0 before the first round
   goAt: number;                // server time of the signal
@@ -31,19 +32,20 @@ export interface Reaction {
 export type Out = EngineOut<Reaction>;
 
 /** Same seed, same waits on every device. */
-export function makeWaits(seed: number): number[] {
+export function makeWaits(seed: number, rounds = ROUNDS): number[] {
   const r = rng((seed ^ 0x5bd1e995) >>> 0);
-  return Array.from({ length: ROUNDS }, () => randInt(r, MIN_WAIT_MS, MAX_WAIT_MS));
+  return Array.from({ length: rounds }, () => randInt(r, MIN_WAIT_MS, MAX_WAIT_MS));
 }
 
-export function createReaction(seed: number): Reaction {
+export function createReaction(seed: number, rounds = ROUNDS): Reaction {
   return {
     seed,
     phase: "lobby",
     ids: [null, null],
     nicks: ["", ""],
     online: [false, false],
-    waits: makeWaits(seed),
+    total: rounds,
+    waits: makeWaits(seed, rounds),
     round: 0,
     goAt: 0,
     locked: [false, false],
@@ -54,7 +56,7 @@ export function createReaction(seed: number): Reaction {
 const out = (room: Reaction, events: Ev[] = [], timers: Timer[] = [], error?: string): Out => ({ room, events, timers, error });
 
 export function snapshot(room: Reaction) {
-  return { phase: room.phase, round: room.round, total: ROUNDS, score: room.score, nicks: room.nicks, online: room.online };
+  return { phase: room.phase, round: room.round, total: room.total, score: room.score, nicks: room.nicks, online: room.online };
 }
 
 export function join(room: Reaction, userId: string, nick: string): Out {
@@ -74,13 +76,13 @@ export function awayTimeout(room: Reaction, slot: Slot): Out {
 }
 
 function startRound(room: Reaction): Out {
-  if (room.round >= ROUNDS) return endGame(room);
+  if (room.round >= room.total) return endGame(room);
   room.round++;
   room.phase = "ready";
   room.locked = [false, false];
   room.goAt = 0;
   const ms = room.waits[room.round - 1];
-  return out(room, [{ to: "all", msg: { t: "ready", n: room.round, total: ROUNDS, ms, locked: false } }], [{ kind: "go", ms, round: room.round }]);
+  return out(room, [{ to: "all", msg: { t: "ready", n: room.round, total: room.total, ms, locked: false } }], [{ kind: "go", ms, round: room.round }]);
 }
 
 export function countdownDone(room: Reaction): Out {
@@ -93,7 +95,7 @@ export function goDone(room: Reaction, round: number, now: number): Out {
   if (room.phase !== "ready" || round !== room.round) return none(room);
   room.phase = "go";
   room.goAt = now;
-  return out(room, [{ to: "all", msg: { t: "go", n: room.round, total: ROUNDS, ms: GO_MS, locked: false } }], [{ kind: "round", ms: GO_MS, round: room.round }]);
+  return out(room, [{ to: "all", msg: { t: "go", n: room.round, total: room.total, ms: GO_MS, locked: false } }], [{ kind: "round", ms: GO_MS, round: room.round }]);
 }
 
 /** A tap from a player. Before the signal it is an early tap; after it, the first tap wins the round. */
@@ -150,10 +152,10 @@ function finishGame(room: Reaction, winner: Slot | -1, reason: "finished" | "for
 /** A player who comes back: the same wait or the same signal window, with the time left and their lock. */
 export function resume(room: Reaction, slot: Slot, msLeft: number): Ev[] {
   if (room.phase === "ready") {
-    return [{ to: slot, msg: { t: "ready", n: room.round, total: ROUNDS, ms: msLeft, locked: room.locked[slot] } }];
+    return [{ to: slot, msg: { t: "ready", n: room.round, total: room.total, ms: msLeft, locked: room.locked[slot] } }];
   }
   if (room.phase === "go") {
-    return [{ to: slot, msg: { t: "go", n: room.round, total: ROUNDS, ms: msLeft, locked: room.locked[slot] } }];
+    return [{ to: slot, msg: { t: "go", n: room.round, total: room.total, ms: msLeft, locked: room.locked[slot] } }];
   }
   return [];
 }

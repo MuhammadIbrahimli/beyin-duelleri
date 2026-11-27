@@ -18,9 +18,17 @@ migrations_dir = "migrations"
 name = "ROOMS"
 class_name = "Room"
 
+[[durable_objects.bindings]]
+name = "QUEUE"
+class_name = "Queue"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Room"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Queue"]
 
 [[ratelimits]]
 name = "RATE_LIMITER"

@@ -23,6 +23,7 @@ export interface Memory {
   ids: [string | null, string | null];
   nicks: [string, string];
   online: [boolean, boolean];
+  total: number;                 // rounds in this game (ROUNDS unless a shorter stage of a multi-game match)
   seqs: number[][];              // one sequence per round, fixed when the room is made
   round: number;                 // 0 before the first sequence
   progress: [number, number];    // how many tiles each player has repeated correctly
@@ -33,8 +34,8 @@ export interface Memory {
 export type Out = EngineOut<Memory>;
 
 /** Same seed, same sequences on every device. The same tile never comes twice in a row. */
-export function makeSequences(seed: number): number[][] {
-  return LENGTHS.map((len, i) => {
+export function makeSequences(seed: number, rounds = ROUNDS): number[][] {
+  return LENGTHS.slice(0, rounds).map((len, i) => {
     const r = rng((seed + Math.imul(i + 1, 0x85ebca6b)) >>> 0);
     const seq: number[] = [];
     while (seq.length < len) {
@@ -51,14 +52,15 @@ export function showMs(len: number): number {
   return len * STEP_MS + SHOW_PAD_MS;
 }
 
-export function createMemory(seed: number): Memory {
+export function createMemory(seed: number, rounds = ROUNDS): Memory {
   return {
     seed,
     phase: "lobby",
     ids: [null, null],
     nicks: ["", ""],
     online: [false, false],
-    seqs: makeSequences(seed),
+    total: rounds,
+    seqs: makeSequences(seed, rounds),
     round: 0,
     progress: [0, 0],
     locked: [false, false],
@@ -69,7 +71,7 @@ export function createMemory(seed: number): Memory {
 const out = (room: Memory, events: Ev[] = [], timers: Timer[] = [], error?: string): Out => ({ room, events, timers, error });
 
 export function snapshot(room: Memory) {
-  return { phase: room.phase, round: room.round, total: ROUNDS, score: room.score, nicks: room.nicks, online: room.online, progress: room.progress };
+  return { phase: room.phase, round: room.round, total: room.total, score: room.score, nicks: room.nicks, online: room.online, progress: room.progress };
 }
 
 export function join(room: Memory, userId: string, nick: string): Out {
@@ -89,11 +91,11 @@ export function awayTimeout(room: Memory, slot: Slot): Out {
 }
 
 function sequenceMsg(room: Memory, ms: number) {
-  return { t: "show", n: room.round, total: ROUNDS, seq: room.seqs[room.round - 1], tiles: TILES, step: STEP_MS, ms };
+  return { t: "show", n: room.round, total: room.total, seq: room.seqs[room.round - 1], tiles: TILES, step: STEP_MS, ms };
 }
 
 function startRound(room: Memory): Out {
-  if (room.round >= ROUNDS) return endGame(room);
+  if (room.round >= room.total) return endGame(room);
   room.round++;
   room.phase = "show";
   room.progress = [0, 0];
@@ -114,7 +116,7 @@ export function showDone(room: Memory, round: number): Out {
   const len = room.seqs[room.round - 1].length;
   return out(
     room,
-    [{ to: "all", msg: { t: "input", n: room.round, total: ROUNDS, len, ms: INPUT_MS, progress: room.progress, locked: false } }],
+    [{ to: "all", msg: { t: "input", n: room.round, total: room.total, len, ms: INPUT_MS, progress: room.progress, locked: false } }],
     [{ kind: "round", ms: INPUT_MS, round: room.round }],
   );
 }
@@ -186,7 +188,7 @@ export function resume(room: Memory, slot: Slot, msLeft: number): Ev[] {
   if (room.phase === "input") {
     return [{
       to: slot,
-      msg: { t: "input", n: room.round, total: ROUNDS, len: room.seqs[room.round - 1].length, ms: msLeft, progress: room.progress, locked: room.locked[slot] },
+      msg: { t: "input", n: room.round, total: room.total, len: room.seqs[room.round - 1].length, ms: msLeft, progress: room.progress, locked: room.locked[slot] },
     }];
   }
   return [];

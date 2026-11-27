@@ -19,6 +19,7 @@ export interface Room {
   ids: [string | null, string | null];
   nicks: [string, string];
   online: [boolean, boolean];
+  total: number;               // rounds in this game
   qs: Question[];
   round: number;               // 0 before the first question
   lock: [boolean, boolean];    // a wrong answer locks a player out of the current round
@@ -41,7 +42,7 @@ export function makeQuestion(r: () => number): Question {
   return { text, options, answer: options.indexOf(ans) };
 }
 
-export function createRoom(seed: number): Room {
+export function createRoom(seed: number, rounds = ROUNDS): Room {
   const r = rng(seed);
   return {
     seed,
@@ -49,7 +50,8 @@ export function createRoom(seed: number): Room {
     ids: [null, null],
     nicks: ["", ""],
     online: [false, false],
-    qs: Array.from({ length: ROUNDS }, () => makeQuestion(r)),
+    total: rounds,
+    qs: Array.from({ length: rounds }, () => makeQuestion(r)),
     round: 0,
     lock: [false, false],
     score: [0, 0],
@@ -81,14 +83,14 @@ export function countdownDone(room: Room): Out {
 }
 
 function nextRound(room: Room): Out {
-  if (room.round >= ROUNDS) return endGame(room);
+  if (room.round >= room.total) return endGame(room);
   room.round++;
   room.phase = "round";
   room.lock = [false, false];
   const q = room.qs[room.round - 1];
   return out(
     room,
-    [{ to: "all", msg: { t: "round", n: room.round, total: ROUNDS, text: q.text, options: q.options, ms: ROUND_MS } }],
+    [{ to: "all", msg: { t: "round", n: room.round, total: room.total, text: q.text, options: q.options, ms: ROUND_MS } }],
     [{ kind: "round", ms: ROUND_MS, round: room.round }],
   );
 }
@@ -144,7 +146,7 @@ export function nextTimeout(room: Room, round: number): Out {
 }
 
 export function snapshot(room: Room) {
-  return { phase: room.phase, round: room.round, total: ROUNDS, score: room.score, nicks: room.nicks, online: room.online };
+  return { phase: room.phase, round: room.round, total: room.total, score: room.score, nicks: room.nicks, online: room.online };
 }
 
 function timerEvent(room: Room, t: Timer): Out {
@@ -170,7 +172,7 @@ export const firstEngine: Engine<Room> = {
   inRound: (room) => room.phase === "round",
   resume: (room, slot, msLeft) => {
     const q = room.qs[room.round - 1];
-    return [{ to: slot, msg: { t: "round", n: room.round, total: ROUNDS, text: q.text, options: q.options, ms: msLeft } }];
+    return [{ to: slot, msg: { t: "round", n: room.round, total: room.total, text: q.text, options: q.options, ms: msLeft } }];
   },
   ended: (room) => room.phase === "ended",
 };

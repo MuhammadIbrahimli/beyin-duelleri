@@ -22,6 +22,7 @@ export interface Race {
   ids: [string | null, string | null];
   nicks: [string, string];
   online: [boolean, boolean];
+  total: number;               // rounds in this game
   grids: number[][];           // one shuffled table per round, fixed when the room is made
   round: number;               // 0 before the first table
   progress: [number, number];  // how many numbers each player has tapped in order
@@ -32,19 +33,20 @@ export interface Race {
 export type Out = EngineOut<Race>;
 
 /** Same seed, same tables on every device. Each round gets its own shuffle. */
-export function makeGrids(seed: number): number[][] {
+export function makeGrids(seed: number, rounds = ROUNDS): number[][] {
   const numbers = Array.from({ length: CELLS }, (_, i) => i + 1);
-  return Array.from({ length: ROUNDS }, (_, i) => shuffle(rng((seed + Math.imul(i + 1, 0x9e3779b1)) >>> 0), numbers));
+  return Array.from({ length: rounds }, (_, i) => shuffle(rng((seed + Math.imul(i + 1, 0x9e3779b1)) >>> 0), numbers));
 }
 
-export function createRace(seed: number): Race {
+export function createRace(seed: number, rounds = ROUNDS): Race {
   return {
     seed,
     phase: "lobby",
     ids: [null, null],
     nicks: ["", ""],
     online: [false, false],
-    grids: makeGrids(seed),
+    total: rounds,
+    grids: makeGrids(seed, rounds),
     round: 0,
     progress: [0, 0],
     frozen: [0, 0],
@@ -55,7 +57,7 @@ export function createRace(seed: number): Race {
 const out = (room: Race, events: Ev[] = [], timers: Timer[] = [], error?: string): Out => ({ room, events, timers, error });
 
 export function snapshot(room: Race) {
-  return { phase: room.phase, round: room.round, total: ROUNDS, score: room.score, nicks: room.nicks, online: room.online, progress: room.progress };
+  return { phase: room.phase, round: room.round, total: room.total, score: room.score, nicks: room.nicks, online: room.online, progress: room.progress };
 }
 
 export function join(room: Race, userId: string, nick: string): Out {
@@ -77,11 +79,11 @@ export function awayTimeout(room: Race, slot: Slot): Out {
 
 /** The table message. `ms` is the time left: the full round at the start, less on a reconnect. */
 function tableMsg(room: Race, ms: number): Ev["msg"] {
-  return { t: "round", n: room.round, total: ROUNDS, size: SIZE, grid: room.grids[room.round - 1], ms, progress: room.progress };
+  return { t: "round", n: room.round, total: room.total, size: SIZE, grid: room.grids[room.round - 1], ms, progress: room.progress };
 }
 
 function startRound(room: Race): Out {
-  if (room.round >= ROUNDS) return endGame(room);
+  if (room.round >= room.total) return endGame(room);
   room.round++;
   room.phase = "round";
   room.progress = [0, 0];
