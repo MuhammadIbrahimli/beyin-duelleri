@@ -1,61 +1,63 @@
-# План роста в Азербайджане
+# Growth Plan for Azerbaijan
 
-Честно: «взорвать» страну ни один продукт не гарантирует. Ниже то, что повышает шанс, и то, что я не знаю и должен проверить.
+No product can guarantee that it will “take off” nationally. This document lists hypotheses that may improve the chances and facts that still need validation.
 
-## Что мы знаем и чего не знаем
+## What is known and unknown
 
-- Instagram и Facebook — самые большие площадки по охвату. По оценкам NapoleonCat, в декабре 2025 у Instagram около 4,65 млн пользователей (примерно 44% населения), у Facebook около 5,59 млн. Источник: https://stats.napoleoncat.com/social-media-users-in-azerbaijan/2025/12/ (оценки рекламных инструментов, цифры расходятся между источниками).
-- TikTok: последняя найденная цифра — начало 2024 года (6,1 млн пользователей 18+). Источник: https://napoleoncat.com/stats/social-media-users-in-azerbaijan/2025
-- WhatsApp и Telegram: **по данным не подтверждено**. Перед выбором канала для напоминаний и вирусных ссылок нужна проверка по национальной статистике (ICT-министерство) или отчёту Datareportal.
-- Социальные сценарии: чайхана и мужские компании за домино и картами — описаны в источниках, но студенческих исследований по этому поводу я не нашёл. Студенты играют и в мобильные игры (например, Clash Royale). Значит, важнее общий принцип, а не жанр.
+- Instagram and Facebook are broad-reach platforms in Azerbaijan. The previous draft cited third-party audience estimates for December 2025; treat them as advertising-tool estimates, not verified user counts. The cited source was NapoleonCat's Azerbaijan social-media statistics.
+- The previous draft's TikTok figure came from early 2024 and is stale for current planning.
+- The draft did not verify WhatsApp or Telegram audience figures. Check national ICT statistics or a recent DataReportal report before choosing a messaging channel.
+- Tea-house and social-game settings appear in anecdotal sources, but the draft did not find local student research confirming a particular game genre. Optimize for the broader social pattern rather than assuming a specific activity.
 
-## Что делает игру популярной в такой среде
+## Product behaviors that may help
 
-1. **Вызов знакомого, а не абстрактный рейтинг.** Однокурсник важнее общего топа страны.
-2. **Короткая сессия.** Партия за 60 секунд, между парами или в очереди.
-3. **Повод поделиться.** Результат и ссылка, которую хочется отправить в чат. Здесь важны превью ссылок.
-4. **Свой круг.** Группа класса, курса, университета, двора. Игра становится частью общения.
-5. **Ежедневный ритуал.** Один общий вызов дня и серия, которую «жалко потерять».
-6. **Гордость за своё.** Командные результаты: «наш курс» против «их курса».
+1. **Challenge a familiar person:** a classmate or friend may matter more than a country-wide leaderboard.
+2. **Keep sessions short:** a one-minute test can fit between classes or while waiting.
+3. **Give people something to share:** the result card and link preview should make sense without explanation.
+4. **Support existing groups:** classmates, university courses, neighborhoods, and friend groups can share one challenge.
+5. **Create a daily ritual:** one shared daily challenge and a streak can encourage return visits.
+6. **Make team comparison fun:** compare a course or group with another group.
 
-## Что уже сделано
+## Already implemented in the previous draft
 
-- Превью ссылок на дуэль и группу: в WhatsApp и Telegram ссылка показывает имя того, кто зовёт, балл и приглашение (`worker/share.ts`). Превью работает, если мессенджер читает Open Graph. Картинка пока общая (иконка 512 px); отдельная карточка 1200×630 — следующий шаг.
-- Группы с кодом и общим рейтингом.
-- Серия и тест дня.
+- Duel and group links show the inviter's name, score, and invitation in messaging apps that support Open Graph previews. The cited implementation was `worker/share.ts`; the draft noted that the preview image was still generic.
+- Groups use a shared code and leaderboard.
+- A daily task and streak are implemented.
 
-## Приоритеты (по убыванию влияния на рост)
+Check the current code before relying on these status notes.
 
-1. **Студенческие группы по университетам.** Пользователь выбирает университет (список проверить: например, BDU, AzTU, UNEC, ADA, ADU — названия и сокращения нужно сверить). Рейтинг «какой курс/университет сильнее» с кодом для однокурсников. Без проверки студенчества, с оговоркой, что это самоописание.
-2. **Вызов дня для группы.** Одна и та же задача для всех участников группы в один день. Итог группы в конце дня. Серия по группе.
-3. **Карточка для историй.** Отдельная картинка 1080×1920 с результатом и приглашением. Уже есть генератор карточек: нужно добавить сценарий «пригласи в группу».
-4. **Напоминания.** Web Push работает не на всех iPhone (нужно «Добавить на экран»). Если Telegram-бот окажется заметнее, сделать его; сначала проверить охват.
-5. **Ссылки с источниками.** Метки `?s=` уже есть: каждый университет, группа и блогер получают свою ссылку, в админке видно, кто приводит людей.
-6. **Амбассадоры.** 20–30 студентов из разных университетов с группами и короткими видео «мой результат». Это дешевле рекламы и лучше работает в среде, где решает знакомый.
-7. **Спонсорский вызов.** Только после первых тысяч активных пользователей, с пометкой «Sponsorlu».
+## Priorities by expected impact
 
-## Что убрать или упростить
+1. **University groups:** provide a self-described institution or course group and a share code. Verify institution names and acronyms. Do not imply verified student status if none is collected.
+2. **Daily group challenge:** give group members the same task on a given day and show the group's result later.
+3. **Story card:** add a 1080×1920 result image with an invitation to join a group.
+4. **Reminders:** Web Push has limitations on iPhone and may require installing the PWA. Check actual reach before building a Telegram reminder bot.
+5. **Source-tagged links:** use separate `?s=` tags for institutions, groups, and creators.
+6. **Student ambassadors:** test a small group of students across several universities, each sharing a group and a short result video.
+7. **Sponsored challenge:** consider it after the product has meaningful active usage, with clear `Sponsorlu` labeling.
 
-- Текст и экраны при первом входе: сейчас много объяснений. Оставить одну фразу и кнопку «Начать».
-- Несколько экранов в «Pasport» (баллы, серия, карточки, группы, звук, вибрация) — перенести часть в настройки.
-- 31 тест на главной — это много для первого захода. На главной показывать «Тест дня» и три категории, остальное — по категориям (уже сделано).
-- Любые формулировки про IQ и «диагноз». Оставить «это не IQ, а результат игры».
+## Simplify
 
-## Что не делать
+- Reduce first-run explanations to one sentence and a clear start button.
+- Keep the Passport screen manageable; move secondary settings out of the primary flow.
+- Present the daily test and a few categories first, with the full catalog available by category.
+- Avoid IQ or diagnostic language. Explain that results are game performance, not a diagnosis.
 
-- Платные подписки и «премиум»: вы сами отметили, что это не сработает.
-- Обещания результатов мозга, которые мы не можем подтвердить.
-- Массовые рассылки и импорт контактов без согласия: это быстро убивает доверие.
+## Avoid
 
-## Как измерять
+- Paid subscriptions before testing demand.
+- Unsupported claims about brain performance.
+- Bulk messaging or contact imports without consent.
 
-- Ретеншн: D1 и D7 (в админке уже есть).
-- Приглашения на пользователя (сколько ссылок отправлено и сколько людей пришло по ним). Показатель вирусности.
-- Доля пользователей, которые вступили в группу.
-- Для каждого канала и амбассадора — отдельная метка `?s=`.
+## Measure
 
-## Что я проверю, прежде чем делать
+- Day-one and day-seven retention
+- Invitations sent and visitors arriving through invitation links
+- The share of users who join a group
+- Acquisition-source tags for each channel and ambassador
 
-- Реальные цифры мессенджеров в Азербайджане (ICT-министерство, Datareportal).
-- Названия университетов и правила, которые допустимы для групп студентов.
-- Работу превью в WhatsApp, Telegram и iMessage: после деплоя отправить ссылку себе и проверить карточку.
+## Verify before acting
+
+- Current messaging-platform reach in Azerbaijan
+- University names and any rules for student groups
+- Link previews in WhatsApp, Telegram, and iMessage after deployment
