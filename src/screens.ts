@@ -47,7 +47,11 @@ export function langSwitch(): HTMLElement {
 
 export function screen(active: string | null, ...kids: (Node | null | false)[]) {
   tint(null);
-  mount(app(), h("div", { class: "screen" }, ...(kids.filter(Boolean) as Node[])), ...(active ? [tabs(active)] : []));
+  const list = kids.filter(Boolean) as Node[];
+  // every screen offers AZ | RU; a page with its own header (the old home) already has the switch
+  const hasHeader = list.some((k) => k instanceof HTMLElement && k.classList.contains("top"));
+  const langRow = hasHeader ? [] : [h("div", { class: "lang-row", style: "display:flex;justify-content:flex-end" }, langSwitch())];
+  mount(app(), h("div", { class: "screen" }, ...langRow, ...list), ...(active ? [tabs(active)] : []));
 }
 
 export const showError = (retry?: () => void) =>
