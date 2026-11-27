@@ -39,19 +39,21 @@ export interface FriendView {
   id: string;
   nick: string;
   rating: number | null;
+  /** online only when the friend allows it and was seen in the last 5 minutes */
+  online: boolean;
   wins: number;      // my wins against this friend
   losses: number;
   draws: number;
 }
 
-export async function listFriends(db: D1Database, uid: string): Promise<FriendView[]> {
+export async function listFriends(db: D1Database, uid: string, now = Date.now()): Promise<FriendView[]> {
   const rows = await db
     .prepare(
-      "SELECT f.friend_id AS id, u.nickname AS nick, r.rating AS rating FROM friends f " +
+      "SELECT f.friend_id AS id, u.nickname AS nick, r.rating AS rating, u.last_seen_at AS seen, u.show_presence AS show FROM friends f " +
         "JOIN users u ON u.id = f.friend_id LEFT JOIN ratings r ON r.user_id = f.friend_id WHERE f.user_id = ? ORDER BY u.nickname",
     )
     .bind(uid)
-    .all<{ id: string; nick: string; rating: number | null }>();
+    .all<{ id: string; nick: string; rating: number | null; seen: number; show: number }>();
   const out: FriendView[] = [];
   for (const f of rows.results) {
     // head-to-head: only real matches between the two of us (no bots, no training)
@@ -65,7 +67,8 @@ export async function listFriends(db: D1Database, uid: string): Promise<FriendVi
       )
       .bind(uid, uid, uid, uid, uid, f.id, f.id, uid)
       .first<{ wins: number | null; losses: number | null; draws: number | null }>();
-    out.push({ id: f.id, nick: f.nick, rating: f.rating, wins: h?.wins ?? 0, losses: h?.losses ?? 0, draws: h?.draws ?? 0 });
+    const online = !!f.show && now - f.seen < 5 * 60 * 1000;
+    out.push({ id: f.id, nick: f.nick, rating: f.rating, online, wins: h?.wins ?? 0, losses: h?.losses ?? 0, draws: h?.draws ?? 0 });
   }
   return out;
 }

@@ -11,6 +11,8 @@ import { skillsFor } from "../skills";
 import { notificationsFor } from "../notifications";
 import { dailyBoard } from "../daily-board";
 import { teamWeeks } from "../team-week";
+import { createChallenge, respondChallenge, myChallenges } from "../team-challenges";
+import { eventBoard } from "../events-board";
 import { credit } from "../economy-core";
 import { todayBaku } from "../../shared/experiments";
 import { DAILY_REWARD } from "../../config/streak";
@@ -87,6 +89,27 @@ game3Routes.get("/leaderboards/daily", auth, async (c) => {
   const scope = (["world", "friends", "city"] as const).includes(c.req.query("scope") as "world") ? String(c.req.query("scope")) : "world";
   const r = await dailyBoard(c.env.DB, c.get("userId"), scope, Date.now());
   return r ? c.json(r) : c.json({ error: "no_daily" }, 404);
+});
+
+/** A team challenge: only the owner of the inviting team sends it; the other team's owner accepts. */
+game3Routes.post("/teams/challenges", auth, async (c) => {
+  const b = await c.req.json<{ fromTeamId?: string; toTeamCode?: string }>().catch(() => ({}) as { fromTeamId?: string; toTeamCode?: string });
+  const r = await createChallenge(c.env.DB, c.get("userId"), String(b.fromTeamId ?? ""), String(b.toTeamCode ?? ""), Date.now());
+  if (!r.ok) return c.json({ error: r.reason }, r.reason === "not_found" ? 404 : r.reason === "not_owner" ? 403 : 409);
+  return c.json({ ok: true, id: r.id });
+});
+
+game3Routes.post("/teams/challenges/:id", auth, async (c) => {
+  const b = await c.req.json<{ accept?: boolean }>().catch(() => ({}) as { accept?: boolean });
+  const r = await respondChallenge(c.env.DB, c.get("userId"), c.req.param("id"), b.accept === true, Date.now());
+  return r.ok ? c.json(r) : c.json({ error: r.reason }, r.reason === "not_found" ? 404 : 403);
+});
+
+game3Routes.get("/teams/challenges", auth, async (c) => c.json({ challenges: await myChallenges(c.env.DB, c.get("userId"), Date.now()) }));
+
+game3Routes.get("/events/:id/board", auth, async (c) => {
+  const r = await eventBoard(c.env.DB, c.req.param("id"));
+  return r ? c.json(r) : c.json({ error: "not_found" }, 404);
 });
 
 /** The weekly team competition: this week and the previous one. */

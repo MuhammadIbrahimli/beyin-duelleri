@@ -64,7 +64,7 @@ export async function homeExtras(): Promise<HTMLElement> {
   const seasonLine = season?.season
     ? h("p", { class: "soft" }, t("game2.season.line", { id: season.season.id, days: season.season.daysLeft }))
     : h("p", { class: "soft" }, az.game2.season.none);
-  const events = (season?.events ?? []).map((e: any) => h("p", { class: "g2-event" }, t("game2.season.event", { name: loc(e.title) }), " · ", loc(e.description)));
+  const events = (season?.events ?? []).map((e: any) => h("a", { class: "g2-event", href: `/event?id=${e.id}`, "data-link": "" }, t("game2.season.event", { name: loc(e.title) }), " · ", loc(e.description)));
   return h("div", null, h("div", { class: "g2-season" }, seasonLine, ...events), questsBlock(quests?.quests ?? []));
 }
 
@@ -386,6 +386,7 @@ export async function teamsPage() {
           h("span", { class: "muted" }, `${x.members} · ${(az.game2.teams.kinds as Record<string, string>)[x.kind] ?? x.kind}`)))
           : [h("p", { class: "soft" }, az.game2.teams.none)])),
       await weekBlock(),
+      await (await import("./game3")).challengesBlock(),
       h("section", { class: "g2-block" }, h("h3", { class: "g2-sub" }, az.game2.teams.ranking),
         ...(ranking.rows.length ? ranking.rows.map((x: any) => boardRow(x.rank, x.name, t("game2.teams.avg", { n: x.avgRating }), null, false))
           : [h("p", { class: "soft" }, az.game2.teams.notRanked)])));
@@ -465,6 +466,7 @@ export async function profilePage() {
       : h("p", { class: "soft" }, az.game2.profile.nothingEquipped),
     skills,
     seasons,
+    await (await import("./game3")).settingsBlock(p.showPresence),
     h("h2", null, az.game2.profile.ratingHistory),
     ...((rr?.history ?? []).length ? (rr.history as { delta: number; rating_after: number; created_at: number }[]).map((x) => h("div", { class: "d5-row" },
       h("span", null, new Date(x.created_at).toLocaleDateString(getLang() === "ru" ? "ru-RU" : "az-AZ")),

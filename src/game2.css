@@ -106,3 +106,6 @@
 .g2-rating .eyebrow { display: block; }
 .g2-details { display: grid; gap: var(--sp-2); }
 .g2-details summary { cursor: pointer; font-weight: 700; color: var(--c-muted); }
+.g2-check { display: flex; align-items: center; gap: var(--sp-2); min-height: 44px; }
+.g2-check input { width: 22px; height: 22px; }
+a.g2-event { color: var(--c-primary); text-decoration: none; font-weight: 700; }

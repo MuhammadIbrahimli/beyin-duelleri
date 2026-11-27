@@ -14,6 +14,7 @@ route("/leaderboard", (c) => import("./game2").then((g) => g.boardPage(c.query.g
 route("/friends", () => import("./game2").then((g) => g.friendsPage()));
 route("/daily-board", (c) => import("./game3").then((g) => g.dailyBoardPage(c.query.get("scope") ?? "world")));
 route("/admin-duel", () => import("./game3").then((g) => g.adminPage()));
+route("/event", (c) => import("./game3").then((g) => g.eventBoardPage(c.query.get("id") ?? "")));
 route("/teams", () => import("./game2").then((g) => g.teamsPage()));
 route("/teams/:id", (c) => import("./game2").then((g) => g.teamPage(c.params.id)));
 route("/profile", () => import("./game2").then((g) => g.profilePage()));

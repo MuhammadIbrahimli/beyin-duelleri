@@ -220,6 +220,7 @@ game2Routes.get("/profile/me", auth, async (c) => {
   const rating = await c.env.DB.prepare("SELECT rating, peak FROM ratings WHERE user_id = ?").bind(uid).first<{ rating: number; peak: number }>();
   const r = rating?.rating ?? RATING.start;
   const stats = await statsOf(c.env.DB, uid);
+  const pres = await c.env.DB.prepare("SELECT show_presence AS s FROM users WHERE id = ?").bind(uid).first<{ s: number }>();
   const ach = await listAchievements(c.env.DB, uid);
   const { level, into, need } = levelForXp(xp);
   return c.json({
@@ -230,5 +231,6 @@ game2Routes.get("/profile/me", auth, async (c) => {
     stats,
     equipped: await equippedOf(c.env.DB, uid),
     achievements: { unlocked: ach.filter((a) => a.unlocked).length, total: ach.length },
+    showPresence: pres ? !!pres.s : true,
   });
 });

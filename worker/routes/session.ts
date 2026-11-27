@@ -112,6 +112,7 @@ meRoutes.patch("/me", async (c) => {
     add("email_consent", e.value && b.emailConsent ? 1 : 0);
   }
   if (b.lang !== undefined) add("lang", lang(b.lang));
+  if (typeof b.showPresence === "boolean") add("show_presence", b.showPresence ? 1 : 0);
   if (b.profileDone === true) add("profile_done", 1);
 
   if (sets.length) await db.prepare(`UPDATE users SET ${sets.join(", ")} WHERE id = ?`).bind(...args, id).run();

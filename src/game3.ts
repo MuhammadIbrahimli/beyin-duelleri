@@ -123,6 +123,7 @@ export async function friendExtrasBlock(): Promise<HTMLElement> {
     } }, G().friendX.invite);
     box.append(h("div", { class: "g2-friend" },
       h("b", null, f.nick),
+      f.online ? h("span", { class: "g2-tag" }, G().presence.online) : null,
       h("div", { class: "g2-form" }, historyBtn, invite, teamSel),
       inviteMsg,
       historyBox,
@@ -271,3 +272,81 @@ export async function homeBlocks(): Promise<HTMLElement> {
   return h("div", null, league, toasts, dailyMsg, streak, notes);
 }
 
+
+// ---- team challenges ----------------------------------------------------------------------------------------------
+
+const CHALLENGE_ERR: Record<string, string> = {
+  not_owner: "notOwner", same_team: "sameTeam", limit: "limit", not_found: "notFound",
+};
+
+/** Team challenges: send one from a team I own, accept or decline the ones sent to my team, and see the live score. */
+export async function challengesBlock(): Promise<HTMLElement> {
+  const [teams, data] = await Promise.all([
+    api("GET", "/teams").catch(() => ({ teams: [] })),
+    api("GET", "/teams/challenges").catch(() => ({ challenges: [] })),
+  ]);
+  const mine = (teams.teams ?? []) as any[];
+  const owned = mine.filter((x) => x.owner);
+  const box = h("section", { class: "g2-block" }, h("h3", { class: "g2-sub" }, G().challenge.title));
+  const msg = h("p", { class: "soft", role: "status" });
+  if (owned.length) {
+    const pick = h("select", { class: "field", "aria-label": G().challenge.pick }, ...owned.map((x) => h("option", { value: x.id }, x.name))) as HTMLSelectElement;
+    const code = h("input", { class: "field", maxlength: 8, placeholder: G().challenge.opponent, "aria-label": G().challenge.opponent }) as HTMLInputElement;
+    box.append(h("div", { class: "g2-form" }, pick, code,
+      h("button", { class: "btn primary", onclick: async () => {
+        msg.textContent = "";
+        try {
+          await api("POST", "/teams/challenges", { fromTeamId: pick.value, toTeamCode: code.value });
+          msg.textContent = G().challenge.sent;
+          go("/teams");
+        } catch (e: any) {
+          msg.textContent = (G().challenge as Record<string, string>)[CHALLENGE_ERR[e.code] ?? "notFound"];
+        }
+      } }, G().challenge.send)),
+      msg);
+  }
+  const myOwned = new Set(owned.map((x) => x.id));
+  const rows = (data.challenges ?? []).map((c: any) => {
+    const incomingToMe = c.status === "open" && myOwned.has(c.to.id);
+    return h("div", { class: "g2-quest" },
+      h("div", { class: "g2-quest-head" }, h("b", null, `${c.from.name} — ${c.to.name}`), h("span", { class: "muted" }, (G().challenge as Record<string, string>)[c.status === "open" ? "open" : c.status === "accepted" ? "accepted" : "declined"])),
+      c.status === "accepted"
+        ? h("p", { class: "g2-balance" }, t("game3.challenge.score", { a: c.from.wins, b: c.to.wins }) + " · " + t("game3.challenge.matches", { n: c.matches }) + (c.over ? "" : " · " + t("game3.challenge.ends", { date: new Date(c.endsAt).toLocaleDateString() })))
+        : null,
+      incomingToMe
+        ? h("div", { class: "g2-form" },
+          h("button", { class: "btn primary", onclick: async () => { await api("POST", `/teams/challenges/${c.id}`, { accept: true }); go("/teams"); } }, G().challenge.accept),
+          h("button", { class: "btn", onclick: async () => { await api("POST", `/teams/challenges/${c.id}`, { accept: false }); go("/teams"); } }, G().challenge.decline))
+        : null);
+  });
+  box.append(h("h4", { class: "g2-sub" }, G().challenge.week), ...(rows.length ? rows : [h("p", { class: "soft" }, G().challenge.none)]));
+  return box;
+}
+
+// ---- settings: a compact block on the profile (presence privacy; the rest stays on the old settings page) -----------
+
+export function settingsBlock(showPresence: boolean): HTMLElement {
+  const box = h("input", { type: "checkbox", checked: showPresence ? true : null }) as HTMLInputElement;
+  const msg = h("span", { class: "muted", role: "status" });
+  box.addEventListener("change", async () => {
+    await api("PATCH", "/me", { showPresence: box.checked }).catch(() => {});
+    msg.textContent = G().presence.saved;
+  });
+  return h("section", { class: "g2-block" },
+    h("h2", null, G().presence.title),
+    h("label", { class: "g2-check" }, box, " ", G().presence.show),
+    msg,
+    h("a", { class: "btn", href: "/passport", "data-link": "" }, az.game2.profile.settings));
+}
+
+// ---- event board ----------------------------------------------------------------------------------------------------
+
+export async function eventBoardPage(id: string) {
+  const b = await api("GET", `/events/${encodeURIComponent(id)}/board`).catch(() => null);
+  if (!b) { screen("rank", h("h1", null, G().event.none)); return; }
+  screen("rank", h("h1", null, loc(b.event.title)), h("p", { class: "soft" }, loc(b.event.description)),
+    ...(b.rows.length
+      ? b.rows.map((r: any) => h("div", { class: "g2-row" }, h("span", { class: "g2-rank" }, String(r.rank)), h("span", { class: "g2-nick" }, r.nick),
+        h("span", { class: "g2-val" }, `${r.wins} / ${r.played}`)))
+      : [h("p", { class: "soft" }, G().event.none)]));
+}
